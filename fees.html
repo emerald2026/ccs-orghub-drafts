@@ -38,12 +38,137 @@
     <div id="topbar-layer"></div>
 
     <main class="flex-1 p-4 md:p-8 space-y-6">
-      <!-- YOUR CONTENT HERE -->
-      <div class="glass-card p-8 rounded-3xl text-center">
-        <h2 class="text-2xl font-bold text-white">Fees</h2>
-        <p class="text-purple-300/70 mt-2">Content goes here</p>
+
+      <!-- CONNECTION STATUS -->
+      <div id="connectionStatus" class="glass-card p-4 rounded-2xl flex items-center gap-3 text-xs">
+        <div id="connIcon" class="p-2 rounded-xl bg-amber-500/20 border border-amber-500/30">
+          <i data-lucide="wifi" class="w-4 h-4 text-amber-300"></i>
+        </div>
+        <div>
+          <div id="connTitle" class="font-bold text-white">Checking Supabase connection...</div>
+          <div id="connSub" class="text-purple-300/70">Verifying database access</div>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Total Fees</span>
+            <div class="p-2.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30">
+              <i data-lucide="receipt" class="w-5 h-5"></i>
+            </div>
+          </div>
+          <div class="text-3xl font-extrabold text-white" id="statTotal">—</div>
+        </div>
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Paid</span>
+            <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+            </div>
+          </div>
+          <div class="text-3xl font-extrabold text-emerald-300" id="statPaid">—</div>
+        </div>
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Unpaid</span>
+            <div class="p-2.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30">
+              <i data-lucide="clock" class="w-5 h-5"></i>
+            </div>
+          </div>
+          <div class="text-3xl font-extrabold text-amber-300" id="statUnpaid">—</div>
+        </div>
+      </div>
+
+      <!-- SEARCH -->
+      <div class="glass-card p-5 rounded-3xl">
+        <div class="relative">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-purple-300/60"></i>
+          <input id="searchFees" oninput="renderFees()" placeholder="Search by student or organization..."
+            class="w-full bg-purple-950/60 border border-purple-500/30 rounded-xl py-2.5 pl-9 pr-3 text-xs text-white placeholder-purple-300/50 focus:border-purple-400 focus:outline-none" />
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="glass-card p-6 rounded-3xl space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <i data-lucide="receipt" class="w-5 h-5 text-purple-400"></i> Fee Records
+          </h3>
+          <div class="flex items-center gap-2">
+            <button onclick="loadFees()" class="px-3 py-1.5 rounded-lg bg-purple-950/60 hover:bg-purple-800/60 text-purple-200 border border-purple-500/30 text-[11px] font-bold transition-all flex items-center gap-1.5">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
+            </button>
+            <button onclick="openFeeModal()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-purple-700 text-white font-bold text-xs shadow-lg shadow-purple-600/40 hover:brightness-110 flex items-center gap-2 border border-purple-400/40">
+              <i data-lucide="plus" class="w-4 h-4"></i><span>Record Fee</span>
+            </button>
+          </div>
+        </div>
+        <div class="overflow-x-auto rounded-2xl border border-purple-500/20">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-purple-950/80 text-purple-300 uppercase tracking-wider font-semibold border-b border-purple-500/20">
+              <tr>
+                <th class="py-3.5 px-4">Student</th>
+                <th class="py-3.5 px-4">Organization</th>
+                <th class="py-3.5 px-4">Amount</th>
+                <th class="py-3.5 px-4">Status</th>
+                <th class="py-3.5 px-4">Date</th>
+                <th class="py-3.5 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="feesTable" class="divide-y divide-purple-500/10 text-purple-100">
+              <tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </main>
+  </div>
+
+  <!-- MODAL: RECORD FEE -->
+  <div id="modal-fee" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="glass-card w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-purple-400/40 space-y-5 relative">
+      <button onclick="closeModal('modal-fee')" class="absolute top-5 right-5 text-purple-300 hover:text-white">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+      <div class="flex items-center space-x-3">
+        <div class="p-2.5 rounded-xl bg-purple-600/30 text-purple-300 border border-purple-400/40">
+          <i data-lucide="receipt" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-white">Record Membership Fee</h3>
+          <p class="text-xs text-purple-300/70">Add a new fee entry</p>
+        </div>
+      </div>
+      <form id="fee-form" onsubmit="saveFee(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-purple-200 mb-1">Student</label>
+          <select id="fee-student" required class="w-full bg-purple-950/80 border border-purple-500/40 rounded-xl px-3.5 py-2.5 text-white focus:border-purple-400 focus:outline-none"></select>
+        </div>
+        <div>
+          <label class="block font-semibold text-purple-200 mb-1">Organization</label>
+          <input id="fee-org" required placeholder="e.g. CCS Student Council" class="w-full bg-purple-950/80 border border-purple-500/40 rounded-xl px-3.5 py-2.5 text-white placeholder-purple-300/40 focus:border-purple-400 focus:outline-none" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-purple-200 mb-1">Amount (₱)</label>
+            <input id="fee-amount" type="number" required min="0" step="0.01" placeholder="250" class="w-full bg-purple-950/80 border border-purple-500/40 rounded-xl px-3.5 py-2.5 text-white focus:border-purple-400 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block font-semibold text-purple-200 mb-1">Status</label>
+            <select id="fee-status" class="w-full bg-purple-950/80 border border-purple-500/40 rounded-xl px-3 py-2.5 text-white focus:border-purple-400 focus:outline-none">
+              <option value="unpaid" selected>Unpaid</option>
+              <option value="paid">Paid</option>
+            </select>
+          </div>
+        </div>
+        <div class="pt-2 flex justify-end space-x-2">
+          <button type="button" onclick="closeModal('modal-fee')" class="px-4 py-2 rounded-xl bg-purple-950 text-purple-300 border border-purple-500/30 hover:text-white">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-500 shadow-lg shadow-purple-600/30">Save Fee</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <div id="modal-layer"></div>
@@ -51,20 +176,271 @@
 
   <script src="shared.js"></script>
   <script>
+    let fees = [];
+    let students = [];
+
     document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('bg-layer').innerHTML = buildBackground();
-      document.getElementById('sidebar-layer').innerHTML = buildSidebar('fees');   // ← change key
-      document.getElementById('topbar-layer').innerHTML = buildTopbar('Fees', 'Manage membership fees');  // ← change title
+      document.getElementById('sidebar-layer').innerHTML = buildSidebar('fees');
+      document.getElementById('topbar-layer').innerHTML = buildTopbar('Membership Fees', 'Record and monitor organization membership fees');
       document.getElementById('modal-layer').innerHTML = buildLogoutModal();
 
       lucide.createIcons();
       initSupabase();
+      await checkConnection();
+
       const ok = await guardAuth();
       if (!ok) return;
       await loadUserProfile();
 
-      // Your page-specific logic here
+      await loadStudents();
+      await loadFees();
     });
+
+    /* ---------- CONNECTION CHECK ---------- */
+    async function checkConnection() {
+      const iconEl = document.getElementById('connIcon');
+      const titleEl = document.getElementById('connTitle');
+      const subEl = document.getElementById('connSub');
+
+      if (!window.supabaseClient) {
+        iconEl.className = 'p-2 rounded-xl bg-red-500/20 border border-red-500/30';
+        iconEl.innerHTML = '<i data-lucide="wifi-off" class="w-4 h-4 text-red-300"></i>';
+        titleEl.textContent = 'Supabase NOT connected';
+        subEl.textContent = 'Check config.js';
+        lucide.createIcons();
+        return false;
+      }
+
+      try {
+        const { error } = await window.supabaseClient.from('fees').select('id').limit(1);
+        if (error) {
+          iconEl.className = 'p-2 rounded-xl bg-red-500/20 border border-red-500/30';
+          iconEl.innerHTML = '<i data-lucide="alert-circle" class="w-4 h-4 text-red-300"></i>';
+          titleEl.textContent = 'Table error: ' + error.message;
+          subEl.textContent = 'Check RLS or table name';
+        } else {
+          iconEl.className = 'p-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30';
+          iconEl.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-300"></i>';
+          titleEl.textContent = 'Supabase connected ✅';
+          subEl.textContent = 'Data will persist across refreshes';
+        }
+        lucide.createIcons();
+        return !error;
+      } catch (err) {
+        titleEl.textContent = 'Connection failed';
+        subEl.textContent = err.message;
+        return false;
+      }
+    }
+
+    /* ---------- LOAD STUDENTS (for dropdown) ---------- */
+    async function loadStudents() {
+      const sel = document.getElementById('fee-student');
+
+      if (!window.supabaseClient) {
+        sel.innerHTML = `<option value="">— No students available —</option>`;
+        return;
+      }
+
+      try {
+        const { data, error } = await window.supabaseClient
+          .from('students')
+          .select('id, first_name, last_name, student_id')
+          .order('last_name');
+
+        if (error) {
+          console.warn('Load students failed:', error.message);
+          sel.innerHTML = `<option value="">— Error loading students —</option>`;
+          return;
+        }
+
+        students = data || [];
+
+        if (students.length === 0) {
+          sel.innerHTML = `<option value="">— No students in database —</option>`;
+          return;
+        }
+
+        sel.innerHTML = students.map(s =>
+          `<option value="${s.id}">${s.student_id} — ${s.first_name} ${s.last_name}</option>`
+        ).join('');
+
+      } catch (err) {
+        sel.innerHTML = `<option value="">— Error —</option>`;
+      }
+    }
+
+    /* ---------- LOAD FEES ---------- */
+    async function loadFees() {
+      const tbody = document.getElementById('feesTable');
+      tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">Loading from Supabase...</td></tr>`;
+
+      if (!window.supabaseClient) {
+        fees = [];
+        renderFees();
+        renderStats();
+        return;
+      }
+
+      try {
+        const { data, error } = await window.supabaseClient
+          .from('fees')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-red-300 italic">Error: ${error.message}</td></tr>`;
+          renderStats();
+          return;
+        }
+
+        fees = data || [];
+        renderFees();
+        renderStats();
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-red-300 italic">Error: ${err.message}</td></tr>`;
+      }
+    }
+
+    /* ---------- RENDER ---------- */
+    function renderStats() {
+      document.getElementById('statTotal').textContent = fees.length;
+      document.getElementById('statPaid').textContent = fees.filter(f => f.status === 'paid').length;
+      document.getElementById('statUnpaid').textContent = fees.filter(f => f.status === 'unpaid').length;
+    }
+
+    function renderFees() {
+      const q = (document.getElementById('searchFees').value || '').toLowerCase();
+      const list = fees.filter(f =>
+        !q ||
+        (f.student_name || '').toLowerCase().includes(q) ||
+        (f.org || '').toLowerCase().includes(q)
+      );
+
+      const tbody = document.getElementById('feesTable');
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">No fee records. Click "Record Fee" to add one.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map(f => `
+        <tr class="hover:bg-purple-900/30 transition-colors">
+          <td class="py-3.5 px-4 font-semibold text-white">${f.student_name || '—'}</td>
+          <td class="py-3.5 px-4 text-purple-200">${f.org || '—'}</td>
+          <td class="py-3.5 px-4 text-purple-200 font-bold">₱${(f.amount || 0).toFixed(2)}</td>
+          <td class="py-3.5 px-4">
+            <span class="px-2 py-1 rounded-full text-[10px] font-bold ${f.status === 'paid' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30' : 'bg-amber-500/20 text-amber-300 border border-amber-400/30'}">${f.status || '—'}</span>
+          </td>
+          <td class="py-3.5 px-4 text-purple-300/80">${f.created_at ? new Date(f.created_at).toLocaleDateString() : '—'}</td>
+          <td class="py-3.5 px-4 text-right space-x-1">
+            ${f.status === 'unpaid' ? `<button onclick="markPaid(${f.id})" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-white text-[10px] font-bold border border-emerald-500/30 transition-all">Mark Paid</button>` : ''}
+            <button onclick="deleteFee(${f.id})" class="p-1.5 rounded-lg text-purple-400 hover:text-red-300 hover:bg-red-500/20 transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+          </td>
+        </tr>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    /* ---------- MODAL ---------- */
+    function openFeeModal() {
+      document.getElementById('modal-fee').classList.remove('opacity-0', 'pointer-events-none');
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    /* ---------- SAVE FEE ---------- */
+    async function saveFee(event) {
+      event.preventDefault();
+
+      if (!window.supabaseClient) {
+        showToast('Cannot Save', 'Supabase not connected.');
+        return;
+      }
+
+      const studentId = document.getElementById('fee-student').value;
+      const student = students.find(s => String(s.id) === String(studentId));
+
+      if (!student) {
+        showToast('Missing Student', 'Please select a valid student.');
+        return;
+      }
+
+      const payload = {
+        student_id: studentId,
+        student_name: student ? `${student.first_name} ${student.last_name}` : '—',
+        org: document.getElementById('fee-org').value.trim(),
+        amount: parseFloat(document.getElementById('fee-amount').value),
+        status: document.getElementById('fee-status').value,
+      };
+
+      try {
+        const { error } = await window.supabaseClient.from('fees').insert([payload]).select();
+
+        if (error) {
+          showToast('Save Failed ❌', error.message);
+          return;
+        }
+
+        closeModal('modal-fee');
+        document.getElementById('fee-form').reset();
+        await loadFees();
+        showToast('Fee Recorded ✅', `${payload.student_name} — ₱${payload.amount}`);
+      } catch (err) {
+        showToast('Save Failed', err.message);
+      }
+    }
+
+    /* ---------- MARK PAID ---------- */
+    async function markPaid(id) {
+      if (!window.supabaseClient) {
+        showToast('Cannot Update', 'Supabase not connected.');
+        return;
+      }
+
+      try {
+        const { error } = await window.supabaseClient
+          .from('fees')
+          .update({ status: 'paid' })
+          .eq('id', id);
+
+        if (error) {
+          showToast('Update Failed ❌', error.message);
+          return;
+        }
+
+        await loadFees();
+        showToast('Marked as Paid ✅', 'Status updated in database.');
+      } catch (err) {
+        showToast('Update Failed', err.message);
+      }
+    }
+
+    /* ---------- DELETE ---------- */
+    async function deleteFee(id) {
+      if (!confirm('Delete this fee record?')) return;
+
+      if (!window.supabaseClient) {
+        showToast('Cannot Delete', 'Supabase not connected.');
+        return;
+      }
+
+      try {
+        const { error } = await window.supabaseClient.from('fees').delete().eq('id', id);
+
+        if (error) {
+          showToast('Delete Failed ❌', error.message);
+          return;
+        }
+
+        await loadFees();
+        showToast('Fee Deleted ✅', 'Record removed from database.');
+      } catch (err) {
+        showToast('Delete Failed', err.message);
+      }
+    }
   </script>
 </body>
 </html>

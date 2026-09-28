@@ -44,6 +44,17 @@
 
     <main class="flex-1 p-4 md:p-8 space-y-6">
 
+      <!-- CONNECTION STATUS -->
+      <div id="connectionStatus" class="glass-card p-4 rounded-2xl flex items-center gap-3 text-xs">
+        <div id="connIcon" class="p-2 rounded-xl bg-amber-500/20 border border-amber-500/30">
+          <i data-lucide="wifi" class="w-4 h-4 text-amber-300"></i>
+        </div>
+        <div>
+          <div id="connTitle" class="font-bold text-white">Checking Supabase connection...</div>
+          <div id="connSub" class="text-purple-300/70">Verifying database access</div>
+        </div>
+      </div>
+
       <!-- STATS -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
@@ -80,9 +91,19 @@
 
       <!-- TABLE -->
       <div class="glass-card p-6 rounded-3xl space-y-4">
-        <h3 class="text-base font-bold text-white flex items-center gap-2">
-          <i data-lucide="alert-circle" class="w-5 h-5 text-purple-400"></i> Fine Records
-        </h3>
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <i data-lucide="alert-circle" class="w-5 h-5 text-purple-400"></i> Fine Records
+          </h3>
+          <div class="flex items-center gap-2">
+            <button onclick="loadFines()" class="px-3 py-1.5 rounded-lg bg-purple-950/60 hover:bg-purple-800/60 text-purple-200 border border-purple-500/30 text-[11px] font-bold transition-all flex items-center gap-1.5">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
+            </button>
+            <button onclick="openFineModal()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-purple-700 text-white font-bold text-xs shadow-lg shadow-purple-600/40 hover:brightness-110 flex items-center gap-2 border border-purple-400/40">
+              <i data-lucide="plus" class="w-4 h-4"></i><span>Issue Fine</span>
+            </button>
+          </div>
+        </div>
         <div class="overflow-x-auto rounded-2xl border border-purple-500/20">
           <table class="w-full text-left text-xs">
             <thead class="bg-purple-950/80 text-purple-300 uppercase tracking-wider font-semibold border-b border-purple-500/20">
@@ -166,6 +187,8 @@
       lucide.createIcons();
 
       initSupabase();
+      await checkConnection();
+
       const ok = await guardAuth();
       if (!ok) return;
       await loadUserProfile();
@@ -174,45 +197,111 @@
       await loadFines();
     });
 
+    /* ---------- CONNECTION CHECK ---------- */
+    async function checkConnection() {
+      const iconEl = document.getElementById('connIcon');
+      const titleEl = document.getElementById('connTitle');
+      const subEl = document.getElementById('connSub');
+
+      if (!window.supabaseClient) {
+        iconEl.className = 'p-2 rounded-xl bg-red-500/20 border border-red-500/30';
+        iconEl.innerHTML = '<i data-lucide="wifi-off" class="w-4 h-4 text-red-300"></i>';
+        titleEl.textContent = 'Supabase NOT connected';
+        subEl.textContent = 'Check config.js';
+        lucide.createIcons();
+        return false;
+      }
+
+      try {
+        const { error } = await window.supabaseClient.from('fines').select('id').limit(1);
+        if (error) {
+          iconEl.className = 'p-2 rounded-xl bg-red-500/20 border border-red-500/30';
+          iconEl.innerHTML = '<i data-lucide="alert-circle" class="w-4 h-4 text-red-300"></i>';
+          titleEl.textContent = 'Table error: ' + error.message;
+          subEl.textContent = 'Check RLS or table name';
+        } else {
+          iconEl.className = 'p-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30';
+          iconEl.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-300"></i>';
+          titleEl.textContent = 'Supabase connected ✅';
+          subEl.textContent = 'Data will persist across refreshes';
+        }
+        lucide.createIcons();
+        return !error;
+      } catch (err) {
+        titleEl.textContent = 'Connection failed';
+        subEl.textContent = err.message;
+        return false;
+      }
+    }
+
     /* ---------- LOAD STUDENTS (for dropdown) ---------- */
     async function loadStudents() {
       const sel = document.getElementById('fine-student');
-      if (window.supabaseClient) {
-        try {
-          const { data } = await window.supabaseClient
-            .from('students').select('id, first_name, last_name, student_id').order('last_name');
-          students = data || [];
-        } catch {}
+
+      if (!window.supabaseClient) {
+        sel.innerHTML = `<option value="">— No students available —</option>`;
+        return;
       }
-      if (students.length === 0) {
-        students = [
-          { id: 1, first_name: 'Samantha', last_name: 'Reyes', student_id: '2026-0101' },
-          { id: 2, first_name: 'Marcus', last_name: 'Villar', student_id: '2026-0102' },
-          { id: 3, first_name: 'Angelica', last_name: 'Cruz', student_id: '2026-0103' },
-        ];
+
+      try {
+        const { data, error } = await window.supabaseClient
+          .from('students')
+          .select('id, first_name, last_name, student_id')
+          .order('last_name');
+
+        if (error) {
+          console.warn('Load students failed:', error.message);
+          sel.innerHTML = `<option value="">— Error loading students —</option>`;
+          return;
+        }
+
+        students = data || [];
+
+        if (students.length === 0) {
+          sel.innerHTML = `<option value="">— No students in database —</option>`;
+          return;
+        }
+
+        sel.innerHTML = students.map(s =>
+          `<option value="${s.id}">${s.student_id} — ${s.first_name} ${s.last_name}</option>`
+        ).join('');
+
+      } catch (err) {
+        sel.innerHTML = `<option value="">— Error —</option>`;
       }
-      sel.innerHTML = students.map(s =>
-        `<option value="${s.id}">${s.student_id} — ${s.first_name} ${s.last_name}</option>`
-      ).join('');
     }
 
     /* ---------- LOAD FINES ---------- */
     async function loadFines() {
-      if (window.supabaseClient) {
-        try {
-          const { data } = await window.supabaseClient
-            .from('fines').select('*').order('created_at', { ascending: false });
-          fines = data || [];
-        } catch {}
+      const tbody = document.getElementById('finesTable');
+      tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">Loading from Supabase...</td></tr>`;
+
+      if (!window.supabaseClient) {
+        fines = [];
+        renderFines();
+        renderStats();
+        return;
       }
-      if (fines.length === 0) {
-        fines = [
-          { id: 1, student_name: 'Samantha Reyes', reason: 'Missed General Assembly', amount: 100, status: 'unpaid', created_at: new Date().toISOString() },
-          { id: 2, student_name: 'Marcus Villar', reason: 'Late submission', amount: 50, status: 'settled', created_at: new Date().toISOString() },
-        ];
+
+      try {
+        const { data, error } = await window.supabaseClient
+          .from('fines')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-red-300 italic">Error: ${error.message}</td></tr>`;
+          renderStats();
+          return;
+        }
+
+        fines = data || [];
+        renderFines();
+        renderStats();
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-red-300 italic">Error: ${err.message}</td></tr>`;
       }
-      renderFines();
-      renderStats();
     }
 
     /* ---------- RENDER ---------- */
@@ -232,7 +321,7 @@
 
       const tbody = document.getElementById('finesTable');
       if (list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">No fines found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">No fines found. Click "Issue Fine" to add one.</td></tr>`;
         return;
       }
 
@@ -265,56 +354,92 @@
     /* ---------- SAVE FINE ---------- */
     async function saveFine(event) {
       event.preventDefault();
-      const studentId = document.getElementById('fine-student').value;
-      const student = students.find(s => String(s.id) === String(studentId));
-      const newFine = {
-        id: Date.now(),
-        student_id: studentId,
-        student_name: student ? `${student.first_name} ${student.last_name}` : '—',
-        reason: document.getElementById('fine-reason').value,
-        amount: parseFloat(document.getElementById('fine-amount').value),
-        status: document.getElementById('fine-status').value,
-        created_at: new Date().toISOString()
-      };
 
-      if (window.supabaseClient) {
-        try {
-          const { data } = await window.supabaseClient.from('fines').insert([newFine]).select().single();
-          if (data) newFine.id = data.id;
-        } catch {}
+      if (!window.supabaseClient) {
+        showToast('Cannot Save', 'Supabase not connected.');
+        return;
       }
 
-      fines.unshift(newFine);
-      renderFines();
-      renderStats();
-      closeModal('modal-fine');
-      document.getElementById('fine-form').reset();
-      showToast('Fine Issued', `${newFine.student_name} — ₱${newFine.amount}`);
+      const studentId = document.getElementById('fine-student').value;
+      const student = students.find(s => String(s.id) === String(studentId));
+
+      if (!student) {
+        showToast('Missing Student', 'Please select a valid student.');
+        return;
+      }
+
+      const payload = {
+        student_id: studentId,
+        student_name: student ? `${student.first_name} ${student.last_name}` : '—',
+        reason: document.getElementById('fine-reason').value.trim(),
+        amount: parseFloat(document.getElementById('fine-amount').value),
+        status: document.getElementById('fine-status').value,
+      };
+
+      try {
+        const { error } = await window.supabaseClient.from('fines').insert([payload]).select();
+
+        if (error) {
+          showToast('Save Failed ❌', error.message);
+          return;
+        }
+
+        closeModal('modal-fine');
+        document.getElementById('fine-form').reset();
+        await loadFines();
+        showToast('Fine Issued ✅', `${payload.student_name} — ₱${payload.amount}`);
+      } catch (err) {
+        showToast('Save Failed', err.message);
+      }
     }
 
     /* ---------- SETTLE ---------- */
     async function settleFine(id) {
-      const f = fines.find(x => x.id === id);
-      if (!f) return;
-      f.status = 'settled';
-      if (window.supabaseClient) {
-        try { await window.supabaseClient.from('fines').update({ status: 'settled' }).eq('id', id); } catch {}
+      if (!window.supabaseClient) {
+        showToast('Cannot Update', 'Supabase not connected.');
+        return;
       }
-      renderFines();
-      renderStats();
-      showToast('Fine Settled', `${f.student_name} — ₱${f.amount}`);
+
+      try {
+        const { error } = await window.supabaseClient
+          .from('fines')
+          .update({ status: 'settled' })
+          .eq('id', id);
+
+        if (error) {
+          showToast('Update Failed ❌', error.message);
+          return;
+        }
+
+        await loadFines();
+        showToast('Fine Settled ✅', 'Status updated in database.');
+      } catch (err) {
+        showToast('Update Failed', err.message);
+      }
     }
 
     /* ---------- DELETE ---------- */
     async function deleteFine(id) {
       if (!confirm('Delete this fine?')) return;
-      fines = fines.filter(f => f.id !== id);
-      if (window.supabaseClient) {
-        try { await window.supabaseClient.from('fines').delete().eq('id', id); } catch {}
+
+      if (!window.supabaseClient) {
+        showToast('Cannot Delete', 'Supabase not connected.');
+        return;
       }
-      renderFines();
-      renderStats();
-      showToast('Fine Deleted', 'Record removed.');
+
+      try {
+        const { error } = await window.supabaseClient.from('fines').delete().eq('id', id);
+
+        if (error) {
+          showToast('Delete Failed ❌', error.message);
+          return;
+        }
+
+        await loadFines();
+        showToast('Fine Deleted ✅', 'Record removed from database.');
+      } catch (err) {
+        showToast('Delete Failed', err.message);
+      }
     }
   </script>
 </body>
