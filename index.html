@@ -10,54 +10,26 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <script>
     tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'] },
-          colors: {
-            purple: {
-              950: '#0f041c', 900: '#1e0836', 850: '#2d0a4e', 800: '#3b0764',
-              700: '#581c87', 600: '#7e22ce', 500: '#a855f7', 400: '#c084fc',
-              300: '#d8b4fe', 200: '#e9d5ff', 100: '#f3e8ff', 50: '#faf5ff',
-            }
-          }
-        }
-      }
+      theme: { extend: {
+        fontFamily: { sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'] },
+        colors: { purple: {
+          950:'#0f041c',900:'#1e0836',850:'#2d0a4e',800:'#3b0764',700:'#581c87',
+          600:'#7e22ce',500:'#a855f7',400:'#c084fc',300:'#d8b4fe',200:'#e9d5ff',100:'#f3e8ff',50:'#faf5ff'
+        }}
+      }}
     }
   </script>
 
   <style>
-    body {
-      background: radial-gradient(circle at 10% 20%, #2d0a4e 0%, #1a052e 45%, #0a0212 100%);
-      background-attachment: fixed;
-      color: #f3e8ff;
-    }
-    .glass-card {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(168, 85, 247, 0.3);
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-    }
-    .glass-header {
-      background: rgba(15, 4, 28, 0.7);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-bottom: 1px solid rgba(168, 85, 247, 0.2);
-    }
-    .orb {
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(120px);
-      pointer-events: none;
-      z-index: 0;
-    }
-    input::placeholder { color: rgba(216, 180, 254, 0.5); }
+    body { background: radial-gradient(circle at 10% 20%, #2d0a4e 0%, #1a052e 45%, #0a0212 100%); background-attachment: fixed; color: #f3e8ff; }
+    .glass-card { background: rgba(255,255,255,0.05); backdrop-filter: blur(24px); border: 1px solid rgba(168,85,247,0.3); box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+    .glass-header { background: rgba(15,4,28,0.7); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(168,85,247,0.2); }
+    .orb { position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0; }
+    input::placeholder { color: rgba(216,180,254,0.5); }
   </style>
 </head>
 
@@ -74,7 +46,7 @@
   <div class="fixed inset-0 bg-black/40 z-[1]"></div>
 
   <header class="glass-header fixed top-0 left-0 right-0 z-30 px-4 md:px-10 py-3.5 flex items-center justify-between">
-    <a href="index.html" class="flex items-center gap-3 md:gap-4 group">
+    <a href="index.html" class="flex items-center gap-3 md:gap-4">
       <img src="src/logo.png" alt="ESSU Logo" class="h-10 md:h-12 w-auto">
       <img src="src/ccs.png" alt="CCS Logo" class="h-10 md:h-12 w-auto">
       <div class="hidden sm:flex flex-col leading-tight">
@@ -113,9 +85,7 @@
             <i data-lucide="lock" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-purple-400/70"></i>
             <input type="password" id="password" required placeholder="••••••••"
               class="w-full bg-purple-950/60 border border-purple-500/40 rounded-xl pl-10 pr-16 py-2.5 text-sm text-white placeholder-purple-300/40 focus:border-purple-400 focus:outline-none" />
-            <button type="button" id="togglePassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-purple-300 hover:text-white px-2 py-1 rounded-lg hover:bg-purple-500/20">
-              Show
-            </button>
+            <button type="button" id="togglePassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-purple-300 hover:text-white px-2 py-1 rounded-lg hover:bg-purple-500/20">Show</button>
           </div>
         </div>
 
@@ -138,7 +108,6 @@
         </p>
 
       </form>
-
     </div>
   </main>
 
@@ -147,39 +116,32 @@
   <script src="shared.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      // ✅ INIT SUPABASE FIRST
       initSupabase();
       lucide.createIcons();
 
-      // Verify
       if (!window.supabaseClient) {
-        showToast('Connection Error', 'Supabase client not loaded. Check config.js.');
-        console.error('Supabase client is undefined. Check that config.js is loaded and has window.SUPABASE_URL + window.SUPABASE_ANON_KEY.');
+        showToast('Connection Error', 'Supabase not loaded. Check config.js.');
         return;
       }
 
-      // Restore email
       const rememberedEmail = localStorage.getItem('rememberedEmail');
       if (rememberedEmail) {
         document.getElementById('email').value = rememberedEmail;
         document.getElementById('rememberMe').checked = true;
       }
 
-      // Auto-login check
       try {
         const { data: { session } } = await window.supabaseClient.auth.getSession();
         if (session) await redirectByRole(session.user);
       } catch (e) { console.warn(e); }
     });
 
-    /* Password toggle */
     document.getElementById('togglePassword').addEventListener('click', function () {
       const pw = document.getElementById('password');
       pw.type = pw.type === 'password' ? 'text' : 'password';
       this.textContent = pw.type === 'password' ? 'Show' : 'Hide';
     });
 
-    /* Role redirect */
     async function redirectByRole(user) {
       let role = 'student';
       if (window.supabaseClient && user?.id) {
@@ -190,7 +152,7 @@
         } catch {}
       }
       const routes = {
-        admin: 'dashboard.html',
+        admin:   'dashboard.html',
         officer: 'dashboard.html',
         adviser: 'dashboard.html',
         student: 'student-dashboard.html',
@@ -198,12 +160,11 @@
       window.location.replace(routes[role] || 'student-dashboard.html');
     }
 
-    /* Login submit */
     document.getElementById('loginForm').addEventListener('submit', async function (event) {
       event.preventDefault();
 
       if (!window.supabaseClient) {
-        showToast('Connection Error', 'Supabase not initialized. Check config.js.');
+        showToast('Connection Error', 'Supabase not initialized.');
         return;
       }
 
@@ -217,10 +178,7 @@
       btn.innerHTML = '<svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg><span>Signing in...</span>';
 
       try {
-        const { data, error } = await window.supabaseClient.auth.signInWithPassword({
-          email: email,
-          password: pass,
-        });
+        const { data, error } = await window.supabaseClient.auth.signInWithPassword({ email, password: pass });
 
         if (error) {
           showToast('Login Failed', error.message);

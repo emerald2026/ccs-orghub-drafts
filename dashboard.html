@@ -44,6 +44,17 @@
 
     <main class="flex-1 p-4 md:p-8 space-y-6">
 
+      <!-- CONNECTION STATUS -->
+      <div id="connectionStatus" class="glass-card p-4 rounded-2xl flex items-center gap-3 text-xs">
+        <div id="connIcon" class="p-2 rounded-xl bg-amber-500/20 border border-amber-500/30">
+          <i data-lucide="wifi" class="w-4 h-4 text-amber-300"></i>
+        </div>
+        <div>
+          <div id="connTitle" class="font-bold text-white">Checking Supabase connection...</div>
+          <div id="connSub" class="text-purple-300/70">Verifying database access</div>
+        </div>
+      </div>
+
       <!-- WELCOME -->
       <div class="welcome-gradient rounded-3xl p-6 md:p-8 relative overflow-hidden shadow-2xl">
         <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -76,7 +87,7 @@
             <div class="p-2.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30"><i data-lucide="graduation-cap" class="w-5 h-5"></i></div>
           </div>
           <div class="text-3xl font-extrabold text-white tracking-tight" id="totalStudents">—</div>
-          <p class="text-xs text-emerald-400 mt-2 flex items-center font-medium"><i data-lucide="trending-up" class="w-3.5 h-3.5 mr-1"></i> +12.5% this term</p>
+          <p class="text-xs text-emerald-400 mt-2 flex items-center font-medium"><i data-lucide="trending-up" class="w-3.5 h-3.5 mr-1"></i> Live from database</p>
         </div>
 
         <div class="glass-card p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1">
@@ -159,7 +170,7 @@
                 <i data-lucide="check-circle" class="w-5 h-5 text-emerald-400 shrink-0 mt-0.5"></i>
                 <div class="text-xs">
                   <p class="font-bold text-white">System running normally.</p>
-                  <p class="text-purple-300/70 mt-0.5">Supabase sync and student databases are fully operational.</p>
+                  <p class="text-purple-300/70 mt-0.5">Supabase sync is operational.</p>
                 </div>
               </div>
             </div>
@@ -177,9 +188,14 @@
             </h3>
             <p class="text-xs text-purple-300/70">Latest student enrollments registered in the college system</p>
           </div>
-          <button onclick="openAddStudentModal()" class="px-3.5 py-2 rounded-xl bg-purple-600/30 hover:bg-purple-600 text-purple-200 hover:text-white border border-purple-500/40 text-xs font-semibold transition-all flex items-center space-x-1.5 self-start sm:self-auto">
-            <i data-lucide="plus" class="w-4 h-4"></i><span>Add Student</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button onclick="loadDashboard()" class="px-3 py-1.5 rounded-lg bg-purple-950/60 hover:bg-purple-800/60 text-purple-200 border border-purple-500/30 text-[11px] font-bold transition-all flex items-center gap-1.5">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
+            </button>
+            <button onclick="openAddStudentModal()" class="px-3.5 py-2 rounded-xl bg-purple-600/30 hover:bg-purple-600 text-purple-200 hover:text-white border border-purple-500/40 text-xs font-semibold transition-all flex items-center space-x-1.5">
+              <i data-lucide="plus" class="w-4 h-4"></i><span>Add Student</span>
+            </button>
+          </div>
         </div>
 
         <div class="overflow-x-auto rounded-2xl border border-purple-500/20">
@@ -190,11 +206,10 @@
                 <th class="py-3.5 px-4">Name</th>
                 <th class="py-3.5 px-4">Course</th>
                 <th class="py-3.5 px-4">Year Level</th>
-                <th class="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody id="recentStudents" class="divide-y divide-purple-500/10 text-purple-100">
-              <tr><td colspan="5" class="py-8 text-center text-purple-300/60 italic">Loading student records...</td></tr>
+              <tr><td colspan="4" class="py-8 text-center text-purple-300/60 italic">Loading student records...</td></tr>
             </tbody>
           </table>
         </div>
@@ -239,10 +254,10 @@
           <div>
             <label class="block font-semibold text-purple-200 mb-1">Course Program</label>
             <select id="input-course" class="w-full bg-purple-950/80 border border-purple-500/40 rounded-xl px-3 py-2.5 text-white focus:border-purple-400 focus:outline-none">
-              <option value="BSCS">BS Computer Science</option>
-              <option value="BSIT">BS Information Technology</option>
-              <option value="BSEMC">BS Entertainment & Multimedia</option>
-              <option value="ACT">Associate in Computer Tech</option>
+              <option value="BS Computer Science">BS Computer Science</option>
+              <option value="BS Information Technology">BS Information Technology</option>
+              <option value="BS Entertainment & Multimedia">BS Entertainment & Multimedia</option>
+              <option value="Associate in Computer Tech">Associate in Computer Tech</option>
             </select>
           </div>
           <div>
@@ -278,22 +293,6 @@
           <p class="text-xs text-purple-300/70">Recent updates from CCS OrgHub system</p>
         </div>
       </div>
-      <div class="space-y-2.5 text-xs">
-        <div class="p-3 rounded-xl bg-purple-950/60 border border-purple-500/30">
-          <div class="font-bold text-white flex justify-between">
-            <span>Student Registration</span>
-            <span class="text-[10px] text-purple-300/60">5m ago</span>
-          </div>
-          <p class="text-purple-200/80 mt-1">3 new students enrolled in BSIT department.</p>
-        </div>
-        <div class="p-3 rounded-xl bg-purple-950/60 border border-purple-500/30">
-          <div class="font-bold text-white flex justify-between">
-            <span>Clearance Audit</span>
-            <span class="text-[10px] text-purple-300/60">1h ago</span>
-          </div>
-          <p class="text-purple-200/80 mt-1">Org fees audit completed for Junior Computer Society.</p>
-        </div>
-      </div>
       <div class="pt-2 text-right">
         <button onclick="closeModal('modal-notif')" class="px-4 py-2 rounded-xl bg-purple-600 text-white font-bold text-xs">Close</button>
       </div>
@@ -305,25 +304,6 @@
 
   <script src="shared.js"></script>
   <script>
-    /* ---------- MOCK DATA ---------- */
-    let mockStudents = [
-      { id: 1, student_id: '2026-0101', first_name: 'Samantha', last_name: 'Reyes', course: 'BSCS', year_level: '3rd Year' },
-      { id: 2, student_id: '2026-0102', first_name: 'Marcus', last_name: 'Villar', course: 'BSIT', year_level: '2nd Year' },
-      { id: 3, student_id: '2026-0103', first_name: 'Angelica', last_name: 'Cruz', course: 'BSEMC', year_level: '4th Year' },
-      { id: 4, student_id: '2026-0104', first_name: 'David', last_name: 'Tan', course: 'BSCS', year_level: '1st Year' },
-      { id: 5, student_id: '2026-0105', first_name: 'Beatriz', last_name: 'Santos', course: 'BSIT', year_level: '3rd Year' }
-    ];
-
-    let mockClearances = [
-      { id: 101, student_id: '2026-0101', student_name: 'Samantha Reyes', org: 'CCS Student Council', created_at: new Date().toISOString() },
-      { id: 102, student_id: '2026-0102', student_name: 'Marcus Villar', org: 'Junior CS Society', created_at: new Date(Date.now() - 86400000).toISOString() },
-      { id: 103, student_id: '2026-0103', student_name: 'Angelica Cruz', org: 'Multimedia Guild', created_at: new Date(Date.now() - 172800000).toISOString() }
-    ];
-
-    let mockOrgsCount = 8;
-    let mockUsersCount = 142;
-
-    /* ---------- INIT ---------- */
     document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('bg-layer').innerHTML = buildBackground();
       document.getElementById('sidebar-layer').innerHTML = buildSidebar('dashboard');
@@ -335,6 +315,7 @@
       setInterval(updateLiveClock, 1000);
 
       initSupabase();
+      await checkConnection();
 
       const ok = await guardAuth();
       if (!ok) return;
@@ -342,6 +323,43 @@
       await loadUserProfile();
       await loadDashboard();
     });
+
+    /* ---------- CONNECTION CHECK ---------- */
+    async function checkConnection() {
+      const iconEl = document.getElementById('connIcon');
+      const titleEl = document.getElementById('connTitle');
+      const subEl = document.getElementById('connSub');
+
+      if (!window.supabaseClient) {
+        iconEl.className = 'p-2 rounded-xl bg-red-500/20 border border-red-500/30';
+        iconEl.innerHTML = '<i data-lucide="wifi-off" class="w-4 h-4 text-red-300"></i>';
+        titleEl.textContent = 'Supabase NOT connected';
+        subEl.textContent = 'Check config.js';
+        lucide.createIcons();
+        return false;
+      }
+
+      try {
+        const { error } = await window.supabaseClient.from('students').select('id').limit(1);
+        if (error) {
+          iconEl.className = 'p-2 rounded-xl bg-red-500/20 border border-red-500/30';
+          iconEl.innerHTML = '<i data-lucide="alert-circle" class="w-4 h-4 text-red-300"></i>';
+          titleEl.textContent = 'Table error: ' + error.message;
+          subEl.textContent = 'Check RLS or table';
+        } else {
+          iconEl.className = 'p-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30';
+          iconEl.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-300"></i>';
+          titleEl.textContent = 'Supabase connected ✅';
+          subEl.textContent = 'Data will persist across refreshes';
+        }
+        lucide.createIcons();
+        return !error;
+      } catch (err) {
+        titleEl.textContent = 'Connection failed';
+        subEl.textContent = err.message;
+        return false;
+      }
+    }
 
     /* ---------- LIVE CLOCK ---------- */
     function updateLiveClock() {
@@ -356,125 +374,160 @@
     async function loadDashboard() {
       await fetchAndRenderStudents();
       await fetchAndRenderClearances();
+      await fetchStats();
 
-      document.getElementById('totalOrgs').textContent = mockOrgsCount;
-      document.getElementById('totalUsers').textContent = mockUsersCount;
       document.getElementById('welcome').textContent = 'Welcome, Administrator!';
       document.getElementById('role').textContent = 'Role: System Admin';
     }
 
-    /* ---------- STUDENTS ---------- */
-    async function fetchAndRenderStudents() {
-      let studentList = mockStudents;
-
-      if (window.supabaseClient) {
-        try {
-          const { data, error } = await window.supabaseClient.from('students').select('*').order('id', { ascending: false });
-          if (!error && data && data.length) studentList = data;
-        } catch (e) {
-          console.warn('Using fallback students data');
-        }
+    /* ---------- STATS (Orgs + Users) ---------- */
+    async function fetchStats() {
+      if (!window.supabaseClient) {
+        document.getElementById('totalOrgs').textContent = '0';
+        document.getElementById('totalUsers').textContent = '0';
+        return;
       }
 
-      document.getElementById('totalStudents').textContent = studentList.length;
+      // Count organizations (or 0 if table missing)
+      try {
+        const { count } = await window.supabaseClient
+          .from('organizations').select('*', { count: 'exact', head: true });
+        document.getElementById('totalOrgs').textContent = count ?? 0;
+      } catch { document.getElementById('totalOrgs').textContent = '0'; }
 
+      // Count profiles
+      try {
+        const { count } = await window.supabaseClient
+          .from('profiles').select('*', { count: 'exact', head: true });
+        document.getElementById('totalUsers').textContent = count ?? 0;
+      } catch { document.getElementById('totalUsers').textContent = '0'; }
+    }
+
+    /* ---------- STUDENTS ---------- */
+    async function fetchAndRenderStudents() {
       const tbody = document.getElementById('recentStudents');
-      if (studentList.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-purple-300/60 italic">No students registered yet.</td></tr>`;
-      } else {
-        tbody.innerHTML = studentList.slice(0, 6).map(s => `
-          <tr class="hover:bg-purple-900/30 transition-colors">
-            <td class="py-3 px-4 font-mono font-bold text-purple-300">
-              <span class="px-2 py-1 rounded-lg bg-purple-500/20 border border-purple-400/30">${s.student_id}</span>
-            </td>
-            <td class="py-3 px-4 font-semibold text-white">${s.first_name} ${s.last_name}</td>
-            <td class="py-3 px-4 text-purple-200">
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-900/80 border border-purple-500/30">${s.course || 'BSCS'}</span>
-            </td>
-            <td class="py-3 px-4 text-purple-300/80">${s.year_level || '1st Year'}</td>
-            <td class="py-3 px-4 text-right">
-              <button onclick="removeStudent(${s.id})" class="p-1.5 rounded-lg text-purple-400 hover:text-red-300 hover:bg-red-500/20 transition-all" title="Remove student">
-                <i data-lucide="trash-2" class="w-4 h-4"></i>
-              </button>
-            </td>
-          </tr>
-        `).join('');
+
+      if (!window.supabaseClient) {
+        document.getElementById('totalStudents').textContent = '0';
+        tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-red-300 italic">Supabase not connected</td></tr>`;
+        return;
+      }
+
+      try {
+        const { data, error } = await window.supabaseClient
+          .from('students').select('*').order('id', { ascending: false });
+
+        if (error) {
+          document.getElementById('totalStudents').textContent = '0';
+          tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-red-300 italic">Error: ${error.message}</td></tr>`;
+          return;
+        }
+
+        const students = data || [];
+        document.getElementById('totalStudents').textContent = students.length;
+
+        if (students.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-purple-300/60 italic">No students yet. Click "Add Student" above.</td></tr>`;
+        } else {
+          tbody.innerHTML = students.slice(0, 6).map(s => `
+            <tr class="hover:bg-purple-900/30 transition-colors">
+              <td class="py-3 px-4 font-mono font-bold text-purple-300">
+                <span class="px-2 py-1 rounded-lg bg-purple-500/20 border border-purple-400/30">${s.student_id}</span>
+              </td>
+              <td class="py-3 px-4 font-semibold text-white">${s.first_name} ${s.last_name}</td>
+              <td class="py-3 px-4 text-purple-200">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-900/80 border border-purple-500/30">${s.course || '—'}</span>
+              </td>
+              <td class="py-3 px-4 text-purple-300/80">${s.year_level || '—'}</td>
+            </tr>
+          `).join('');
+        }
         lucide.createIcons();
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-red-300 italic">Error: ${err.message}</td></tr>`;
       }
     }
 
     /* ---------- CLEARANCES ---------- */
     async function fetchAndRenderClearances() {
-      let pending = mockClearances;
+      let pending = [];
 
       if (window.supabaseClient) {
         try {
-          const { data } = await window.supabaseClient.from('clearances').select('*').eq('status', 'pending');
-          if (data && data.length > 0) pending = data;
-        } catch (e) {
-          console.warn('Using fallback clearances data');
-        }
+          const { data } = await window.supabaseClient
+            .from('clearances').select('*').eq('status', 'pending');
+          if (data) pending = data;
+        } catch (e) { /* table might not exist — that's OK */ }
       }
 
       document.getElementById('pendingClearances').textContent = pending.length;
 
       const listContainer = document.getElementById('pendingList');
       if (pending.length === 0) {
-        listContainer.innerHTML = `<p class="text-center text-purple-300/60 py-6 text-xs italic">No pending clearances found. All caught up!</p>`;
+        listContainer.innerHTML = `<p class="text-center text-purple-300/60 py-6 text-xs italic">No pending clearances. All caught up!</p>`;
       } else {
         listContainer.innerHTML = pending.map(p => `
-          <div class="p-3.5 rounded-2xl bg-purple-950/60 border border-purple-500/30 flex items-center justify-between gap-3 hover:border-purple-400/50 transition-all">
+          <div class="p-3.5 rounded-2xl bg-purple-950/60 border border-purple-500/30 flex items-center justify-between gap-3">
             <div class="space-y-0.5">
               <div class="font-bold text-white text-xs flex items-center gap-2">
-                <span>Student #${p.student_id}</span>
+                <span>Student #${p.student_id || p.id}</span>
                 <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">Pending</span>
               </div>
-              <p class="text-[11px] text-purple-300/70">${p.org || 'CCS General Org clearance'}</p>
+              <p class="text-[11px] text-purple-300/70">${p.org || 'General clearance'}</p>
             </div>
             <div class="flex items-center space-x-1.5">
-              <button onclick="resolveClearance(${p.id}, 'Approved')" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-white text-[11px] font-bold border border-emerald-500/30 transition-all">Approve</button>
-              <button onclick="resolveClearance(${p.id}, 'Rejected')" class="px-2.5 py-1 rounded-lg bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white text-[11px] font-bold border border-red-500/30 transition-all">Reject</button>
+              <button onclick="resolveClearance(${p.id}, 'Approved')" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-white text-[11px] font-bold border border-emerald-500/30">Approve</button>
+              <button onclick="resolveClearance(${p.id}, 'Rejected')" class="px-2.5 py-1 rounded-lg bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white text-[11px] font-bold border border-red-500/30">Reject</button>
             </div>
           </div>
         `).join('');
       }
     }
 
-    function resolveClearance(id, action) {
-      mockClearances = mockClearances.filter(c => c.id !== id);
-      fetchAndRenderClearances();
-      showToast(action === 'Approved' ? 'Clearance Approved' : 'Clearance Rejected', `Clearance request #${id} was marked as ${action.toLowerCase()}.`);
+    async function resolveClearance(id, action) {
+      if (window.supabaseClient) {
+        try {
+          await window.supabaseClient.from('clearances').update({ status: action.toLowerCase() }).eq('id', id);
+        } catch (e) { console.warn(e); }
+      }
+      await fetchAndRenderClearances();
+      showToast('Clearance ' + action, `Request #${id} marked as ${action.toLowerCase()}.`);
     }
 
     /* ---------- STUDENT CRUD ---------- */
-    function submitNewStudent(event) {
+    async function submitNewStudent(event) {
       event.preventDefault();
-      const studentId = document.getElementById('input-student-id').value;
-      const firstName = document.getElementById('input-first-name').value;
-      const lastName = document.getElementById('input-last-name').value;
-      const course = document.getElementById('input-course').value;
-      const year = document.getElementById('input-year').value;
 
-      const newStudent = { id: Date.now(), student_id: studentId, first_name: firstName, last_name: lastName, course, year_level: year };
-      mockStudents.unshift(newStudent);
-      fetchAndRenderStudents();
-      closeModal('modal-add-student');
-      document.getElementById('add-student-form').reset();
-      showToast('Student Enrolled', `${firstName} ${lastName} added to student directory.`);
-    }
+      if (!window.supabaseClient) {
+        showToast('Cannot Save', 'Supabase not connected.');
+        return;
+      }
 
-    function removeStudent(id) {
-      mockStudents = mockStudents.filter(s => s.id !== id);
-      fetchAndRenderStudents();
-      showToast('Student Removed', 'Record updated in database.');
-    }
+      const payload = {
+        student_id: document.getElementById('input-student-id').value.trim(),
+        first_name: document.getElementById('input-first-name').value.trim(),
+        last_name:  document.getElementById('input-last-name').value.trim(),
+        course:     document.getElementById('input-course').value,
+        year_level: document.getElementById('input-year').value,
+      };
 
-    /* ---------- SEARCH ---------- */
-    function handleGlobalSearch(query) {
-      const q = query.toLowerCase().trim();
-      document.querySelectorAll('#recentStudents tr').forEach(row => {
-        row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
-      });
+      try {
+        const { error } = await window.supabaseClient.from('students').insert([payload]).select();
+
+        if (error) {
+          let msg = error.message;
+          if (error.code === '23505') msg = 'Student ID already exists';
+          showToast('Save Failed', msg);
+          return;
+        }
+
+        closeModal('modal-add-student');
+        document.getElementById('add-student-form').reset();
+        await fetchAndRenderStudents();
+        showToast('Student Added ✅', `${payload.first_name} ${payload.last_name} saved to database.`);
+      } catch (err) {
+        showToast('Save Failed', err.message);
+      }
     }
 
     /* ---------- MODALS ---------- */
@@ -489,6 +542,14 @@
     function closeModal(modalId) {
       const modal = document.getElementById(modalId);
       if (modal) modal.classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    /* ---------- SEARCH ---------- */
+    function handleGlobalSearch(query) {
+      const q = query.toLowerCase().trim();
+      document.querySelectorAll('#recentStudents tr').forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
+      });
     }
   </script>
 

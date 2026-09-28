@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Students — CCS OrgHub Admin Panel</title>
+  <title>Students — CCS OrgHub</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js" onerror="console.warn('config.js not found')"></script>
@@ -36,7 +36,6 @@
 
     <main class="flex-1 p-4 md:p-8 space-y-6">
 
-      <!-- CONNECTION STATUS -->
       <div id="connectionStatus" class="glass-card p-4 rounded-2xl flex items-center gap-3 text-xs">
         <div id="connIcon" class="p-2 rounded-xl bg-amber-500/20 border border-amber-500/30">
           <i data-lucide="wifi" class="w-4 h-4 text-amber-300"></i>
@@ -47,9 +46,8 @@
         </div>
       </div>
 
-      <!-- STATS -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+        <div class="glass-card p-5 rounded-2xl">
           <div class="flex items-center justify-between mb-3">
             <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Total Students</span>
             <div class="p-2.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30">
@@ -58,7 +56,7 @@
           </div>
           <div class="text-3xl font-extrabold text-white" id="statTotal">—</div>
         </div>
-        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+        <div class="glass-card p-5 rounded-2xl">
           <div class="flex items-center justify-between mb-3">
             <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Courses</span>
             <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
@@ -67,7 +65,7 @@
           </div>
           <div class="text-3xl font-extrabold text-emerald-300" id="statCourses">—</div>
         </div>
-        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+        <div class="glass-card p-5 rounded-2xl">
           <div class="flex items-center justify-between mb-3">
             <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Year Levels</span>
             <div class="p-2.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30">
@@ -78,7 +76,6 @@
         </div>
       </div>
 
-      <!-- FORM -->
       <div class="glass-card p-6 rounded-3xl">
         <div class="flex items-center justify-between mb-5">
           <h3 class="text-base font-bold text-white flex items-center gap-2">
@@ -100,7 +97,7 @@
             </div>
             <div>
               <label class="block font-semibold text-purple-200 mb-1 text-[11px] uppercase tracking-wider">Email</label>
-              <input type="email" id="email" placeholder="student@essu.edu.ph"
+              <input type="email" id="email" placeholder="student@gmail.com"
                 class="w-full bg-purple-950/60 border border-purple-500/40 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-purple-300/40 focus:border-purple-400 focus:outline-none" />
             </div>
           </div>
@@ -121,10 +118,10 @@
               <label class="block font-semibold text-purple-200 mb-1 text-[11px] uppercase tracking-wider">Course</label>
               <select id="course" class="w-full bg-purple-950/60 border border-purple-500/40 rounded-xl px-3 py-2.5 text-sm text-white focus:border-purple-400 focus:outline-none">
                 <option value="">— Select Course —</option>
-                <option value="BSCS">BS Computer Science</option>
-                <option value="BSIT">BS Information Technology</option>
-                <option value="BSEMC">BS Entertainment & Multimedia</option>
-                <option value="ACT">Associate in Computer Tech</option>
+                <option value="BS Computer Science">BS Computer Science</option>
+                <option value="BS Information Technology">BS Information Technology</option>
+                <option value="BS Entertainment & Multimedia">BS Entertainment & Multimedia</option>
+                <option value="Associate in Computer Tech">Associate in Computer Tech</option>
               </select>
             </div>
             <div>
@@ -148,7 +145,6 @@
         </form>
       </div>
 
-      <!-- SEARCH -->
       <div class="glass-card p-5 rounded-3xl">
         <div class="relative">
           <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-purple-300/60"></i>
@@ -157,7 +153,6 @@
         </div>
       </div>
 
-      <!-- TABLE -->
       <div class="glass-card p-6 rounded-3xl space-y-4">
         <div class="flex items-center justify-between">
           <h3 class="text-base font-bold text-white flex items-center gap-2">
@@ -205,7 +200,6 @@
       lucide.createIcons();
       initSupabase();
 
-      // Check connection BEFORE auth guard
       await checkConnection();
 
       const ok = await guardAuth();
@@ -215,9 +209,7 @@
       await loadStudents();
     });
 
-    /* ---------- CONNECTION CHECK ---------- */
     async function checkConnection() {
-      const statusEl = document.getElementById('connectionStatus');
       const iconEl = document.getElementById('connIcon');
       const titleEl = document.getElementById('connTitle');
       const subEl = document.getElementById('connSub');
@@ -226,42 +218,32 @@
         iconEl.className = 'p-2 rounded-xl bg-red-500/20 border border-red-500/30';
         iconEl.innerHTML = '<i data-lucide="wifi-off" class="w-4 h-4 text-red-300"></i>';
         titleEl.textContent = 'Supabase NOT connected';
-        subEl.textContent = 'Check config.js — missing SUPABASE_URL or SUPABASE_ANON_KEY';
+        subEl.textContent = 'Check config.js';
         lucide.createIcons();
         return false;
       }
 
       try {
-        const { data, error } = await window.supabaseClient
-          .from('students').select('id').limit(1);
+        const { error } = await window.supabaseClient.from('students').select('id').limit(1);
 
         if (error) {
           iconEl.className = 'p-2 rounded-xl bg-red-500/20 border border-red-500/30';
           iconEl.innerHTML = '<i data-lucide="alert-circle" class="w-4 h-4 text-red-300"></i>';
-          titleEl.textContent = 'Supabase table error: ' + error.message;
-          subEl.textContent = 'Check RLS policies or table name. Detail: ' + (error.details || 'none');
-          lucide.createIcons();
-          return false;
+          titleEl.textContent = 'Table error: ' + error.message;
+          subEl.textContent = 'Check RLS or table name';
+        } else {
+          iconEl.className = 'p-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30';
+          iconEl.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-300"></i>';
+          titleEl.textContent = 'Supabase connected ✅';
+          subEl.textContent = 'Data will persist across refreshes';
         }
-
-        iconEl.className = 'p-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30';
-        iconEl.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-300"></i>';
-        titleEl.textContent = 'Supabase connected ✅';
-        subEl.textContent = 'Data will persist across refreshes';
         lucide.createIcons();
-        return true;
-
       } catch (err) {
-        iconEl.className = 'p-2 rounded-xl bg-red-500/20 border border-red-500/30';
-        iconEl.innerHTML = '<i data-lucide="alert-triangle" class="w-4 h-4 text-red-300"></i>';
-        titleEl.textContent = 'Connection failed: ' + err.message;
-        subEl.textContent = 'Network or config issue';
-        lucide.createIcons();
-        return false;
+        titleEl.textContent = 'Connection failed';
+        subEl.textContent = err.message;
       }
     }
 
-    /* ---------- LOAD ---------- */
     async function loadStudents() {
       const tbody = document.getElementById('studentTable');
       tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">Loading from Supabase...</td></tr>`;
@@ -270,7 +252,6 @@
         students = [];
         renderStudents();
         renderStats();
-        showToast('No Database', 'Supabase not connected — showing empty list.');
         return;
       }
 
@@ -279,8 +260,6 @@
           .from('students').select('*').order('id', { ascending: false });
 
         if (error) {
-          console.error('Load error:', error);
-          showToast('Load Failed', error.message);
           tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-red-300 italic">Error: ${error.message}</td></tr>`;
           return;
         }
@@ -290,19 +269,16 @@
         renderStats();
 
       } catch (err) {
-        console.error(err);
         showToast('Load Failed', err.message);
       }
     }
 
-    /* ---------- STATS ---------- */
     function renderStats() {
       document.getElementById('statTotal').textContent = students.length;
       document.getElementById('statCourses').textContent = new Set(students.map(s => s.course).filter(Boolean)).size;
       document.getElementById('statYears').textContent = new Set(students.map(s => s.year_level).filter(Boolean)).size;
     }
 
-    /* ---------- RENDER ---------- */
     function renderStudents() {
       const q = (document.getElementById('searchStudents').value || '').toLowerCase();
       const list = students.filter(s => {
@@ -340,7 +316,6 @@
       lucide.createIcons();
     }
 
-    /* ---------- SUBMIT ---------- */
     document.getElementById('studentForm').addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -357,9 +332,8 @@
         year_level: document.getElementById('yearLevel').value.trim() || null
       };
 
-      // ❌ No Supabase → block
       if (!window.supabaseClient) {
-        showToast('Cannot Save', 'Supabase not connected. Check config.js.');
+        showToast('Cannot Save', 'Supabase not connected.');
         btn.disabled = false;
         return;
       }
@@ -367,43 +341,34 @@
       try {
         let result;
         if (id) {
-          // UPDATE
-          result = await window.supabaseClient
-            .from('students').update(payload).eq('id', id).select();
+          result = await window.supabaseClient.from('students').update(payload).eq('id', id).select();
         } else {
-          // INSERT
-          result = await window.supabaseClient
-            .from('students').insert([payload]).select();
+          result = await window.supabaseClient.from('students').insert([payload]).select();
         }
 
-        const { data, error } = result;
+        const { error } = result;
 
         if (error) {
-          console.error('Save error:', error);
-          // Show detailed error
           let msg = error.message;
           if (error.code === '23505') msg = 'Student ID already exists';
-          if (error.code === '42P01') msg = 'Table "students" does not exist';
-          if (error.code === '42501') msg = 'Permission denied — check RLS policies';
+          if (error.code === '42P01') msg = 'Table does not exist';
+          if (error.code === '42501') msg = 'Permission denied — check RLS';
           showToast('Save Failed ❌', msg);
           btn.disabled = false;
           return;
         }
 
-        // ✅ Success — reload from Supabase to ensure sync
         await loadStudents();
         resetForm();
         showToast(id ? 'Student Updated ✅' : 'Student Added ✅', `${payload.first_name} ${payload.last_name} saved to database.`);
 
       } catch (err) {
-        console.error('Unexpected error:', err);
         showToast('Unexpected Error', err.message);
       } finally {
         btn.disabled = false;
       }
     });
 
-    /* ---------- EDIT ---------- */
     function editStudent(s) {
       document.getElementById('editId').value    = s.id;
       document.getElementById('studentId').value = s.student_id;
@@ -417,9 +382,8 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    /* ---------- DELETE ---------- */
     async function deleteStudent(id) {
-      if (!confirm('Delete this student from the database?')) return;
+      if (!confirm('Delete this student?')) return;
 
       if (!window.supabaseClient) {
         showToast('Cannot Delete', 'Supabase not connected.');
@@ -439,7 +403,6 @@
       }
     }
 
-    /* ---------- RESET ---------- */
     function resetForm() {
       document.getElementById('studentForm').reset();
       document.getElementById('editId').value = '';

@@ -39,6 +39,17 @@
 
     <main class="flex-1 p-4 md:p-8 space-y-6">
 
+      <!-- CONNECTION STATUS -->
+      <div id="connectionStatus" class="glass-card p-4 rounded-2xl flex items-center gap-3 text-xs">
+        <div id="connIcon" class="p-2 rounded-xl bg-amber-500/20 border border-amber-500/30">
+          <i data-lucide="wifi" class="w-4 h-4 text-amber-300"></i>
+        </div>
+        <div>
+          <div id="connTitle" class="font-bold text-white">Checking Supabase connection...</div>
+          <div id="connSub" class="text-purple-300/70">Verifying database access</div>
+        </div>
+      </div>
+
       <!-- STATS -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
@@ -77,9 +88,14 @@
           <h3 class="text-base font-bold text-white flex items-center gap-2">
             <i data-lucide="calendar-days" class="w-5 h-5 text-purple-400"></i> Events Directory
           </h3>
-          <button onclick="openEventModal()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-purple-700 text-white font-bold text-xs shadow-lg shadow-purple-600/40 hover:brightness-110 flex items-center gap-2 border border-purple-400/40">
-            <i data-lucide="plus" class="w-4 h-4"></i><span>Create Event</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button onclick="loadEvents()" class="px-3 py-1.5 rounded-lg bg-purple-950/60 hover:bg-purple-800/60 text-purple-200 border border-purple-500/30 text-[11px] font-bold transition-all flex items-center gap-1.5">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
+            </button>
+            <button onclick="openEventModal()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-purple-700 text-white font-bold text-xs shadow-lg shadow-purple-600/40 hover:brightness-110 flex items-center gap-2 border border-purple-400/40">
+              <i data-lucide="plus" class="w-4 h-4"></i><span>Create Event</span>
+            </button>
+          </div>
         </div>
 
         <div class="flex flex-col sm:flex-row gap-3 mb-4">
@@ -187,7 +203,6 @@
     let events = [];
 
     document.addEventListener('DOMContentLoaded', async () => {
-      // Build layout
       document.getElementById('bg-layer').innerHTML = buildBackground();
       document.getElementById('sidebar-layer').innerHTML = buildSidebar('events');
       document.getElementById('topbar-layer').innerHTML = buildTopbar('Events', 'Create, manage, and track organizational events');
@@ -196,6 +211,8 @@
       lucide.createIcons();
 
       initSupabase();
+      await checkConnection();
+
       const ok = await guardAuth();
       if (!ok) return;
       await loadUserProfile();
@@ -204,39 +221,89 @@
       renderEvents();
     });
 
-    async function loadEvents() {
-      if (window.supabaseClient) {
-        try {
-          const { data, error } = await window.supabaseClient
-            .from('events').select('*').order('event_date', { ascending: false });
-          if (!error && data && data.length) { events = data; return; }
-        } catch (err) { console.warn('Load failed', err); }
+    /* ---------- CONNECTION CHECK ---------- */
+    async function checkConnection() {
+      const iconEl = document.getElementById('connIcon');
+      const titleEl = document.getElementById('connTitle');
+      const subEl = document.getElementById('connSub');
+
+      if (!window.supabaseClient) {
+        iconEl.className = 'p-2 rounded-xl bg-red-500/20 border border-red-500/30';
+        iconEl.innerHTML = '<i data-lucide="wifi-off" class="w-4 h-4 text-red-300"></i>';
+        titleEl.textContent = 'Supabase NOT connected';
+        subEl.textContent = 'Check config.js';
+        lucide.createIcons();
+        return false;
       }
-      if (events.length === 0) {
-        events = [
-          { id: 1, title: 'CCS General Assembly', org: 'CCS Student Council', venue: 'CCS Auditorium',
-            event_date: new Date(Date.now() + 5 * 86400000).toISOString(), event_type: 'meeting',
-            status: 'upcoming', description: 'All members required to attend.' },
-          { id: 2, title: 'Coding Bootcamp', org: 'Junior CS Society', venue: 'Lab 201',
-            event_date: new Date(Date.now() + 10 * 86400000).toISOString(), event_type: 'seminar',
-            status: 'upcoming', description: 'Beginner-friendly coding workshop.' },
-          { id: 3, title: 'Sports Fest Kickoff', org: 'CCS Sports Club', venue: 'Gymnasium',
-            event_date: new Date(Date.now() - 3 * 86400000).toISOString(), event_type: 'sports',
-            status: 'completed', description: 'Opening ceremony.' }
-        ];
+
+      try {
+        const { error } = await window.supabaseClient.from('events').select('id').limit(1);
+        if (error) {
+          iconEl.className = 'p-2 rounded-xl bg-red-500/20 border border-red-500/30';
+          iconEl.innerHTML = '<i data-lucide="alert-circle" class="w-4 h-4 text-red-300"></i>';
+          titleEl.textContent = 'Table error: ' + error.message;
+          subEl.textContent = 'Check RLS or table name';
+        } else {
+          iconEl.className = 'p-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30';
+          iconEl.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-300"></i>';
+          titleEl.textContent = 'Supabase connected ✅';
+          subEl.textContent = 'Data will persist across refreshes';
+        }
+        lucide.createIcons();
+        return !error;
+      } catch (err) {
+        titleEl.textContent = 'Connection failed';
+        subEl.textContent = err.message;
+        return false;
       }
     }
 
-    function renderEvents() {
+    /* ---------- LOAD ---------- */
+    async function loadEvents() {
+      const container = document.getElementById('eventsList');
+      container.innerHTML = `<p class="text-center text-purple-300/60 py-6 text-xs italic">Loading from Supabase...</p>`;
+
+      if (!window.supabaseClient) {
+        events = [];
+        renderEvents();
+        return;
+      }
+
+      try {
+        const { data, error } = await window.supabaseClient
+          .from('events').select('*').order('event_date', { ascending: false });
+
+        if (error) {
+          container.innerHTML = `<p class="text-center text-red-300 py-6 text-xs italic">Error: ${error.message}</p>`;
+          renderStats();
+          return;
+        }
+
+        events = data || [];
+        renderEvents();
+
+      } catch (err) {
+        container.innerHTML = `<p class="text-center text-red-300 py-6 text-xs italic">Error: ${err.message}</p>`;
+      }
+    }
+
+    /* ---------- STATS ---------- */
+    function renderStats() {
       document.getElementById('eventStatTotal').textContent = events.length;
       document.getElementById('eventStatUpcoming').textContent = events.filter(e => e.status === 'upcoming').length;
       document.getElementById('eventStatCompleted').textContent = events.filter(e => e.status === 'completed').length;
 
       const now = new Date();
       document.getElementById('eventStatMonth').textContent = events.filter(e => {
+        if (!e.event_date) return false;
         const d = new Date(e.event_date);
         return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
       }).length;
+    }
+
+    /* ---------- RENDER ---------- */
+    function renderEvents() {
+      renderStats();
 
       const q = (document.getElementById('eventSearch').value || '').toLowerCase();
       const filter = document.getElementById('eventFilter').value;
@@ -248,7 +315,7 @@
 
       const container = document.getElementById('eventsList');
       if (list.length === 0) {
-        container.innerHTML = `<p class="text-center text-purple-300/60 py-8 text-xs italic">No events found.</p>`;
+        container.innerHTML = `<p class="text-center text-purple-300/60 py-8 text-xs italic">No events found. Click "Create Event" to add one.</p>`;
         return;
       }
 
@@ -264,9 +331,9 @@
       };
 
       container.innerHTML = list.map(e => {
-        const date = new Date(e.event_date);
-        const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        const date = e.event_date ? new Date(e.event_date) : null;
+        const dateStr = date ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+        const timeStr = date ? date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '—';
 
         return `
           <div class="p-4 rounded-2xl bg-purple-950/50 border border-purple-500/30 hover:border-purple-400/60 transition-all">
@@ -278,7 +345,7 @@
                 <div class="space-y-1 min-w-0 flex-1">
                   <div class="flex items-center gap-2 flex-wrap">
                     <h4 class="font-bold text-white text-sm">${e.title}</h4>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusColors[e.status] || ''}">${e.status}</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusColors[e.status] || ''}">${e.status || '—'}</span>
                   </div>
                   <p class="text-[11px] text-purple-300/70 line-clamp-1">${e.description || 'No description'}</p>
                   <div class="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-purple-300/80 pt-1">
@@ -304,6 +371,7 @@
       lucide.createIcons();
     }
 
+    /* ---------- MODAL ---------- */
     function openEventModal() {
       document.getElementById('event-form').reset();
       document.getElementById('modal-event').classList.remove('opacity-0', 'pointer-events-none');
@@ -314,44 +382,77 @@
       if (m) m.classList.add('opacity-0', 'pointer-events-none');
     }
 
+    /* ---------- SAVE EVENT ---------- */
     async function saveEvent(event) {
       event.preventDefault();
-      const newEvent = {
+
+      if (!window.supabaseClient) {
+        showToast('Cannot Save', 'Supabase not connected.');
+        return;
+      }
+
+      const dateValue = document.getElementById('event-date').value;
+      if (!dateValue) {
+        showToast('Missing Date', 'Please select the event date & time.');
+        return;
+      }
+
+      const payload = {
         title: document.getElementById('event-title').value.trim(),
         description: document.getElementById('event-desc').value.trim(),
         org: document.getElementById('event-org').value.trim(),
         venue: document.getElementById('event-venue').value.trim(),
-        event_date: new Date(document.getElementById('event-date').value).toISOString(),
+        event_date: new Date(dateValue).toISOString(),
         event_type: document.getElementById('event-type').value,
         status: document.getElementById('event-status').value,
-        created_at: new Date().toISOString()
       };
 
-      if (window.supabaseClient) {
-        try {
-          const { data, error } = await window.supabaseClient.from('events').insert([newEvent]).select().single();
-          if (error) { showToast('Save Failed', error.message); return; }
-          if (data) newEvent.id = data.id;
-        } catch (err) { showToast('Save Failed', 'Connection issue.'); return; }
-      } else {
-        newEvent.id = Date.now();
-      }
+      try {
+        const { error } = await window.supabaseClient.from('events').insert([payload]).select();
 
-      events.unshift(newEvent);
-      renderEvents();
-      closeModal('modal-event');
-      document.getElementById('event-form').reset();
-      showToast('Event Created', `${newEvent.title} scheduled.`);
+        if (error) {
+          showToast('Save Failed ❌', error.message);
+          return;
+        }
+
+        closeModal('modal-event');
+        document.getElementById('event-form').reset();
+        await loadEvents();
+        showToast('Event Created ✅', `${payload.title} scheduled.`);
+
+      } catch (err) {
+        showToast('Save Failed', err.message);
+      }
     }
 
+    /* ---------- DELETE EVENT ---------- */
     async function deleteEvent(id) {
       if (!confirm('Delete this event and all its attendance records?')) return;
-      if (window.supabaseClient) {
-        try { await window.supabaseClient.from('events').delete().eq('id', id); } catch (err) {}
+
+      if (!window.supabaseClient) {
+        showToast('Cannot Delete', 'Supabase not connected.');
+        return;
       }
-      events = events.filter(e => e.id !== id);
-      renderEvents();
-      showToast('Event Deleted', 'Event removed.');
+
+      try {
+        // Delete attendance records for this event first (cascade safety)
+        try {
+          await window.supabaseClient.from('attendance').delete().eq('event_id', id);
+        } catch (e) { /* table may not exist, ignore */ }
+
+        const { error } = await window.supabaseClient.from('events').delete().eq('id', id);
+
+        if (error) {
+          showToast('Delete Failed ❌', error.message);
+          return;
+        }
+
+        await loadEvents();
+        showToast('Event Deleted ✅', 'Event removed from database.');
+
+      } catch (err) {
+        showToast('Delete Failed', err.message);
+      }
     }
   </script>
 </body>

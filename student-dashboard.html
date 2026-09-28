@@ -44,6 +44,17 @@
 
     <main class="flex-1 p-4 md:p-8 space-y-6">
 
+      <!-- CONNECTION STATUS -->
+      <div id="connectionStatus" class="glass-card p-4 rounded-2xl flex items-center gap-3 text-xs">
+        <div id="connIcon" class="p-2 rounded-xl bg-amber-500/20 border border-amber-500/30">
+          <i data-lucide="wifi" class="w-4 h-4 text-amber-300"></i>
+        </div>
+        <div>
+          <div id="connTitle" class="font-bold text-white">Checking connection...</div>
+          <div id="connSub" class="text-purple-300/70">Verifying your account</div>
+        </div>
+      </div>
+
       <!-- WELCOME + CLEARANCE -->
       <div class="welcome-gradient rounded-3xl p-6 md:p-8 relative overflow-hidden shadow-2xl">
         <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -108,18 +119,18 @@
           <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i> Quick Actions
         </h3>
         <div class="flex flex-wrap gap-3">
-          <button onclick="navigateTab('organizations')" class="px-4 py-2.5 rounded-xl bg-purple-600 text-white font-bold text-xs hover:bg-purple-500 transition-all flex items-center space-x-2 shadow-lg shadow-purple-600/30">
+          <a href="student-organizations.html" class="px-4 py-2.5 rounded-xl bg-purple-600 text-white font-bold text-xs hover:bg-purple-500 transition-all flex items-center space-x-2 shadow-lg shadow-purple-600/30">
             <i data-lucide="building-2" class="w-4 h-4"></i><span>Browse Organizations</span>
-          </button>
-          <button onclick="navigateTab('payments')" class="px-4 py-2.5 rounded-xl bg-purple-950/80 text-purple-200 border border-purple-500/40 font-bold text-xs hover:bg-purple-800/50 hover:text-white transition-all flex items-center space-x-2">
+          </a>
+          <a href="student-payments.html" class="px-4 py-2.5 rounded-xl bg-purple-950/80 text-purple-200 border border-purple-500/40 font-bold text-xs hover:bg-purple-800/50 hover:text-white transition-all flex items-center space-x-2">
             <i data-lucide="credit-card" class="w-4 h-4 text-purple-400"></i><span>View Payments</span>
-          </button>
-          <button onclick="navigateTab('clearance-request')" class="px-4 py-2.5 rounded-xl bg-purple-950/80 text-purple-200 border border-purple-500/40 font-bold text-xs hover:bg-purple-800/50 hover:text-white transition-all flex items-center space-x-2">
+          </a>
+          <a href="student-clearance.html" class="px-4 py-2.5 rounded-xl bg-purple-950/80 text-purple-200 border border-purple-500/40 font-bold text-xs hover:bg-purple-800/50 hover:text-white transition-all flex items-center space-x-2">
             <i data-lucide="file-plus" class="w-4 h-4 text-purple-400"></i><span>Request Clearance</span>
-          </button>
-          <button onclick="navigateTab('announcements')" class="px-4 py-2.5 rounded-xl bg-purple-950/80 text-purple-200 border border-purple-500/40 font-bold text-xs hover:bg-purple-800/50 hover:text-white transition-all flex items-center space-x-2">
+          </a>
+          <a href="student-announcements.html" class="px-4 py-2.5 rounded-xl bg-purple-950/80 text-purple-200 border border-purple-500/40 font-bold text-xs hover:bg-purple-800/50 hover:text-white transition-all flex items-center space-x-2">
             <i data-lucide="megaphone" class="w-4 h-4 text-purple-400"></i><span>Announcements</span>
-          </button>
+          </a>
         </div>
       </div>
 
@@ -157,7 +168,7 @@
             <i data-lucide="calendar-days" class="w-5 h-5 text-purple-400"></i>
             Upcoming Events
           </h3>
-          <button onclick="navigateTab('events')" class="text-xs text-purple-300 hover:text-white font-semibold">View All →</button>
+          <a href="student-events.html" class="text-xs text-purple-300 hover:text-white font-semibold">View All →</a>
         </div>
 
         <div class="overflow-x-auto rounded-2xl border border-purple-500/20">
@@ -182,9 +193,9 @@
         <div class="flex items-center justify-between">
           <h3 class="text-base font-bold text-white flex items-center gap-2">
             <i data-lucide="credit-card" class="w-5 h-5 text-purple-400"></i>
-            Recent Payments
+            My Recent Payments
           </h3>
-          <button onclick="navigateTab('payments')" class="text-xs text-purple-300 hover:text-white font-semibold">View All →</button>
+          <a href="student-payments.html" class="text-xs text-purple-300 hover:text-white font-semibold">View All →</a>
         </div>
 
         <div class="overflow-x-auto rounded-2xl border border-purple-500/20">
@@ -207,76 +218,16 @@
     </main>
   </div>
 
-  <!-- MODAL: NOTIFICATIONS -->
-  <div id="modal-notif" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
-    <div class="glass-card w-full max-w-md rounded-3xl p-6 shadow-2xl border border-purple-400/40 space-y-4 relative">
-      <button onclick="closeModal('modal-notif')" class="absolute top-5 right-5 text-purple-300 hover:text-white">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
-      <div class="flex items-center space-x-3">
-        <div class="p-2.5 rounded-xl bg-purple-600/30 text-purple-300 border border-purple-400/40">
-          <i data-lucide="bell" class="w-5 h-5"></i>
-        </div>
-        <div>
-          <h3 class="text-lg font-bold text-white">Notifications</h3>
-          <p class="text-xs text-purple-300/70">Recent updates from CCS OrgHub</p>
-        </div>
-      </div>
-      <div class="space-y-2.5 text-xs">
-        <div class="p-3 rounded-xl bg-purple-950/60 border border-purple-500/30">
-          <div class="font-bold text-white flex justify-between">
-            <span>New Announcement</span>
-            <span class="text-[10px] text-purple-300/60">5m ago</span>
-          </div>
-          <p class="text-purple-200/80 mt-1">General assembly this Friday at CCS Auditorium.</p>
-        </div>
-        <div class="p-3 rounded-xl bg-purple-950/60 border border-purple-500/30">
-          <div class="font-bold text-white flex justify-between">
-            <span>Fee Reminder</span>
-            <span class="text-[10px] text-purple-300/60">1h ago</span>
-          </div>
-          <p class="text-purple-200/80 mt-1">Membership fee due on October 30, 2026.</p>
-        </div>
-      </div>
-      <div class="pt-2 text-right">
-        <button onclick="closeModal('modal-notif')" class="px-4 py-2 rounded-xl bg-purple-600 text-white font-bold text-xs">Close</button>
-      </div>
-    </div>
-  </div>
-
   <div id="modal-layer"></div>
   <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-3 pointer-events-none"></div>
 
   <script src="shared.js"></script>
   <script>
-    /* ---------- MOCK DATA ---------- */
-    let mockPendingItems = [
-      { type: 'warn', title: 'Unpaid Membership Fee - CCS Student Council', meta: '₱250.00' },
-      { type: 'danger', title: 'Unpaid Fine: Missed General Assembly', meta: '₱100.00' }
-    ];
+    let currentProfile = null;
 
-    let mockAnnouncements = [
-      { id: 1, title: 'General Assembly — Oct 30', content: 'All members required to attend.', created_at: new Date().toISOString() },
-      { id: 2, title: 'Intramurals 2026 Registration', content: 'Sign up now at the CCS Office.', created_at: new Date(Date.now() - 86400000).toISOString() },
-      { id: 3, title: 'Scholarship Applications Open', content: 'Submit requirements before Nov 15.', created_at: new Date(Date.now() - 172800000).toISOString() }
-    ];
-
-    let mockEvents = [
-      { id: 1, title: 'CCS General Assembly', org_id: 'CCS Student Council', event_date: new Date(Date.now() + 5 * 86400000).toISOString() },
-      { id: 2, title: 'Coding Bootcamp', org_id: 'Junior CS Society', event_date: new Date(Date.now() + 10 * 86400000).toISOString() },
-      { id: 3, title: 'Multimedia Workshop', org_id: 'Multimedia Guild', event_date: new Date(Date.now() + 15 * 86400000).toISOString() }
-    ];
-
-    let mockPayments = [
-      { id: 1, type: 'Membership Fee', amount: 250, created_at: new Date().toISOString(), status: 'paid' },
-      { id: 2, type: 'Fine Payment', amount: 100, created_at: new Date(Date.now() - 86400000).toISOString(), status: 'paid' },
-      { id: 3, type: 'Org Fee', amount: 150, created_at: new Date(Date.now() - 172800000).toISOString(), status: 'pending' }
-    ];
-
-    /* ---------- INIT ---------- */
     document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('bg-layer').innerHTML = buildBackground();
-      document.getElementById('sidebar-layer').innerHTML = buildSidebar('student-dashboard', 'student');
+      document.getElementById('sidebar-layer').innerHTML = buildSidebar('dashboard', 'student');
       document.getElementById('topbar-layer').innerHTML = buildTopbar('Student Dashboard', 'College of Computer Studies Organizational Portal');
       document.getElementById('modal-layer').innerHTML = buildLogoutModal();
 
@@ -285,12 +236,53 @@
       setInterval(updateLiveClock, 1000);
 
       initSupabase();
+      await checkConnection();
+
       const ok = await guardAuth();
       if (!ok) return;
 
       await loadUserProfile();
-      loadStudentDashboard();
+      await loadStudentDashboard();
     });
+
+    /* ---------- CONNECTION CHECK ---------- */
+    async function checkConnection() {
+      const iconEl = document.getElementById('connIcon');
+      const titleEl = document.getElementById('connTitle');
+      const subEl = document.getElementById('connSub');
+
+      if (!window.supabaseClient) {
+        iconEl.className = 'p-2 rounded-xl bg-red-500/20 border border-red-500/30';
+        iconEl.innerHTML = '<i data-lucide="wifi-off" class="w-4 h-4 text-red-300"></i>';
+        titleEl.textContent = 'Supabase NOT connected';
+        subEl.textContent = 'Check config.js';
+        lucide.createIcons();
+        return false;
+      }
+
+      try {
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        if (!user) {
+          iconEl.className = 'p-2 rounded-xl bg-amber-500/20 border border-amber-500/30';
+          iconEl.innerHTML = '<i data-lucide="user-x" class="w-4 h-4 text-amber-300"></i>';
+          titleEl.textContent = 'Not logged in';
+          subEl.textContent = 'Redirecting to login...';
+          lucide.createIcons();
+          return false;
+        }
+
+        iconEl.className = 'p-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30';
+        iconEl.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-300"></i>';
+        titleEl.textContent = 'Connected as ' + user.email;
+        subEl.textContent = 'Data will persist across refreshes';
+        lucide.createIcons();
+        return true;
+      } catch (err) {
+        titleEl.textContent = 'Connection failed';
+        subEl.textContent = err.message;
+        return false;
+      }
+    }
 
     /* ---------- LIVE CLOCK ---------- */
     function updateLiveClock() {
@@ -303,16 +295,29 @@
 
     /* ---------- LOAD DASHBOARD ---------- */
     async function loadStudentDashboard() {
-      let profile = { first_name: 'Student', student_id: '2026-0001', course: 'BSCS', role: 'student' };
+      if (!window.supabaseClient) return;
 
-      if (window.supabaseClient) {
-        try {
-          const { data: { user } } = await window.supabaseClient.auth.getUser();
-          if (user) {
-            const { data } = await window.supabaseClient.from('profiles').select('*').eq('id', user.id).single();
-            if (data) profile = data;
-          }
-        } catch (e) { console.warn('Using default profile'); }
+      // Get user & profile
+      let profile = null;
+      try {
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        if (user) {
+          const { data } = await window.supabaseClient
+            .from('profiles').select('*').eq('id', user.id).single();
+          if (data) profile = { ...data, email: user.email };
+        }
+      } catch (e) { console.warn('Profile load failed:', e); }
+
+      if (!profile) {
+        // Fallback: use auth user data
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        profile = {
+          first_name: user?.email?.split('@')[0] || 'Student',
+          student_id: '—',
+          course: '—',
+          role: 'student',
+          id: user?.id,
+        };
       }
 
       // Block non-students
@@ -322,14 +327,17 @@
         return;
       }
 
-      const name = profile?.first_name || 'Student';
+      currentProfile = profile;
+
+      const name = profile.first_name || 'Student';
       document.getElementById('welcome').textContent = `Welcome, ${name}!`;
       document.getElementById('studentInfo').textContent =
-        `Student ID: ${profile?.student_id || '—'}  |  Course: ${profile?.course || '—'}`;
-      document.getElementById('roleBadge').textContent = `Role: ${profile?.role || 'Student'}`;
+        `Student ID: ${profile.student_id || '—'}  |  Course: ${profile.course || '—'}`;
+      document.getElementById('roleBadge').textContent = `Role: ${profile.role || 'Student'}`;
       document.getElementById('userName').textContent = name;
       document.getElementById('userAvatar').textContent = (name[0] || 'S').toUpperCase();
 
+      // Load all sections
       await fetchClearanceStatus(profile);
       await fetchStats(profile);
       await fetchPendingItems(profile);
@@ -341,20 +349,26 @@
     /* ---------- CLEARANCE STATUS ---------- */
     async function fetchClearanceStatus(profile) {
       let status = 'not requested';
+
       if (window.supabaseClient && profile?.id) {
         try {
           const { data } = await window.supabaseClient
-            .from('clearances').select('status')
+            .from('clearances')
+            .select('status')
             .eq('student_id', profile.id)
             .order('created_at', { ascending: false })
-            .limit(1).maybeSingle();
+            .limit(1)
+            .maybeSingle();
+
           if (data?.status) status = data.status;
-        } catch {}
+        } catch (e) { /* table may not exist */ }
       }
 
       const badge = document.getElementById('clearanceBadge');
       const statusEl = document.getElementById('clearanceStatus');
-      const formatted = status.charAt(0).toUpperCase() + status.slice(1);
+      const formatted = status === 'not requested'
+        ? 'Not Requested'
+        : status.charAt(0).toUpperCase() + status.slice(1);
       statusEl.textContent = formatted;
 
       if (status === 'approved') {
@@ -371,50 +385,78 @@
 
     /* ---------- STATS ---------- */
     async function fetchStats(profile) {
+      if (!window.supabaseClient || !profile?.id) return;
+
+      // Organizations count
       let orgs = 0;
-      if (window.supabaseClient && profile?.id) {
-        try {
-          const { count } = await window.supabaseClient
-            .from('memberships').select('*', { count: 'exact', head: true })
-            .eq('student_id', profile.id).eq('status', 'active');
-          orgs = count ?? 0;
-        } catch {}
-      }
+      try {
+        const { count } = await window.supabaseClient
+          .from('memberships')
+          .select('*', { count: 'exact', head: true })
+          .eq('student_id', profile.id)
+          .eq('status', 'active');
+        orgs = count ?? 0;
+      } catch { orgs = 0; }
       document.getElementById('myOrgs').textContent = orgs;
 
+      // Attendance rate (match student by profile.student_id string)
       let rate = '—';
-      if (window.supabaseClient && profile?.id) {
-        try {
-          const { data: att } = await window.supabaseClient
-            .from('attendance').select('status').eq('student_id', profile.id);
-          if (att && att.length > 0) {
-            const present = att.filter(a => a.status === 'present').length;
-            rate = Math.round((present / att.length) * 100) + '%';
+      try {
+        const studentIdStr = profile.student_id;
+        if (studentIdStr) {
+          // Get student's numeric id first
+          const { data: studentRow } = await window.supabaseClient
+            .from('students').select('id').eq('student_id', studentIdStr).single();
+
+          if (studentRow?.id) {
+            const { data: att } = await window.supabaseClient
+              .from('attendance').select('status').eq('student_id', studentRow.id);
+
+            if (att && att.length > 0) {
+              const present = att.filter(a => a.status === 'present').length;
+              rate = Math.round((present / att.length) * 100) + '%';
+            }
           }
-        } catch {}
-      }
+        }
+      } catch { rate = '—'; }
       document.getElementById('attendanceRate').textContent = rate;
 
+      // Unpaid fees — match by student_id string too
       let fees = 0;
-      if (window.supabaseClient && profile?.id) {
-        try {
-          const { count } = await window.supabaseClient
-            .from('fees').select('*', { count: 'exact', head: true })
-            .eq('student_id', profile.id).eq('status', 'unpaid');
-          fees = count ?? 0;
-        } catch {}
-      }
+      try {
+        const studentIdStr = profile.student_id;
+        if (studentIdStr) {
+          const { data: studentRow } = await window.supabaseClient
+            .from('students').select('id').eq('student_id', studentIdStr).single();
+
+          if (studentRow?.id) {
+            const { count } = await window.supabaseClient
+              .from('fees').select('*', { count: 'exact', head: true })
+              .eq('student_id', studentRow.id)
+              .eq('status', 'unpaid');
+            fees = count ?? 0;
+          }
+        }
+      } catch { fees = 0; }
       document.getElementById('unpaidFees').textContent = fees;
 
+      // Unpaid fines
       let fines = 0;
-      if (window.supabaseClient && profile?.id) {
-        try {
-          const { count } = await window.supabaseClient
-            .from('fines').select('*', { count: 'exact', head: true })
-            .eq('student_id', profile.id).eq('status', 'unpaid');
-          fines = count ?? 0;
-        } catch {}
-      }
+      try {
+        const studentIdStr = profile.student_id;
+        if (studentIdStr) {
+          const { data: studentRow } = await window.supabaseClient
+            .from('students').select('id').eq('student_id', studentIdStr).single();
+
+          if (studentRow?.id) {
+            const { count } = await window.supabaseClient
+              .from('fines').select('*', { count: 'exact', head: true })
+              .eq('student_id', studentRow.id)
+              .eq('status', 'unpaid');
+            fines = count ?? 0;
+          }
+        }
+      } catch { fines = 0; }
       document.getElementById('unpaidFines').textContent = fines;
     }
 
@@ -423,26 +465,49 @@
       const el = document.getElementById('pendingItems');
       const items = [];
 
-      if (window.supabaseClient && profile?.id) {
+      if (!window.supabaseClient || !profile?.id) {
+        el.innerHTML = `<p class="text-center text-purple-300/60 py-6 text-xs italic">No pending requirements.</p>`;
+        return;
+      }
+
+      // Look up numeric student id
+      let studentId = null;
+      try {
+        const { data } = await window.supabaseClient
+          .from('students').select('id').eq('student_id', profile.student_id).single();
+        studentId = data?.id;
+      } catch {}
+
+      if (studentId) {
+        // Unpaid fees
         try {
           const { data: unpaid } = await window.supabaseClient
-            .from('fees').select('amount').eq('student_id', profile.id).eq('status', 'unpaid');
-          unpaid?.forEach(f => items.push({ type: 'warn', title: 'Unpaid Membership Fee', meta: '₱' + (f.amount || 0) }));
+            .from('fees').select('amount, org')
+            .eq('student_id', studentId).eq('status', 'unpaid');
+          unpaid?.forEach(f => items.push({
+            type: 'warn',
+            title: `Unpaid Fee: ${f.org || 'Membership'}`,
+            meta: '₱' + (f.amount || 0)
+          }));
         } catch {}
 
+        // Unpaid fines
         try {
           const { data: fines } = await window.supabaseClient
-            .from('fines').select('amount, reason').eq('student_id', profile.id).eq('status', 'unpaid');
-          fines?.forEach(f => items.push({ type: 'danger', title: 'Unpaid Fine: ' + (f.reason || 'N/A'), meta: '₱' + (f.amount || 0) }));
+            .from('fines').select('amount, reason')
+            .eq('student_id', studentId).eq('status', 'unpaid');
+          fines?.forEach(f => items.push({
+            type: 'danger',
+            title: 'Unpaid Fine: ' + (f.reason || 'N/A'),
+            meta: '₱' + (f.amount || 0)
+          }));
         } catch {}
       }
 
-      const finalItems = items.length === 0 && !window.supabaseClient ? mockPendingItems : items;
-
-      if (finalItems.length === 0) {
-        el.innerHTML = `<p class="text-center text-purple-300/60 py-6 text-xs italic">No pending requirements.</p>`;
+      if (items.length === 0) {
+        el.innerHTML = `<p class="text-center text-purple-300/60 py-6 text-xs italic">All clear! No pending requirements.</p>`;
       } else {
-        el.innerHTML = finalItems.map(p => `
+        el.innerHTML = items.map(p => `
           <div class="p-3.5 rounded-2xl border-l-4 ${p.type === 'danger' ? 'border-red-400 bg-red-950/40' : 'border-amber-400 bg-amber-950/30'} flex items-center justify-between gap-3">
             <span class="text-xs font-semibold text-white">${p.title}</span>
             <span class="text-xs font-bold text-purple-200">${p.meta}</span>
@@ -454,157 +519,138 @@
     /* ---------- ANNOUNCEMENTS ---------- */
     async function fetchAnnouncements() {
       const el = document.getElementById('announcementsList');
-      let anns = mockAnnouncements;
 
-      if (window.supabaseClient) {
-        try {
-          const { data } = await window.supabaseClient
-            .from('announcements').select('id, title, content, created_at')
-            .order('created_at', { ascending: false }).limit(3);
-          if (data && data.length > 0) anns = data;
-        } catch {}
+      if (!window.supabaseClient) {
+        el.innerHTML = `<p class="text-center text-purple-300/60 py-6 text-xs italic">Announcements unavailable.</p>`;
+        return;
       }
 
-      if (!anns || anns.length === 0) {
-        el.innerHTML = `<p class="text-center text-purple-300/60 py-6 text-xs italic">No announcements yet.</p>`;
-      } else {
-        el.innerHTML = anns.map(a => `
+      try {
+        const { data, error } = await window.supabaseClient
+          .from('announcements')
+          .select('id, title, content, created_at')
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        if (error || !data || data.length === 0) {
+          el.innerHTML = `<p class="text-center text-purple-300/60 py-6 text-xs italic">No announcements yet.</p>`;
+          return;
+        }
+
+        el.innerHTML = data.map(a => `
           <div class="p-3.5 rounded-2xl bg-purple-950/50 border-l-4 border-purple-400">
             <div class="font-bold text-white text-xs">${a.title}</div>
             <div class="text-[10px] text-purple-300/70 mt-1">${new Date(a.created_at).toLocaleDateString()}</div>
           </div>
         `).join('');
+
+      } catch {
+        el.innerHTML = `<p class="text-center text-purple-300/60 py-6 text-xs italic">Announcements unavailable.</p>`;
       }
     }
 
     /* ---------- EVENTS ---------- */
     async function fetchEvents() {
       const el = document.getElementById('eventsList');
-      let events = mockEvents;
 
-      if (window.supabaseClient) {
-        try {
-          const { data } = await window.supabaseClient
-            .from('events').select('id, title, org_id, event_date')
-            .gte('event_date', new Date().toISOString())
-            .order('event_date', { ascending: true }).limit(5);
-          if (data && data.length > 0) events = data;
-        } catch {}
+      if (!window.supabaseClient) {
+        el.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-purple-300/60 italic">Events unavailable.</td></tr>`;
+        return;
       }
 
-      if (!events || events.length === 0) {
-        el.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-purple-300/60 italic">No upcoming events.</td></tr>`;
-      } else {
-        el.innerHTML = events.map(e => `
+      try {
+        const { data, error } = await window.supabaseClient
+          .from('events')
+          .select('id, title, org, event_date, status')
+          .gte('event_date', new Date().toISOString())
+          .order('event_date', { ascending: true })
+          .limit(5);
+
+        if (error || !data || data.length === 0) {
+          el.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-purple-300/60 italic">No upcoming events.</td></tr>`;
+          return;
+        }
+
+        el.innerHTML = data.map(e => `
           <tr class="hover:bg-purple-900/30 transition-colors">
             <td class="py-3 px-4 font-semibold text-white">${e.title}</td>
-            <td class="py-3 px-4 text-purple-200">${e.org_id || '—'}</td>
-            <td class="py-3 px-4 text-purple-300/80">${new Date(e.event_date).toLocaleDateString()}</td>
-            <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-400/30">Upcoming</span></td>
+            <td class="py-3 px-4 text-purple-200">${e.org || '—'}</td>
+            <td class="py-3 px-4 text-purple-300/80">${e.event_date ? new Date(e.event_date).toLocaleDateString() : '—'}</td>
+            <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-400/30">${e.status || 'Upcoming'}</span></td>
           </tr>
         `).join('');
+
+      } catch {
+        el.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-purple-300/60 italic">Events unavailable.</td></tr>`;
       }
     }
 
     /* ---------- PAYMENTS ---------- */
     async function fetchPayments(profile) {
       const el = document.getElementById('paymentsList');
-      let pays = mockPayments;
 
-      if (window.supabaseClient && profile?.id) {
-        try {
-          const { data } = await window.supabaseClient
-            .from('payments').select('id, type, amount, created_at, status')
-            .eq('student_id', profile.id)
-            .order('created_at', { ascending: false }).limit(5);
-          if (data && data.length > 0) pays = data;
-        } catch {}
-      }
-
-      if (!pays || pays.length === 0) {
+      if (!window.supabaseClient || !profile?.id) {
         el.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-purple-300/60 italic">No payments yet.</td></tr>`;
-      } else {
-        el.innerHTML = pays.map(p => `
-          <tr class="hover:bg-purple-900/30 transition-colors">
-            <td class="py-3 px-4 text-white font-semibold">${p.type || '—'}</td>
-            <td class="py-3 px-4 text-purple-200">₱${p.amount || 0}</td>
-            <td class="py-3 px-4 text-purple-300/80">${new Date(p.created_at).toLocaleDateString()}</td>
-            <td class="py-3 px-4">
-              <span class="px-2 py-1 rounded-full text-[10px] font-bold ${p.status === 'paid' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30' : 'bg-amber-500/20 text-amber-300 border border-amber-400/30'}">
-                ${p.status || '—'}
-              </span>
-            </td>
-          </tr>
-        `).join('');
-      }
-    }
-
-    /* ---------- NAVIGATION ---------- */
-    function navigateTab(pageKey) {
-      document.querySelectorAll('#sidebar-nav-container .nav-item').forEach(btn => {
-        const key = btn.getAttribute('data-page');
-        if (key === pageKey) btn.classList.add('nav-item-active');
-        else btn.classList.remove('nav-item-active');
-      });
-
-      const titleEl = document.getElementById('page-heading-title');
-      const allViews = {
-        dashboard: document.getElementById('view-dashboard'),
-        placeholder: document.getElementById('view-placeholder')
-      };
-
-      if (pageKey === 'dashboard') {
-        titleEl.textContent = 'Student Dashboard';
-        allViews.dashboard.classList.remove('hidden');
-        allViews.placeholder.classList.add('hidden');
-      } else {
-        const formatted = pageKey.charAt(0).toUpperCase() + pageKey.slice(1).replace('-', ' ');
-        titleEl.textContent = formatted;
-        allViews.dashboard.classList.add('hidden');
-        allViews.placeholder.classList.remove('hidden');
-        document.getElementById('placeholder-title').textContent = formatted;
-        document.getElementById('placeholder-desc').textContent = `Student portal for ${formatted.toLowerCase()}. Data is synced with OrgHub.`;
+        return;
       }
 
-      document.getElementById('sidebar-overlay').classList.add('hidden');
-      document.getElementById('main-sidebar').classList.add('-translate-x-full');
-    }
+      // Look up numeric student id
+      let studentId = null;
+      try {
+        const { data } = await window.supabaseClient
+          .from('students').select('id').eq('student_id', profile.student_id).single();
+        studentId = data?.id;
+      } catch {}
 
-    /* ---------- MODALS ---------- */
-    function openNotificationsModal() {
-      document.getElementById('modal-notif').classList.remove('opacity-0', 'pointer-events-none');
-    }
-
-    function closeModal(modalId) {
-      const m = document.getElementById(modalId);
-      if (m) m.classList.add('opacity-0', 'pointer-events-none');
-    }
-  </script>
-
-  <!-- PLACEHOLDER VIEW (needs to exist in DOM) -->
-  <template id="placeholder-template">
-    <div id="view-placeholder" class="view-panel hidden glass-card p-8 rounded-3xl space-y-4 text-center">
-      <div class="w-16 h-16 mx-auto rounded-full bg-purple-600/20 border border-purple-500/40 flex items-center justify-center text-purple-300">
-        <i id="placeholder-icon" data-lucide="folder" class="w-8 h-8"></i>
-      </div>
-      <h2 id="placeholder-title" class="text-2xl font-bold text-white">Module Title</h2>
-      <p id="placeholder-desc" class="text-purple-300/70 text-sm max-w-md mx-auto">
-        This section is configured in CCS OrgHub Student Portal.
-      </p>
-      <button onclick="navigateTab('dashboard')" class="mt-4 px-5 py-2.5 rounded-xl bg-purple-600 text-white font-semibold text-xs shadow-lg shadow-purple-600/30 hover:bg-purple-500">
-        Return to Dashboard
-      </button>
-    </div>
-  </template>
-
-  <script>
-    // Inject placeholder into main content (for other sidebar links)
-    document.addEventListener('DOMContentLoaded', () => {
-      const main = document.querySelector('main');
-      if (main && !document.getElementById('view-placeholder')) {
-        main.insertAdjacentHTML('beforeend', document.getElementById('placeholder-template').innerHTML);
+      if (!studentId) {
+        el.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-purple-300/60 italic">No payments yet.</td></tr>`;
+        return;
       }
-    });
+
+      // Combine fees + fines as "payments"
+      const all = [];
+      try {
+        const { data: fees } = await window.supabaseClient
+          .from('fees').select('org, amount, status, created_at')
+          .eq('student_id', studentId).eq('status', 'paid');
+        (fees || []).forEach(f => all.push({
+          type: 'Fee: ' + (f.org || 'Membership'),
+          amount: f.amount,
+          created_at: f.created_at,
+          status: 'paid'
+        }));
+      } catch {}
+
+      try {
+        const { data: fines } = await window.supabaseClient
+          .from('fines').select('reason, amount, status, created_at')
+          .eq('student_id', studentId).eq('status', 'settled');
+        (fines || []).forEach(f => all.push({
+          type: 'Fine: ' + (f.reason || 'N/A'),
+          amount: f.amount,
+          created_at: f.created_at,
+          status: 'paid'
+        }));
+      } catch {}
+
+      if (all.length === 0) {
+        el.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-purple-300/60 italic">No payments yet.</td></tr>`;
+        return;
+      }
+
+      all.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      el.innerHTML = all.slice(0, 5).map(p => `
+        <tr class="hover:bg-purple-900/30 transition-colors">
+          <td class="py-3 px-4 text-white font-semibold">${p.type}</td>
+          <td class="py-3 px-4 text-purple-200">₱${(p.amount || 0).toFixed(2)}</td>
+          <td class="py-3 px-4 text-purple-300/80">${p.created_at ? new Date(p.created_at).toLocaleDateString() : '—'}</td>
+          <td class="py-3 px-4">
+            <span class="px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">${p.status}</span>
+          </td>
+        </tr>
+      `).join('');
+    }
   </script>
 
 </body>

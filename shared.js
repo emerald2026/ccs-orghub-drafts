@@ -9,10 +9,10 @@ function initSupabase() {
       window.supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
       console.log('✅ Supabase initialized.');
     } catch (e) {
-      console.warn('❌ Supabase init failed — demo mode.', e);
+      console.warn('❌ Supabase init failed:', e);
     }
   } else {
-    console.log('⚠️ Demo mode: no Supabase config.');
+    console.log('⚠️ Supabase config missing.');
   }
 }
 
@@ -94,13 +94,9 @@ function buildSidebar(activePage, role = 'admin') {
     navHTML += `<div><div class="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-purple-300/60">${section}</div><div class="space-y-1">`;
     items.forEach(item => {
       const isActive = item.key === activePage;
-      const activeClass = isActive
-        ? 'nav-item-active'
-        : 'text-purple-200/80 hover:bg-purple-500/15 hover:text-white';
+      const activeClass = isActive ? 'nav-item-active' : 'text-purple-200/80 hover:bg-purple-500/15 hover:text-white';
       const iconColor = isActive ? '' : 'text-purple-400';
-      const badge = item.badge
-        ? `<span class="px-2 py-0.5 text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full">${item.badge}</span>`
-        : '';
+      const badge = item.badge ? `<span class="px-2 py-0.5 text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full">${item.badge}</span>` : '';
       const justify = badge ? 'justify-between' : '';
 
       navHTML += `
@@ -177,7 +173,7 @@ function buildTopbar(title, subtitle) {
     </header>`;
 }
 
-/* ---------- BUILD ORBS + OVERLAY ---------- */
+/* ---------- BUILD BACKGROUND ---------- */
 function buildBackground() {
   return `
     <div class="orb w-96 h-96 bg-purple-700/25 top-0 left-10 animate-pulse"></div>
