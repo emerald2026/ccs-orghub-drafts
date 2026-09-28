@@ -6,9 +6,10 @@
   <title>Dashboard — CCS OrgHub Admin Panel</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js" onerror="console.warn('config.js not found. Running in UI Prototype / Demo mode.')"></script>
+  <script src="config.js" onerror="console.warn('config.js not found. Demo mode.')"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="shared.css">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,412 +19,191 @@
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
-          },
+          fontFamily: { sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'] },
           colors: {
             purple: {
               950: '#0f041c', 900: '#1e0836', 850: '#2d0a4e', 800: '#3b0764',
               700: '#581c87', 600: '#7e22ce', 500: '#a855f7', 400: '#c084fc',
               300: '#d8b4fe', 200: '#e9d5ff', 100: '#f3e8ff', 50: '#faf5ff',
             }
-          },
-          boxShadow: {
-            'purple-glow': '0 0 25px rgba(168, 85, 247, 0.25), inset 0 0 10px rgba(168, 85, 247, 0.15)',
-            'glass': '0 8px 32px 0 rgba(15, 4, 28, 0.45)',
           }
         }
       }
     }
   </script>
-
-  <style>
-    body {
-      background: radial-gradient(circle at 10% 20%, #2d0a4e 0%, #1a052e 45%, #0a0212 100%);
-      background-attachment: fixed;
-      color: #f3e8ff;
-    }
-    .glass-sidebar {
-      background: rgba(30, 8, 54, 0.65);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-right: 1px solid rgba(168, 85, 247, 0.25);
-    }
-    .glass-topbar {
-      background: rgba(15, 4, 28, 0.7);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-bottom: 1px solid rgba(168, 85, 247, 0.2);
-    }
-    .glass-card {
-      background: rgba(255, 255, 255, 0.035);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(168, 85, 247, 0.2);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-    }
-    .glass-card:hover { border-color: rgba(168, 85, 247, 0.45); }
-    .welcome-gradient {
-      background: linear-gradient(135deg, rgba(126, 34, 206, 0.4) 0%, rgba(88, 28, 135, 0.6) 50%, rgba(30, 8, 54, 0.8) 100%);
-      border: 1px solid rgba(192, 132, 252, 0.35);
-    }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: rgba(15, 4, 28, 0.2); }
-    ::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.3); border-radius: 9999px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(168, 85, 247, 0.6); }
-    .nav-item-active {
-      background: rgba(168, 85, 247, 0.2);
-      border-left: 4px solid #c084fc;
-      color: #ffffff !important;
-      font-weight: 700;
-      box-shadow: inset 0 0 12px rgba(168, 85, 247, 0.25);
-    }
-    .orb {
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(120px);
-      pointer-events: none;
-      z-index: 0;
-    }
-  </style>
 </head>
 
 <body class="h-full font-sans antialiased selection:bg-purple-500 selection:text-white flex overflow-hidden">
 
-  <div class="orb w-96 h-96 bg-purple-700/25 top-0 left-10 animate-pulse"></div>
-  <div class="orb w-[30rem] h-[30rem] bg-purple-900/40 bottom-0 right-10"></div>
-  <div class="orb w-80 h-80 bg-fuchsia-600/15 top-1/2 left-1/3"></div>
+  <div id="bg-layer"></div>
+  <div id="sidebar-layer"></div>
 
-  <div id="sidebar-overlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 lg:hidden hidden transition-opacity"></div>
-
-  <!-- ============ SIDEBAR ============ -->
-  <aside id="main-sidebar" class="glass-sidebar w-64 fixed top-0 bottom-0 left-0 z-50 flex flex-col transition-transform duration-300 -translate-x-full lg:translate-x-0">
-    <div class="p-5 border-b border-purple-500/20 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="p-2.5 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-800 text-white shadow-lg shadow-purple-600/30 border border-purple-400/40">
-          <i data-lucide="layers" class="w-6 h-6"></i>
-        </div>
-        <div>
-          <h2 class="font-extrabold text-base tracking-wide text-white flex items-center gap-1.5">
-            CCS OrgHub
-            <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-          </h2>
-          <p class="text-[11px] font-semibold text-purple-300/80 uppercase tracking-widest mt-0.5">Admin Portal</p>
-        </div>
-      </div>
-      <button onclick="toggleMobileSidebar()" class="lg:hidden text-purple-300 hover:text-white p-1">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
-    </div>
-
-    <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-6" id="sidebar-nav-container">
-      <div>
-        <div class="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-purple-300/60">Main</div>
-        <div class="space-y-1">
-          <button onclick="navigateTab('dashboard')" data-page="dashboard" class="nav-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-purple-200/80 hover:bg-purple-500/15 hover:text-white transition-all text-sm font-medium group">
-            <i data-lucide="layout-dashboard" class="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform"></i>
-            <span>Dashboard</span>
-          </button>
-          <button onclick="navigateTab('students')" data-page="students" class="nav-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-purple-200/80 hover:bg-purple-500/15 hover:text-white transition-all text-sm font-medium group">
-            <i data-lucide="users" class="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform"></i>
-            <span>Students</span>
-          </button>
-          <button onclick="navigateTab('organizations')" data-page="organizations" class="nav-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-purple-200/80 hover:bg-purple-500/15 hover:text-white transition-all text-sm font-medium group">
-            <i data-lucide="building-2" class="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform"></i>
-            <span>Organizations</span>
-          </button>
-        </div>
-      </div>
-
-      <div>
-        <div class="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-purple-300/60">Operations</div>
-        <div class="space-y-1">
-          <button onclick="navigateTab('attendance')" data-page="attendance" class="nav-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-purple-200/80 hover:bg-purple-500/15 hover:text-white transition-all text-sm font-medium group">
-            <i data-lucide="calendar-check-2" class="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform"></i>
-            <span>Attendance</span>
-          </button>
-          <button onclick="navigateTab('membership')" data-page="membership" class="nav-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-purple-200/80 hover:bg-purple-500/15 hover:text-white transition-all text-sm font-medium group">
-            <i data-lucide="user-check" class="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform"></i>
-            <span>Membership</span>
-          </button>
-          <button onclick="navigateTab('announcements')" data-page="announcements" class="nav-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-purple-200/80 hover:bg-purple-500/15 hover:text-white transition-all text-sm font-medium group">
-            <i data-lucide="megaphone" class="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform"></i>
-            <span>Announcements</span>
-          </button>
-        </div>
-      </div>
-
-      <div>
-        <div class="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-purple-300/60">Finance</div>
-        <div class="space-y-1">
-          <button onclick="navigateTab('fees')" data-page="fees" class="nav-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-purple-200/80 hover:bg-purple-500/15 hover:text-white transition-all text-sm font-medium group">
-            <i data-lucide="receipt" class="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform"></i>
-            <span>Fees</span>
-          </button>
-          <button onclick="navigateTab('fines')" data-page="fines" class="nav-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-purple-200/80 hover:bg-purple-500/15 hover:text-white transition-all text-sm font-medium group">
-            <i data-lucide="alert-circle" class="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform"></i>
-            <span>Fines</span>
-          </button>
-          <button onclick="navigateTab('payments')" data-page="payments" class="nav-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-purple-200/80 hover:bg-purple-500/15 hover:text-white transition-all text-sm font-medium group">
-            <i data-lucide="credit-card" class="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform"></i>
-            <span>Payments</span>
-          </button>
-        </div>
-      </div>
-
-      <div>
-        <div class="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-purple-300/60">Clearance</div>
-        <div class="space-y-1">
-          <button onclick="navigateTab('clearance')" data-page="clearance" class="nav-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-purple-200/80 hover:bg-purple-500/15 hover:text-white transition-all text-sm font-medium group justify-between">
-            <div class="flex items-center space-x-3">
-              <i data-lucide="shield-check" class="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform"></i>
-              <span>Approvals</span>
-            </div>
-            <span id="nav-pending-badge" class="px-2 py-0.5 text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full">3</span>
-          </button>
-          <button onclick="navigateTab('clearance-tracking')" data-page="clearance-tracking" class="nav-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-purple-200/80 hover:bg-purple-500/15 hover:text-white transition-all text-sm font-medium group">
-            <i data-lucide="list-checks" class="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform"></i>
-            <span>Tracking</span>
-          </button>
-        </div>
-      </div>
-
-      <div>
-        <div class="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-purple-300/60">Reports</div>
-        <div class="space-y-1">
-          <button onclick="navigateTab('reports')" data-page="reports" class="nav-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-purple-200/80 hover:bg-purple-500/15 hover:text-white transition-all text-sm font-medium group">
-            <i data-lucide="bar-chart-3" class="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform"></i>
-            <span>All Reports</span>
-          </button>
-        </div>
-      </div>
-    </nav>
-
-    <div class="p-3 border-t border-purple-500/20">
-      <button onclick="logout()" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-red-300 hover:bg-red-500/20 hover:text-red-100 transition-all text-sm font-medium group">
-        <i data-lucide="log-out" class="w-4 h-4 text-red-400 group-hover:translate-x-1 transition-transform"></i>
-        <span>Logout</span>
-      </button>
-    </div>
-  </aside>
-
-  <!-- ============ MAIN ============ -->
   <div class="flex-1 lg:ml-64 flex flex-col min-h-screen relative z-10 overflow-x-hidden">
 
-    <header class="glass-topbar sticky top-0 z-30 px-4 md:px-8 py-3.5 flex items-center justify-between">
-      <div class="flex items-center space-x-4">
-        <button onclick="toggleMobileSidebar()" class="p-2 rounded-xl bg-purple-900/50 text-purple-200 border border-purple-500/30 lg:hidden hover:bg-purple-800/50">
-          <i data-lucide="menu" class="w-5 h-5"></i>
-        </button>
-        <div>
-          <h1 id="page-heading-title" class="text-xl font-bold text-white tracking-tight flex items-center gap-2">Dashboard Overview</h1>
-          <p class="text-xs text-purple-300/70 hidden sm:block">College of Computer Studies Organizational Portal</p>
-        </div>
-      </div>
-
-      <div class="flex items-center space-x-3">
-        <div class="relative hidden md:block w-52 lg:w-64">
-          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-purple-300/60"></i>
-          <input type="text" id="global-search" oninput="handleGlobalSearch(this.value)" placeholder="Search students, orgs..."
-            class="w-full bg-purple-950/60 border border-purple-500/30 rounded-xl py-2 pl-9 pr-3 text-xs text-white placeholder-purple-300/50 focus:border-purple-400 focus:outline-none focus:ring-1 focus:ring-purple-400 transition-all" />
-        </div>
-
-        <button onclick="openNotificationsModal()" class="relative p-2.5 rounded-xl bg-purple-900/40 border border-purple-500/30 text-purple-200 hover:text-white hover:bg-purple-800/50 transition-all group" title="Notifications">
-          <i data-lucide="bell" class="w-4 h-4 text-purple-300 group-hover:scale-110 transition-transform"></i>
-          <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-          <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-400"></span>
-        </button>
-
-        <div class="flex items-center space-x-2.5 pl-2 border-l border-purple-500/20">
-          <div id="userAvatar" class="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-purple-400 border border-purple-300/40 flex items-center justify-center font-bold text-sm text-white shadow-md shadow-purple-600/30">A</div>
-          <div class="hidden sm:block text-left">
-            <div id="userName" class="text-xs font-bold text-white leading-tight">Admin User</div>
-            <div id="userRoleBadge" class="text-[10px] text-purple-300/80 font-medium">CCS Faculty Admin</div>
-          </div>
-        </div>
-      </div>
-    </header>
+    <div id="topbar-layer"></div>
 
     <main class="flex-1 p-4 md:p-8 space-y-6">
 
-      <div id="view-dashboard" class="view-panel space-y-6">
-
-        <!-- WELCOME -->
-        <div class="welcome-gradient rounded-3xl p-6 md:p-8 relative overflow-hidden shadow-2xl">
-          <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div class="space-y-2">
-              <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-300/30 text-purple-200 text-xs font-semibold">
-                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-300"></i>
-                <span>Semester SY 2026-2027 Active</span>
-              </div>
-              <h1 id="welcome" class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight">Welcome, Administrator!</h1>
-              <p class="text-purple-200/80 text-sm max-w-2xl">CCS OrgHub central operations is running smoothly. Review pending student clearance requests and organization activities below.</p>
-              <div class="pt-2 flex flex-wrap items-center gap-4 text-xs text-purple-300/90 font-medium">
-                <span class="flex items-center gap-1.5"><i data-lucide="shield" class="w-4 h-4 text-purple-400"></i> <strong id="role">Role: System Admin</strong></span>
-                <span class="flex items-center gap-1.5"><i data-lucide="clock" class="w-4 h-4 text-purple-400"></i> <span id="live-time-display">Loading time...</span></span>
-              </div>
+      <!-- WELCOME -->
+      <div class="welcome-gradient rounded-3xl p-6 md:p-8 relative overflow-hidden shadow-2xl">
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div class="space-y-2">
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-300/30 text-purple-200 text-xs font-semibold">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-300"></i>
+              <span>Semester SY 2026-2027 Active</span>
             </div>
-            <div class="flex flex-col sm:flex-row lg:flex-col gap-3 justify-center">
-              <button onclick="openAddStudentModal()" class="px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-purple-700 text-white font-bold text-xs shadow-lg shadow-purple-600/40 hover:brightness-110 active:scale-95 transition-all flex items-center justify-center space-x-2 border border-purple-400/40">
-                <i data-lucide="user-plus" class="w-4 h-4"></i>
-                <span>Register Student</span>
-              </button>
+            <h1 id="welcome" class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight">Welcome, Administrator!</h1>
+            <p class="text-purple-200/80 text-sm max-w-2xl">CCS OrgHub central operations is running smoothly. Review pending student clearance requests and organization activities below.</p>
+            <div class="pt-2 flex flex-wrap items-center gap-4 text-xs text-purple-300/90 font-medium">
+              <span class="flex items-center gap-1.5"><i data-lucide="shield" class="w-4 h-4 text-purple-400"></i> <strong id="role">Role: System Admin</strong></span>
+              <span class="flex items-center gap-1.5"><i data-lucide="clock" class="w-4 h-4 text-purple-400"></i> <span id="live-time-display">Loading time...</span></span>
+            </div>
+          </div>
+          <div class="flex flex-col sm:flex-row lg:flex-col gap-3 justify-center">
+            <button onclick="openAddStudentModal()" class="px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-purple-700 text-white font-bold text-xs shadow-lg shadow-purple-600/40 hover:brightness-110 active:scale-95 transition-all flex items-center justify-center space-x-2 border border-purple-400/40">
+              <i data-lucide="user-plus" class="w-4 h-4"></i>
+              <span>Register Student</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="glass-card p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Total Students</span>
+            <div class="p-2.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30"><i data-lucide="graduation-cap" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-white tracking-tight" id="totalStudents">—</div>
+          <p class="text-xs text-emerald-400 mt-2 flex items-center font-medium"><i data-lucide="trending-up" class="w-3.5 h-3.5 mr-1"></i> +12.5% this term</p>
+        </div>
+
+        <div class="glass-card p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Organizations</span>
+            <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"><i data-lucide="building-2" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-white tracking-tight" id="totalOrgs">—</div>
+          <p class="text-xs text-purple-300 mt-2 flex items-center font-medium"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 mr-1 text-emerald-400"></i> Active & Accredited</p>
+        </div>
+
+        <div class="glass-card p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Pending Clearances</span>
+            <div class="p-2.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30"><i data-lucide="clock" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-amber-300 tracking-tight" id="pendingClearances">—</div>
+          <p class="text-xs text-amber-300/80 mt-2 flex items-center font-medium"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 mr-1"></i> Requires sign-off</p>
+        </div>
+
+        <div class="glass-card p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Registered Users</span>
+            <div class="p-2.5 rounded-xl bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/30"><i data-lucide="users-round" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-white tracking-tight" id="totalUsers">—</div>
+          <p class="text-xs text-purple-300 mt-2 flex items-center font-medium"><i data-lucide="shield-check" class="w-3.5 h-3.5 mr-1 text-purple-400"></i> Synced with Profiles</p>
+        </div>
+      </div>
+
+      <!-- QUICK ACTIONS -->
+      <div class="glass-card p-6 rounded-3xl">
+        <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+          <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i> Quick Actions
+        </h3>
+        <div class="flex flex-wrap gap-3">
+          <a href="students.html" class="px-4 py-2.5 rounded-xl bg-purple-600 text-white font-bold text-xs hover:bg-purple-500 transition-all flex items-center space-x-2 shadow-lg shadow-purple-600/30">
+            <i data-lucide="users" class="w-4 h-4"></i><span>Manage Students</span>
+          </a>
+          <a href="events.html" class="px-4 py-2.5 rounded-xl bg-purple-950/80 text-purple-200 border border-purple-500/40 font-bold text-xs hover:bg-purple-800/50 hover:text-white transition-all flex items-center space-x-2">
+            <i data-lucide="calendar-days" class="w-4 h-4 text-purple-400"></i><span>Create Event</span>
+          </a>
+          <a href="attendance.html" class="px-4 py-2.5 rounded-xl bg-purple-950/80 text-purple-200 border border-purple-500/40 font-bold text-xs hover:bg-purple-800/50 hover:text-white transition-all flex items-center space-x-2">
+            <i data-lucide="clipboard-check" class="w-4 h-4 text-purple-400"></i><span>Record Attendance</span>
+          </a>
+          <a href="clearance.html" class="px-4 py-2.5 rounded-xl bg-purple-950/80 text-purple-200 border border-purple-500/40 font-bold text-xs hover:bg-purple-800/50 hover:text-white transition-all flex items-center space-x-2">
+            <i data-lucide="shield-check" class="w-4 h-4 text-purple-400"></i><span>Review Clearances</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- 2-COL: PENDING + ALERTS -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass-card p-6 rounded-3xl flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <i data-lucide="file-clock" class="w-5 h-5 text-purple-400"></i>
+                Pending Clearance Requests
+              </h3>
+              <a href="clearance.html" class="text-xs text-purple-300 hover:text-white font-semibold">View All →</a>
+            </div>
+            <div id="pendingList" class="space-y-3">
+              <p class="text-center text-purple-300/60 py-6 text-xs italic">Loading pending clearances...</p>
             </div>
           </div>
         </div>
 
-        <!-- STATS -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="glass-card p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Total Students</span>
-              <div class="p-2.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30"><i data-lucide="graduation-cap" class="w-5 h-5"></i></div>
+        <div class="glass-card p-6 rounded-3xl flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <i data-lucide="bell-ring" class="w-5 h-5 text-purple-400"></i>
+                Alerts & System Notifications
+              </h3>
+              <span class="px-2 py-0.5 text-[10px] font-bold bg-purple-500/20 text-purple-300 rounded-full border border-purple-400/30">Live System</span>
             </div>
-            <div class="text-3xl font-extrabold text-white tracking-tight" id="totalStudents">—</div>
-            <p class="text-xs text-emerald-400 mt-2 flex items-center font-medium"><i data-lucide="trending-up" class="w-3.5 h-3.5 mr-1"></i> +12.5% this term</p>
-          </div>
-
-          <div class="glass-card p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Organizations</span>
-              <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"><i data-lucide="building-2" class="w-5 h-5"></i></div>
-            </div>
-            <div class="text-3xl font-extrabold text-white tracking-tight" id="totalOrgs">—</div>
-            <p class="text-xs text-purple-300 mt-2 flex items-center font-medium"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 mr-1 text-emerald-400"></i> Active & Accredited</p>
-          </div>
-
-          <div class="glass-card p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Pending Clearances</span>
-              <div class="p-2.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30"><i data-lucide="clock" class="w-5 h-5"></i></div>
-            </div>
-            <div class="text-3xl font-extrabold text-amber-300 tracking-tight" id="pendingClearances">—</div>
-            <p class="text-xs text-amber-300/80 mt-2 flex items-center font-medium"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 mr-1"></i> Requires sign-off</p>
-          </div>
-
-          <div class="glass-card p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Registered Users</span>
-              <div class="p-2.5 rounded-xl bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/30"><i data-lucide="users-round" class="w-5 h-5"></i></div>
-            </div>
-            <div class="text-3xl font-extrabold text-white tracking-tight" id="totalUsers">—</div>
-            <p class="text-xs text-purple-300 mt-2 flex items-center font-medium"><i data-lucide="shield-check" class="w-3.5 h-3.5 mr-1 text-purple-400"></i> Synced with Profiles</p>
-          </div>
-        </div>
-
-        <!-- QUICK ACTIONS -->
-        <div class="glass-card p-6 rounded-3xl">
-          <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-            <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i> Quick Actions
-          </h3>
-          <div class="flex flex-wrap gap-3">
-            <button onclick="navigateTab('students')" class="px-4 py-2.5 rounded-xl bg-purple-600 text-white font-bold text-xs hover:bg-purple-500 transition-all flex items-center space-x-2 shadow-lg shadow-purple-600/30">
-              <i data-lucide="users" class="w-4 h-4"></i><span>Manage Students</span>
-            </button>
-            <button onclick="navigateTab('organizations')" class="px-4 py-2.5 rounded-xl bg-purple-950/80 text-purple-200 border border-purple-500/40 font-bold text-xs hover:bg-purple-800/50 hover:text-white transition-all flex items-center space-x-2">
-              <i data-lucide="building-2" class="w-4 h-4 text-purple-400"></i><span>Organizations</span>
-            </button>
-            <button onclick="navigateTab('clearance')" class="px-4 py-2.5 rounded-xl bg-purple-950/80 text-purple-200 border border-purple-500/40 font-bold text-xs hover:bg-purple-800/50 hover:text-white transition-all flex items-center space-x-2">
-              <i data-lucide="shield-check" class="w-4 h-4 text-purple-400"></i><span>Review Clearances</span>
-            </button>
-            <button onclick="navigateTab('reports')" class="px-4 py-2.5 rounded-xl bg-purple-950/80 text-purple-200 border border-purple-500/40 font-bold text-xs hover:bg-purple-800/50 hover:text-white transition-all flex items-center space-x-2">
-              <i data-lucide="file-text" class="w-4 h-4 text-purple-400"></i><span>Generate Report</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- 2-COL: PENDING + ALERTS -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div class="glass-card p-6 rounded-3xl flex flex-col justify-between">
-            <div>
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="text-base font-bold text-white flex items-center gap-2">
-                  <i data-lucide="file-clock" class="w-5 h-5 text-purple-400"></i>
-                  Pending Clearance Requests
-                </h3>
-                <button onclick="navigateTab('clearance')" class="text-xs text-purple-300 hover:text-white font-semibold">View All →</button>
-              </div>
-              <div id="pendingList" class="space-y-3">
-                <p class="text-center text-purple-300/60 py-6 text-xs italic">Loading pending clearances...</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="glass-card p-6 rounded-3xl flex flex-col justify-between">
-            <div>
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="text-base font-bold text-white flex items-center gap-2">
-                  <i data-lucide="bell-ring" class="w-5 h-5 text-purple-400"></i>
-                  Alerts & System Notifications
-                </h3>
-                <span class="px-2 py-0.5 text-[10px] font-bold bg-purple-500/20 text-purple-300 rounded-full border border-purple-400/30">Live System</span>
-              </div>
-              <div id="alertsList" class="space-y-3">
-                <div class="p-3.5 rounded-2xl bg-purple-950/50 border border-purple-500/30 flex items-start space-x-3">
-                  <i data-lucide="check-circle" class="w-5 h-5 text-emerald-400 shrink-0 mt-0.5"></i>
-                  <div class="text-xs">
-                    <p class="font-bold text-white">System running normally.</p>
-                    <p class="text-purple-300/70 mt-0.5">Supabase sync and student databases are fully operational.</p>
-                  </div>
+            <div id="alertsList" class="space-y-3">
+              <div class="p-3.5 rounded-2xl bg-purple-950/50 border border-purple-500/30 flex items-start space-x-3">
+                <i data-lucide="check-circle" class="w-5 h-5 text-emerald-400 shrink-0 mt-0.5"></i>
+                <div class="text-xs">
+                  <p class="font-bold text-white">System running normally.</p>
+                  <p class="text-purple-300/70 mt-0.5">Supabase sync and student databases are fully operational.</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
-        <!-- RECENT STUDENTS -->
-        <div class="glass-card p-6 rounded-3xl space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h3 class="text-base font-bold text-white flex items-center gap-2">
-                <i data-lucide="users" class="w-5 h-5 text-purple-400"></i>
-                Recent Students Directory
-              </h3>
-              <p class="text-xs text-purple-300/70">Latest student enrollments registered in the college system</p>
-            </div>
-            <button onclick="openAddStudentModal()" class="px-3.5 py-2 rounded-xl bg-purple-600/30 hover:bg-purple-600 text-purple-200 hover:text-white border border-purple-500/40 text-xs font-semibold transition-all flex items-center space-x-1.5 self-start sm:self-auto">
-              <i data-lucide="plus" class="w-4 h-4"></i><span>Add Student</span>
-            </button>
-          </div>
-
-          <div class="overflow-x-auto rounded-2xl border border-purple-500/20">
-            <table class="w-full text-left text-xs">
-              <thead class="bg-purple-950/80 text-purple-300 uppercase tracking-wider font-semibold border-b border-purple-500/20">
-                <tr>
-                  <th class="py-3.5 px-4">Student ID</th>
-                  <th class="py-3.5 px-4">Name</th>
-                  <th class="py-3.5 px-4">Course</th>
-                  <th class="py-3.5 px-4">Year Level</th>
-                  <th class="py-3.5 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="recentStudents" class="divide-y divide-purple-500/10 text-purple-100">
-                <tr><td colspan="5" class="py-8 text-center text-purple-300/60 italic">Loading student records...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
       </div>
 
-      <!-- PLACEHOLDER VIEW -->
-      <div id="view-placeholder" class="view-panel hidden glass-card p-8 rounded-3xl space-y-4 text-center">
-        <div class="w-16 h-16 mx-auto rounded-full bg-purple-600/20 border border-purple-500/40 flex items-center justify-center text-purple-300">
-          <i id="placeholder-icon" data-lucide="folder" class="w-8 h-8"></i>
+      <!-- RECENT STUDENTS -->
+      <div class="glass-card p-6 rounded-3xl space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <i data-lucide="users" class="w-5 h-5 text-purple-400"></i>
+              Recent Students Directory
+            </h3>
+            <p class="text-xs text-purple-300/70">Latest student enrollments registered in the college system</p>
+          </div>
+          <button onclick="openAddStudentModal()" class="px-3.5 py-2 rounded-xl bg-purple-600/30 hover:bg-purple-600 text-purple-200 hover:text-white border border-purple-500/40 text-xs font-semibold transition-all flex items-center space-x-1.5 self-start sm:self-auto">
+            <i data-lucide="plus" class="w-4 h-4"></i><span>Add Student</span>
+          </button>
         </div>
-        <h2 id="placeholder-title" class="text-2xl font-bold text-white">Module Title</h2>
-        <p id="placeholder-desc" class="text-purple-300/70 text-sm max-w-md mx-auto">
-          This section is fully configured in CCS OrgHub. Interactive controls and data tables are live below.
-        </p>
-        <button onclick="navigateTab('dashboard')" class="mt-4 px-5 py-2.5 rounded-xl bg-purple-600 text-white font-semibold text-xs shadow-lg shadow-purple-600/30 hover:bg-purple-500">
-          Return to Dashboard
-        </button>
+
+        <div class="overflow-x-auto rounded-2xl border border-purple-500/20">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-purple-950/80 text-purple-300 uppercase tracking-wider font-semibold border-b border-purple-500/20">
+              <tr>
+                <th class="py-3.5 px-4">Student ID</th>
+                <th class="py-3.5 px-4">Name</th>
+                <th class="py-3.5 px-4">Course</th>
+                <th class="py-3.5 px-4">Year Level</th>
+                <th class="py-3.5 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="recentStudents" class="divide-y divide-purple-500/10 text-purple-100">
+              <tr><td colspan="5" class="py-8 text-center text-purple-300/60 italic">Loading student records...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
     </main>
   </div>
 
-  <!-- ============ MODAL: ADD STUDENT ============ -->
+  <!-- MODAL: ADD STUDENT -->
   <div id="modal-add-student" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
     <div class="glass-card w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-purple-400/40 space-y-5 relative">
       <button onclick="closeModal('modal-add-student')" class="absolute top-5 right-5 text-purple-300 hover:text-white">
@@ -483,7 +263,7 @@
     </div>
   </div>
 
-  <!-- ============ MODAL: NOTIFICATIONS ============ -->
+  <!-- MODAL: NOTIFICATIONS -->
   <div id="modal-notif" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
     <div class="glass-card w-full max-w-md rounded-3xl p-6 shadow-2xl border border-purple-400/40 space-y-4 relative">
       <button onclick="closeModal('modal-notif')" class="absolute top-5 right-5 text-purple-300 hover:text-white">
@@ -520,26 +300,10 @@
     </div>
   </div>
 
-  <!-- ============ MODAL: LOGOUT CONFIRMATION ============ -->
-  <div id="modal-logout" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
-    <div class="glass-card w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-red-400/40 space-y-5 relative text-center">
-      <div class="w-14 h-14 mx-auto rounded-full bg-red-500/20 border border-red-400/40 flex items-center justify-center text-red-300">
-        <i data-lucide="log-out" class="w-7 h-7"></i>
-      </div>
-      <div>
-        <h3 class="text-lg font-bold text-white">Sign Out?</h3>
-        <p class="text-xs text-purple-300/70 mt-1">You'll be returned to the login page. Any unsaved changes will be lost.</p>
-      </div>
-      <div class="flex justify-center gap-3 pt-2">
-        <button onclick="closeModal('modal-logout')" class="px-5 py-2.5 rounded-xl bg-purple-950/80 text-purple-200 border border-purple-500/40 hover:bg-purple-800/50 text-xs font-bold transition-all">Cancel</button>
-        <button onclick="confirmLogout()" class="px-5 py-2.5 rounded-xl bg-red-500 hover:bg-red-400 text-white text-xs font-bold shadow-lg shadow-red-500/30 transition-all">Yes, Log Out</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- TOAST -->
+  <div id="modal-layer"></div>
   <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-3 pointer-events-none"></div>
 
+  <script src="shared.js"></script>
   <script>
     /* ---------- MOCK DATA ---------- */
     let mockStudents = [
@@ -561,49 +325,23 @@
 
     /* ---------- INIT ---------- */
     document.addEventListener('DOMContentLoaded', async () => {
+      document.getElementById('bg-layer').innerHTML = buildBackground();
+      document.getElementById('sidebar-layer').innerHTML = buildSidebar('dashboard');
+      document.getElementById('topbar-layer').innerHTML = buildTopbar('Dashboard Overview', 'College of Computer Studies Organizational Portal');
+      document.getElementById('modal-layer').innerHTML = buildLogoutModal();
+
       lucide.createIcons();
       updateLiveClock();
       setInterval(updateLiveClock, 1000);
 
-      // Init Supabase if config exists
-      if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY && typeof supabase !== 'undefined') {
-        try {
-          window.supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-          console.log('Supabase client initialized.');
-        } catch (e) {
-          console.warn('Supabase init failed — demo mode.', e);
-        }
-      }
+      initSupabase();
 
-      // 🔒 Guard: check if user is authenticated
       const ok = await guardAuth();
       if (!ok) return;
 
-      loadDashboard();
-      navigateTab('dashboard');
+      await loadUserProfile();
+      await loadDashboard();
     });
-
-    /* ---------- AUTH GUARD ---------- */
-    async function guardAuth() {
-      // Skip guard in demo mode (no Supabase configured)
-      if (!window.supabaseClient) {
-        console.log('Demo mode: skipping auth guard.');
-        return true;
-      }
-      try {
-        const { data: { session } } = await window.supabaseClient.auth.getSession();
-        if (!session) {
-          console.warn('No active session — redirecting to login.');
-          window.location.replace('index.html');
-          return false;
-        }
-        return true;
-      } catch (e) {
-        console.error('Auth guard error:', e);
-        window.location.replace('index.html');
-        return false;
-      }
-    }
 
     /* ---------- LIVE CLOCK ---------- */
     function updateLiveClock() {
@@ -616,31 +354,13 @@
 
     /* ---------- LOAD DASHBOARD ---------- */
     async function loadDashboard() {
-      let userProfile = { first_name: 'Admin', role: 'Faculty Admin' };
-
-      if (window.supabaseClient) {
-        try {
-          const { data: { user } } = await window.supabaseClient.auth.getUser();
-          if (user) {
-            const { data: profile } = await window.supabaseClient.from('profiles').select('*').eq('id', user.id).single();
-            if (profile) userProfile = profile;
-          }
-        } catch (e) {
-          console.log('Using default admin profile state.');
-        }
-      }
-
-      const name = userProfile.first_name || 'Admin';
-      document.getElementById('welcome').textContent = `Welcome back, ${name}!`;
-      document.getElementById('role').textContent = `Role: ${userProfile.role || 'Faculty Admin'}`;
-      document.getElementById('userName').textContent = `${name} User`;
-      document.getElementById('userAvatar').textContent = (name[0] || 'A').toUpperCase();
-
       await fetchAndRenderStudents();
       await fetchAndRenderClearances();
 
       document.getElementById('totalOrgs').textContent = mockOrgsCount;
       document.getElementById('totalUsers').textContent = mockUsersCount;
+      document.getElementById('welcome').textContent = 'Welcome, Administrator!';
+      document.getElementById('role').textContent = 'Role: System Admin';
     }
 
     /* ---------- STUDENTS ---------- */
@@ -650,7 +370,7 @@
       if (window.supabaseClient) {
         try {
           const { data, error } = await window.supabaseClient.from('students').select('*').order('id', { ascending: false });
-          if (!error && data) studentList = data;
+          if (!error && data && data.length) studentList = data;
         } catch (e) {
           console.warn('Using fallback students data');
         }
@@ -697,7 +417,6 @@
       }
 
       document.getElementById('pendingClearances').textContent = pending.length;
-      document.getElementById('nav-pending-badge').textContent = pending.length;
 
       const listContainer = document.getElementById('pendingList');
       if (pending.length === 0) {
@@ -750,36 +469,6 @@
       showToast('Student Removed', 'Record updated in database.');
     }
 
-    /* ---------- NAVIGATION ---------- */
-    function navigateTab(pageKey) {
-      document.querySelectorAll('#sidebar-nav-container .nav-item').forEach(btn => {
-        const key = btn.getAttribute('data-page');
-        if (key === pageKey) btn.classList.add('nav-item-active');
-        else btn.classList.remove('nav-item-active');
-      });
-
-      const titleElem = document.getElementById('page-heading-title');
-      const dashView = document.getElementById('view-dashboard');
-      const placeholderView = document.getElementById('view-placeholder');
-
-      if (pageKey === 'dashboard') {
-        titleElem.textContent = 'Dashboard Overview';
-        dashView.classList.remove('hidden');
-        placeholderView.classList.add('hidden');
-      } else {
-        const formattedTitle = pageKey.charAt(0).toUpperCase() + pageKey.slice(1).replace('-', ' ');
-        titleElem.textContent = formattedTitle;
-        dashView.classList.add('hidden');
-        placeholderView.classList.remove('hidden');
-
-        document.getElementById('placeholder-title').textContent = `${formattedTitle} Directory`;
-        document.getElementById('placeholder-desc').textContent = `Management portal for ${formattedTitle.toLowerCase()}. All data views are live & synced with OrgHub.`;
-      }
-
-      document.getElementById('sidebar-overlay').classList.add('hidden');
-      document.getElementById('main-sidebar').classList.add('-translate-x-full');
-    }
-
     /* ---------- SEARCH ---------- */
     function handleGlobalSearch(query) {
       const q = query.toLowerCase().trim();
@@ -788,12 +477,7 @@
       });
     }
 
-    /* ---------- SIDEBAR / MODALS ---------- */
-    function toggleMobileSidebar() {
-      document.getElementById('sidebar-overlay').classList.toggle('hidden');
-      document.getElementById('main-sidebar').classList.toggle('-translate-x-full');
-    }
-
+    /* ---------- MODALS ---------- */
     function openAddStudentModal() {
       document.getElementById('modal-add-student').classList.remove('opacity-0', 'pointer-events-none');
     }
@@ -805,78 +489,6 @@
     function closeModal(modalId) {
       const modal = document.getElementById(modalId);
       if (modal) modal.classList.add('opacity-0', 'pointer-events-none');
-    }
-
-    /* ============================================================
-       LOGOUT (FIXED)
-       ============================================================ */
-
-    // Step 1 — open confirmation modal
-    function logout() {
-      const modal = document.getElementById('modal-logout');
-      modal.classList.remove('opacity-0', 'pointer-events-none');
-    }
-
-    // Step 2 — user confirmed
-    async function confirmLogout() {
-      const modal = document.getElementById('modal-logout');
-      modal.classList.add('opacity-0', 'pointer-events-none');
-
-      showToast('Signing Out...', 'Please wait while we log you out safely.');
-
-      try {
-        if (window.supabaseClient) {
-          const { error } = await window.supabaseClient.auth.signOut();
-          if (error) console.warn('Supabase signOut error:', error.message);
-        }
-      } catch (err) {
-        console.error('Logout failed:', err);
-      }
-
-      // Clear all client-side storage
-      try {
-        sessionStorage.clear();
-        localStorage.removeItem('sidebarCollapsed');
-        localStorage.removeItem('supabase.auth.token');
-
-        // Clear Supabase cookies
-        document.cookie.split(';').forEach(cookie => {
-          const name = cookie.split('=')[0].trim();
-          if (name.includes('sb-') || name.includes('supabase')) {
-            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-          }
-        });
-      } catch (e) {
-        console.warn('Storage cleanup warning:', e);
-      }
-
-      // Redirect to login (replace so back button doesn't return)
-      setTimeout(() => {
-        window.location.replace('index.html');
-      }, 700);
-    }
-
-    /* ---------- TOASTS ---------- */
-    function showToast(title, message) {
-      const toastContainer = document.getElementById('toast-container');
-      const toast = document.createElement('div');
-      toast.className = `pointer-events-auto flex items-center space-x-3 p-4 rounded-2xl glass-card shadow-2xl border border-purple-400/50 text-white transform translate-y-4 opacity-0 transition-all duration-300 min-w-[280px]`;
-      toast.innerHTML = `
-        <div class="p-2 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-400/30">
-          <i data-lucide="check-circle-2" class="w-5 h-5"></i>
-        </div>
-        <div>
-          <h4 class="font-bold text-xs text-white">${title}</h4>
-          <p class="text-[11px] text-purple-200/80 mt-0.5">${message}</p>
-        </div>
-      `;
-      toastContainer.appendChild(toast);
-      lucide.createIcons();
-      setTimeout(() => toast.classList.remove('translate-y-4', 'opacity-0'), 10);
-      setTimeout(() => {
-        toast.classList.add('translate-y-4', 'opacity-0');
-        setTimeout(() => toast.remove(), 300);
-      }, 3500);
     }
   </script>
 

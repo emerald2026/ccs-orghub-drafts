@@ -37,3 +37,4 @@ async function getCurrentUserProfile() {
         
     return profile;
 }
+
