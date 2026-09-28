@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment History — CCS OrgHub Student</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = { theme: { extend: {
+      fontFamily: { sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'] },
+      colors: { purple: {950:'#0f041c',900:'#1e0836',850:'#2d0a4e',800:'#3b0764',700:'#581c87',600:'#7e22ce',500:'#a855f7',400:'#c084fc',300:'#d8b4fe',200:'#e9d5ff',100:'#f3e8ff'} }
+    }}}
+  </script>
+  <style>
+    body { background: radial-gradient(circle at 10% 20%, #2d0a4e 0%, #1a052e 45%, #0a0212 100%); background-attachment: fixed; color: #f3e8ff; }
+    .glass-sidebar { background: rgba(30, 8, 54, 0.65); backdrop-filter: blur(20px); border-right: 1px solid rgba(168, 85, 247, 0.25); }
+    .glass-topbar { background: rgba(15, 4, 28, 0.7); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(168, 85, 247, 0.2); }
+    .glass-card { background: rgba(255, 255, 255, 0.035); backdrop-filter: blur(16px); border: 1px solid rgba(168, 85, 247, 0.2); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); }
+    .glass-card:hover { border-color: rgba(168, 85, 247, 0.45); }
+    .nav-item-active { background: rgba(168, 85, 247, 0.2); border-left: 4px solid #c084fc; color: #fff !important; font-weight: 700; box-shadow: inset 0 0 12px rgba(168, 85, 247, 0.25); }
+    .orb { position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0; }
+  </style>
+</head>
+
+<body class="h-full font-sans antialiased selection:bg-purple-500 selection:text-white flex overflow-hidden">
+
+  <div class="orb w-96 h-96 bg-purple-700/25 top-0 left-10 animate-pulse"></div>
+  <div class="orb w-[30rem] h-[30rem] bg-purple-900/40 bottom-0 right-10"></div>
+  <div class="orb w-80 h-80 bg-fuchsia-600/15 top-1/2 left-1/3"></div>
+
+  <div id="sidebar-overlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 lg:hidden hidden"></div>
+
+  <aside id="main-sidebar" class="glass-sidebar w-64 fixed top-0 bottom-0 left-0 z-50 flex flex-col transition-transform duration-300 -translate-x-full lg:translate-x-0">
+    <div class="p-5 border-b border-purple-500/20 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="p-2.5 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-800 text-white shadow-lg border border-purple-400/40">
+          <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h2 class="font-extrabold text-base tracking-wide text-white flex items-center gap-1.5">CCS OrgHub <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span></h2>
+          <p class="text-[11px] font-semibold text-purple-300/80 uppercase tracking-widest mt-0.5">Student Portal</p>
+        </div>
+      </div>
+      <button onclick="toggleMobileSidebar()" class="lg:hidden text-purple-300 hover:text-white p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+
+    <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+      <div>
+        <div class="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-purple-300/60">Main</div>
+        <div class="space-y-1">
+          <a href="student-dashboard.html" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-purple-200/80 hover:bg-purple-500/15 hover:text-white transition-all text-sm font-medium"><i data-lucide="layout-dashboard" class="w-4 h-4 text-purple-400"></i><span>Dashboard</span></a>
+        </div>
+      </div>
+
+      <div>
+        <div class="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-purple-300/60">Finance</div>
+        <div class="space-y-1">
+          <a href="student-fees.html" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-purple-200/80 hover:bg-purple-500/15 hover:text-white transition-all text-sm font-medium"><i data-lucide="receipt" class="w-4 h-4 text-purple-400"></i><span>My Fees</span></a>
+          <a href="student-fines.html" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-purple-200/80 hover:bg-purple-500/15 hover:text-white transition-all text-sm font-medium"><i data-lucide="alert-circle" class="w-4 h-4 text-purple-400"></i><span>My Fines</span></a>
+          <a href="student-payments.html" class="nav-item-active flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm"><i data-lucide="credit-card" class="w-4 h-4"></i><span>Payment History</span></a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="p-3 border-t border-purple-500/20">
+      <button onclick="logout()" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-red-300 hover:bg-red-500/20 text-sm font-medium"><i data-lucide="log-out" class="w-4 h-4 text-red-400"></i><span>Logout</span></button>
+    </div>
+  </aside>
+
+  <div class="flex-1 lg:ml-64 flex flex-col min-h-screen relative z-10 overflow-x-hidden">
+    <header class="glass-topbar sticky top-0 z-30 px-4 md:px-8 py-3.5 flex items-center justify-between">
+      <div class="flex items-center space-x-4">
+        <button onclick="toggleMobileSidebar()" class="p-2 rounded-xl bg-purple-900/50 text-purple-200 border border-purple-500/30 lg:hidden"><i data-lucide="menu" class="w-5 h-5"></i></button>
+        <div>
+          <h1 class="text-xl font-bold text-white tracking-tight">Payment History</h1>
+          <p class="text-xs text-purple-300/70 hidden sm:block">View all your fee and fine payments</p>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-1 p-4 md:p-8 space-y-6">
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Total Paid</span>
+            <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-emerald-300" id="totalPaid">₱0.00</div>
+        </div>
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Unpaid</span>
+            <div class="p-2.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30"><i data-lucide="clock" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-amber-300" id="totalUnpaid">₱0.00</div>
+        </div>
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Transactions</span>
+            <div class="p-2.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30"><i data-lucide="list" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-white" id="totalTx">0</div>
+        </div>
+      </div>
+
+      <div class="glass-card p-5 rounded-3xl flex flex-col sm:flex-row gap-3">
+        <div class="relative flex-1">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-purple-300/60"></i>
+          <input id="searchPayments" oninput="renderPayments()" placeholder="Search payments..."
+            class="w-full bg-purple-950/60 border border-purple-500/30 rounded-xl py-2.5 pl-9 pr-3 text-xs text-white placeholder-purple-300/50 focus:border-purple-400 focus:outline-none" />
+        </div>
+        <select id="filterType" onchange="renderPayments()"
+          class="bg-purple-950/60 border border-purple-500/30 rounded-xl py-2.5 px-3 text-xs text-white focus:border-purple-400 focus:outline-none">
+          <option value="all">All Types</option>
+          <option value="Fee">Fees Only</option>
+          <option value="Fine">Fines Only</option>
+        </select>
+      </div>
+
+      <div class="glass-card p-6 rounded-3xl space-y-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="credit-card" class="w-5 h-5 text-purple-400"></i> Transaction Records
+        </h3>
+        <div class="overflow-x-auto rounded-2xl border border-purple-500/20">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-purple-950/80 text-purple-300 uppercase tracking-wider font-semibold border-b border-purple-500/20">
+              <tr>
+                <th class="py-3.5 px-4">Type</th>
+                <th class="py-3.5 px-4">Description</th>
+                <th class="py-3.5 px-4">Amount</th>
+                <th class="py-3.5 px-4">Date</th>
+                <th class="py-3.5 px-4">Status</th>
+              </tr>
+            </thead>
+            <tbody id="paymentsTable" class="divide-y divide-purple-500/10 text-purple-100">
+              <tr><td colspan="5" class="py-8 text-center text-purple-300/60 italic">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-3 pointer-events-none"></div>
+
+  <script>
+    let payments = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      lucide.createIcons();
+      if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY && typeof supabase !== 'undefined') {
+        try { window.supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY); } catch {}
+      }
+      await loadPayments();
+    });
+
+    async function loadPayments() {
+      let profileId = null;
+
+      if (window.supabaseClient) {
+        try {
+          const { data: { user } } = await window.supabaseClient.auth.getUser();
+          profileId = user?.id;
+
+          if (profileId) {
+            const { data: fees } = await window.supabaseClient.from('fees').select('*').eq('student_id', profileId);
+            (fees || []).forEach(f => payments.push({
+              type: 'Fee',
+              description: f.org || 'Membership Fee',
+              amount: f.amount || 0,
+              status: f.status === 'paid' ? 'paid' : 'unpaid',
+              created_at: f.created_at
+            }));
+
+            const { data: fines } = await window.supabaseClient.from('fines').select('*').eq('student_id', profileId);
+            (fines || []).forEach(f => payments.push({
+              type: 'Fine',
+              description: f.reason || 'Fine',
+              amount: f.amount || 0,
+              status: f.status === 'settled' ? 'paid' : 'unpaid',
+              created_at: f.created_at
+            }));
+          }
+        } catch (e) { console.warn('Demo fallback'); }
+      }
+
+      if (payments.length === 0) {
+        payments = [
+          { type: 'Fee', description: 'CCS Student Council Membership', amount: 250, status: 'paid', created_at: new Date().toISOString() },
+          { type: 'Fine', description: 'Missed General Assembly', amount: 100, status: 'unpaid', created_at: new Date(Date.now() - 86400000).toISOString() },
+          { type: 'Fee', description: 'Junior CS Society', amount: 200, status: 'paid', created_at: new Date(Date.now() - 172800000).toISOString() },
+        ];
+      }
+
+      payments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      renderPayments(); renderSummary();
+    }
+
+    function renderSummary() {
+      const paid = payments.filter(p => p.status === 'paid').reduce((s, p) => s + (p.amount || 0), 0);
+      const unpaid = payments.filter(p => p.status === 'unpaid').reduce((s, p) => s + (p.amount || 0), 0);
+      document.getElementById('totalPaid').textContent = '₱' + paid.toFixed(2);
+      document.getElementById('totalUnpaid').textContent = '₱' + unpaid.toFixed(2);
+      document.getElementById('totalTx').textContent = payments.length;
+    }
+
+    function renderPayments() {
+      const q = (document.getElementById('searchPayments').value || '').toLowerCase();
+      const filter = document.getElementById('filterType').value;
+      const list = payments.filter(p => {
+        if (filter !== 'all' && p.type !== filter) return false;
+        if (q && !(p.description || '').toLowerCase().includes(q)) return false;
+        return true;
+      });
+
+      const tbody = document.getElementById('paymentsTable');
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-purple-300/60 italic">No payments found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map(p => `
+        <tr class="hover:bg-purple-900/30 transition-colors">
+          <td class="py-3.5 px-4">
+            <span class="px-2 py-1 rounded-full text-[10px] font-bold ${p.type === 'Fee' ? 'bg-purple-500/20 text-purple-300 border border-purple-400/30' : 'bg-red-500/20 text-red-300 border border-red-400/30'}">${p.type}</span>
+          </td>
+          <td class="py-3.5 px-4 text-white font-semibold">${p.description}</td>
+          <td class="py-3.5 px-4 text-purple-200 font-bold">₱${(p.amount || 0).toFixed(2)}</td>
+          <td class="py-3.5 px-4 text-purple-300/80">${new Date(p.created_at).toLocaleDateString()}</td>
+          <td class="py-3.5 px-4">
+            <span class="px-2 py-1 rounded-full text-[10px] font-bold ${p.status === 'paid' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30' : 'bg-amber-500/20 text-amber-300 border border-amber-400/30'}">${p.status}</span>
+          </td>
+        </tr>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    async function logout() {
+      if (window.supabaseClient) await window.supabaseClient.auth.signOut();
+      sessionStorage.clear();
+      window.location.replace('index.html');
+    }
+
+    function toggleMobileSidebar() {
+      document.getElementById('sidebar-overlay').classList.toggle('hidden');
+      document.getElementById('main-sidebar').classList.toggle('-translate-x-full');
+    }
+
+    function showToast(title, message) {
+      const c = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      t.className = `pointer-events-auto flex items-center space-x-3 p-4 rounded-2xl glass-card shadow-2xl border border-purple-400/50 text-white transform translate-y-4 opacity-0 transition-all duration-300 min-w-[280px]`;
+      t.innerHTML = `
+        <div class="p-2 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-400/30"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
+        <div>
+          <h4 class="font-bold text-xs text-white">${title}</h4>
+          <p class="text-[11px] text-purple-200/80 mt-0.5">${message}</p>
+        </div>`;
+      c.appendChild(t); lucide.createIcons();
+      setTimeout(() => t.classList.remove('translate-y-4', 'opacity-0'), 10);
+      setTimeout(() => { t.classList.add('translate-y-4', 'opacity-0'); setTimeout(() => t.remove(), 300); }, 3500);
+    }
+  </script>
+</body>
+</html>

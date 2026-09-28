@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fines — CCS OrgHub Admin Panel</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js" onerror="console.warn('config.js not found. Demo mode.')"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="shared.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'] },
+          colors: {
+            purple: {
+              950: '#0f041c', 900: '#1e0836', 850: '#2d0a4e', 800: '#3b0764',
+              700: '#581c87', 600: '#7e22ce', 500: '#a855f7', 400: '#c084fc',
+              300: '#d8b4fe', 200: '#e9d5ff', 100: '#f3e8ff', 50: '#faf5ff',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="h-full font-sans antialiased selection:bg-purple-500 selection:text-white flex overflow-hidden">
+
+  <div id="bg-layer"></div>
+  <div id="sidebar-layer"></div>
+
+  <div class="flex-1 lg:ml-64 flex flex-col min-h-screen relative z-10 overflow-x-hidden">
+
+    <div id="topbar-layer"></div>
+
+    <main class="flex-1 p-4 md:p-8 space-y-6">
+
+      <!-- STATS -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Total Fines</span>
+            <div class="p-2.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30"><i data-lucide="alert-circle" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-white" id="statTotal">—</div>
+        </div>
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Settled</span>
+            <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-emerald-300" id="statSettled">—</div>
+        </div>
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Unpaid</span>
+            <div class="p-2.5 rounded-xl bg-red-500/20 text-red-300 border border-red-500/30"><i data-lucide="alert-triangle" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-red-300" id="statUnpaid">—</div>
+        </div>
+      </div>
+
+      <!-- SEARCH -->
+      <div class="glass-card p-5 rounded-3xl">
+        <div class="relative">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-purple-300/60"></i>
+          <input id="searchFines" oninput="renderFines()" placeholder="Search by student or reason..."
+            class="w-full bg-purple-950/60 border border-purple-500/30 rounded-xl py-2.5 pl-9 pr-3 text-xs text-white placeholder-purple-300/50 focus:border-purple-400 focus:outline-none" />
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="glass-card p-6 rounded-3xl space-y-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="alert-circle" class="w-5 h-5 text-purple-400"></i> Fine Records
+        </h3>
+        <div class="overflow-x-auto rounded-2xl border border-purple-500/20">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-purple-950/80 text-purple-300 uppercase tracking-wider font-semibold border-b border-purple-500/20">
+              <tr>
+                <th class="py-3.5 px-4">Student</th>
+                <th class="py-3.5 px-4">Reason</th>
+                <th class="py-3.5 px-4">Amount</th>
+                <th class="py-3.5 px-4">Status</th>
+                <th class="py-3.5 px-4">Date</th>
+                <th class="py-3.5 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="finesTable" class="divide-y divide-purple-500/10 text-purple-100">
+              <tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL: ISSUE FINE -->
+  <div id="modal-fine" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="glass-card w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-purple-400/40 space-y-5 relative">
+      <button onclick="closeModal('modal-fine')" class="absolute top-5 right-5 text-purple-300 hover:text-white">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+      <div class="flex items-center space-x-3">
+        <div class="p-2.5 rounded-xl bg-purple-600/30 text-purple-300 border border-purple-400/40">
+          <i data-lucide="alert-circle" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-white">Issue New Fine</h3>
+          <p class="text-xs text-purple-300/70">Record a violation or penalty</p>
+        </div>
+      </div>
+      <form id="fine-form" onsubmit="saveFine(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-purple-200 mb-1">Student</label>
+          <select id="fine-student" required class="w-full bg-purple-950/80 border border-purple-500/40 rounded-xl px-3.5 py-2.5 text-white focus:border-purple-400 focus:outline-none"></select>
+        </div>
+        <div>
+          <label class="block font-semibold text-purple-200 mb-1">Reason</label>
+          <input id="fine-reason" required placeholder="e.g. Missed general assembly" class="w-full bg-purple-950/80 border border-purple-500/40 rounded-xl px-3.5 py-2.5 text-white placeholder-purple-300/40 focus:border-purple-400 focus:outline-none" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-purple-200 mb-1">Amount (₱)</label>
+            <input id="fine-amount" type="number" required min="0" step="0.01" placeholder="100" class="w-full bg-purple-950/80 border border-purple-500/40 rounded-xl px-3.5 py-2.5 text-white focus:border-purple-400 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block font-semibold text-purple-200 mb-1">Status</label>
+            <select id="fine-status" class="w-full bg-purple-950/80 border border-purple-500/40 rounded-xl px-3 py-2.5 text-white focus:border-purple-400 focus:outline-none">
+              <option value="unpaid" selected>Unpaid</option>
+              <option value="settled">Settled</option>
+            </select>
+          </div>
+        </div>
+        <div class="pt-2 flex justify-end space-x-2">
+          <button type="button" onclick="closeModal('modal-fine')" class="px-4 py-2 rounded-xl bg-purple-950 text-purple-300 border border-purple-500/30 hover:text-white">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-500 shadow-lg shadow-purple-600/30">Save Fine</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-layer"></div>
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-3 pointer-events-none"></div>
+
+  <script src="shared.js"></script>
+  <script>
+    let fines = [];
+    let students = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      document.getElementById('bg-layer').innerHTML = buildBackground();
+      document.getElementById('sidebar-layer').innerHTML = buildSidebar('fines');
+      document.getElementById('topbar-layer').innerHTML = buildTopbar('Fine Management', 'Record and monitor organizational fines');
+      document.getElementById('modal-layer').innerHTML = buildLogoutModal();
+
+      lucide.createIcons();
+
+      initSupabase();
+      const ok = await guardAuth();
+      if (!ok) return;
+      await loadUserProfile();
+
+      await loadStudents();
+      await loadFines();
+    });
+
+    /* ---------- LOAD STUDENTS (for dropdown) ---------- */
+    async function loadStudents() {
+      const sel = document.getElementById('fine-student');
+      if (window.supabaseClient) {
+        try {
+          const { data } = await window.supabaseClient
+            .from('students').select('id, first_name, last_name, student_id').order('last_name');
+          students = data || [];
+        } catch {}
+      }
+      if (students.length === 0) {
+        students = [
+          { id: 1, first_name: 'Samantha', last_name: 'Reyes', student_id: '2026-0101' },
+          { id: 2, first_name: 'Marcus', last_name: 'Villar', student_id: '2026-0102' },
+          { id: 3, first_name: 'Angelica', last_name: 'Cruz', student_id: '2026-0103' },
+        ];
+      }
+      sel.innerHTML = students.map(s =>
+        `<option value="${s.id}">${s.student_id} — ${s.first_name} ${s.last_name}</option>`
+      ).join('');
+    }
+
+    /* ---------- LOAD FINES ---------- */
+    async function loadFines() {
+      if (window.supabaseClient) {
+        try {
+          const { data } = await window.supabaseClient
+            .from('fines').select('*').order('created_at', { ascending: false });
+          fines = data || [];
+        } catch {}
+      }
+      if (fines.length === 0) {
+        fines = [
+          { id: 1, student_name: 'Samantha Reyes', reason: 'Missed General Assembly', amount: 100, status: 'unpaid', created_at: new Date().toISOString() },
+          { id: 2, student_name: 'Marcus Villar', reason: 'Late submission', amount: 50, status: 'settled', created_at: new Date().toISOString() },
+        ];
+      }
+      renderFines();
+      renderStats();
+    }
+
+    /* ---------- RENDER ---------- */
+    function renderStats() {
+      document.getElementById('statTotal').textContent = fines.length;
+      document.getElementById('statSettled').textContent = fines.filter(f => f.status === 'settled').length;
+      document.getElementById('statUnpaid').textContent = fines.filter(f => f.status === 'unpaid').length;
+    }
+
+    function renderFines() {
+      const q = (document.getElementById('searchFines').value || '').toLowerCase();
+      const list = fines.filter(f =>
+        !q ||
+        (f.student_name || '').toLowerCase().includes(q) ||
+        (f.reason || '').toLowerCase().includes(q)
+      );
+
+      const tbody = document.getElementById('finesTable');
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">No fines found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map(f => `
+        <tr class="hover:bg-purple-900/30 transition-colors">
+          <td class="py-3.5 px-4 font-semibold text-white">${f.student_name || '—'}</td>
+          <td class="py-3.5 px-4 text-purple-200">${f.reason || '—'}</td>
+          <td class="py-3.5 px-4 text-red-300 font-bold">₱${(f.amount || 0).toFixed(2)}</td>
+          <td class="py-3.5 px-4">
+            <span class="px-2 py-1 rounded-full text-[10px] font-bold ${f.status === 'settled' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30' : 'bg-red-500/20 text-red-300 border border-red-400/30'}">${f.status || '—'}</span>
+          </td>
+          <td class="py-3.5 px-4 text-purple-300/80">${f.created_at ? new Date(f.created_at).toLocaleDateString() : '—'}</td>
+          <td class="py-3.5 px-4 text-right space-x-1">
+            ${f.status === 'unpaid' ? `<button onclick="settleFine(${f.id})" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-white text-[10px] font-bold border border-emerald-500/30">Settle</button>` : ''}
+            <button onclick="deleteFine(${f.id})" class="p-1.5 rounded-lg text-purple-400 hover:text-red-300 hover:bg-red-500/20"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+          </td>
+        </tr>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    /* ---------- MODAL ---------- */
+    function openFineModal() {
+      document.getElementById('modal-fine').classList.remove('opacity-0', 'pointer-events-none');
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    /* ---------- SAVE FINE ---------- */
+    async function saveFine(event) {
+      event.preventDefault();
+      const studentId = document.getElementById('fine-student').value;
+      const student = students.find(s => String(s.id) === String(studentId));
+      const newFine = {
+        id: Date.now(),
+        student_id: studentId,
+        student_name: student ? `${student.first_name} ${student.last_name}` : '—',
+        reason: document.getElementById('fine-reason').value,
+        amount: parseFloat(document.getElementById('fine-amount').value),
+        status: document.getElementById('fine-status').value,
+        created_at: new Date().toISOString()
+      };
+
+      if (window.supabaseClient) {
+        try {
+          const { data } = await window.supabaseClient.from('fines').insert([newFine]).select().single();
+          if (data) newFine.id = data.id;
+        } catch {}
+      }
+
+      fines.unshift(newFine);
+      renderFines();
+      renderStats();
+      closeModal('modal-fine');
+      document.getElementById('fine-form').reset();
+      showToast('Fine Issued', `${newFine.student_name} — ₱${newFine.amount}`);
+    }
+
+    /* ---------- SETTLE ---------- */
+    async function settleFine(id) {
+      const f = fines.find(x => x.id === id);
+      if (!f) return;
+      f.status = 'settled';
+      if (window.supabaseClient) {
+        try { await window.supabaseClient.from('fines').update({ status: 'settled' }).eq('id', id); } catch {}
+      }
+      renderFines();
+      renderStats();
+      showToast('Fine Settled', `${f.student_name} — ₱${f.amount}`);
+    }
+
+    /* ---------- DELETE ---------- */
+    async function deleteFine(id) {
+      if (!confirm('Delete this fine?')) return;
+      fines = fines.filter(f => f.id !== id);
+      if (window.supabaseClient) {
+        try { await window.supabaseClient.from('fines').delete().eq('id', id); } catch {}
+      }
+      renderFines();
+      renderStats();
+      showToast('Fine Deleted', 'Record removed.');
+    }
+  </script>
+</body>
+</html>
