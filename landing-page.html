@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CCS OrgHub - Official Portal</title>
-    
+
+      <!-- Add or change this line to point to your new logo file -->
+      <link rel="icon" type="image/png" href="ccs.png" />
+
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -14,7 +18,7 @@
     <!-- Google Fonts (Inter for modern UI) -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet">
 
-    <!-- Tailwind Config for Custom Colors matching your dashboard -->
+    <!-- Tailwind Config: Updated to match the deep violet glassmorphism palette -->
     <script>
         tailwind.config = {
             theme: {
@@ -29,12 +33,12 @@
                             200: '#ddd6fe',
                             300: '#c4b5fd',
                             400: '#a78bfa',
-                            500: '#8b5cf6',
-                            600: '#7c3aed', // Primary button accent
+                            500: '#8b5cf6', // Bright button color
+                            600: '#7c3aed', // Primary button hover
                             700: '#6d28d9',
-                            800: '#5b21b6',
-                            900: '#4c1d95',
-                            950: '#1e1b4b', // Deep dashboard sidebar color
+                            800: '#4c1d95', // Card background
+                            900: '#2e1065', // Sidebar background
+                            950: '#1a0b2e', // Deepest background / Footer
                         }
                     }
                 }
@@ -44,6 +48,28 @@
     <style>
         /* Smooth scrolling for anchor links */
         html { scroll-behavior: smooth; }
+        
+        /* Glassmorphism effect for dark backgrounds */
+        .glass-card-dark {
+            background: rgba(30, 15, 60, 0.9); /* Deep violet with high opacity */
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(139, 92, 246, 0.3); /* Subtle violet border */
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Glowing hover effect for buttons */
+        .btn-glow {
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+        }
+        .btn-glow:hover {
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.8);
+        }
+
+        /* Glowing text effect */
+        .glow-text {
+            text-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+        }
     </style>
 </head>
 <body class="bg-white text-gray-800 font-sans antialiased selection:bg-violet-200 selection:text-violet-900">
@@ -51,11 +77,11 @@
     <!-- ========================================== -->
     <!-- 1. MASTHEAD (GWTD Standard)                -->
     <!-- ========================================== -->
-    <header class="bg-violet-950 py-4 px-4 md:px-8 flex flex-col md:flex-row items-center justify-between border-b border-violet-900 relative z-50">
+    <header class="bg-violet-950 py-4 px-4 md:px-8 flex flex-col md:flex-row items-center justify-between border-b border-violet-800/50 relative z-50">
         <!-- Left: Logo and Text -->
         <div class="flex items-center gap-4 mb-4 md:mb-0">
             
-            <!-- REPLACE 'ccs-logo.png' WITH YOUR ACTUAL FILE PATH -->
+            <!-- REPLACE 'src\ccs.png' WITH YOUR ACTUAL FILE PATH -->
             <img src="src\ccs.png" alt="CCS OrgHub Logo" class="w-14 h-14 object-contain drop-shadow-md">
             
             <div>
@@ -65,13 +91,13 @@
             </div>
         </div>
 
-                <!-- Right: Login/Register Buttons & Mobile Menu Toggle -->
+        <!-- Right: Login/Register Buttons & Mobile Menu Toggle -->
         <div class="flex items-center gap-4">
             <!-- Desktop Login Link -->
             <a href="index.html" class="text-sm font-semibold text-white hover:text-violet-300 transition hidden md:block">Log in</a>
             
             <!-- Create Account Button -->
-            <a href="index.html" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-bold px-6 py-2.5 rounded-full transition shadow-md shadow-violet-900/50">Create Account</a>
+            <a href="index.html" class="bg-violet-500 hover:bg-violet-600 text-white text-sm font-bold px-6 py-2.5 rounded-full transition btn-glow">Create Account</a>
             
             <!-- Mobile Menu Toggle Button -->
             <button id="mobile-menu-btn" class="md:hidden text-white focus:outline-none ml-2">
@@ -103,13 +129,13 @@
             <p class="text-violet-600 font-bold tracking-widest uppercase text-sm mb-2">STAY CONNECTED. STAY UPDATED.</p>
             <!-- UPDATED HEADLINE -->
             <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight tracking-tight">
-                CCS Updates <br class="hidden md:block"> <span class="text-violet-600 italic">Track your clearance.</span> <br class="hidden md:block"> All online.
+                CCS Updates <br class="hidden md:block"> <span class="text-violet-600 italic glow-text">Track your clearance.</span> <br class="hidden md:block"> All online.
             </h1>
             <p class="text-gray-500 text-lg md:text-xl max-w-2xl mx-auto font-medium">
                 Easily monitor your clearance progress and stay updated on college events through a fast, completely digital portal — built for the College of Computer Studies.           </p>
 
             <div class="flex flex-col sm:flex-row justify-center gap-4 pt-8">
-                <a href="#" class="bg-violet-600 hover:bg-violet-700 text-white font-bold px-8 py-3.5 rounded-full transition shadow-lg shadow-violet-200 text-center text-lg">
+                <a href="#" class="bg-violet-600 hover:bg-violet-700 text-white font-bold px-8 py-3.5 rounded-full transition btn-glow text-center text-lg">
                     Get Started
                 </a>
                 <a href="#features" class="bg-white border-2 border-gray-200 hover:border-violet-600 text-gray-700 hover:text-violet-700 font-bold px-8 py-3.5 rounded-full transition text-center text-lg flex items-center justify-center gap-2">
@@ -149,18 +175,18 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Card 1: Dark Violet (Officers) -->
-                <div class="bg-violet-950 p-10 rounded-3xl shadow-xl flex flex-col justify-between text-white relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-48 h-48 bg-violet-800 rounded-full mix-blend-multiply filter blur-2xl opacity-50 translate-x-1/4 -translate-y-1/4"></div>
+                <!-- Card 1: Dark Violet (Officers) - Updated to solid deep violet to match Image 3 -->
+                <div class="bg-violet-950 p-10 rounded-3xl shadow-xl flex flex-col justify-between text-white relative overflow-hidden border border-violet-800/50">
+                    <div class="absolute top-0 right-0 w-48 h-48 bg-violet-600 rounded-full mix-blend-screen filter blur-3xl opacity-30 translate-x-1/4 -translate-y-1/4"></div>
                     <div class="relative z-10">
-                        <div class="w-14 h-14 bg-violet-800 rounded-xl flex items-center justify-center text-violet-300 text-2xl mb-6 border border-violet-700">
+                        <div class="w-14 h-14 bg-violet-800 rounded-xl flex items-center justify-center text-violet-300 text-2xl mb-6 border border-violet-600/50">
                             <i class="fa-solid fa-user-shield"></i>
                         </div>
                         <h3 class="text-2xl font-bold mb-4">For Officers</h3>
                         <p class="text-violet-200 leading-relaxed">Approve clearance requests, manage event logistics, track attendance, and generate reports instantly from your admin dashboard.</p>
                     </div>
                     <div class="mt-10 relative z-10">
-                        <a href="#" class="inline-flex items-center gap-2 text-sm font-bold text-white bg-violet-600 hover:bg-violet-500 px-5 py-2.5 rounded-full transition">
+                        <a href="#" class="inline-flex items-center gap-2 text-sm font-bold text-white bg-violet-500 hover:bg-violet-400 px-5 py-2.5 rounded-full transition btn-glow">
                             Access Admin Portal <i class="fa-solid fa-arrow-right"></i>
                         </a>
                     </div>
@@ -186,11 +212,11 @@
     </section>
 
     <!-- ========================================== -->
-    <!-- 5. HOW IT WORKS (Reimagined: Dark Violet Cards) -->
+    <!-- 5. HOW IT WORKS (Matches Image 3)          -->
     <!-- ========================================== -->
     <section class="bg-violet-950 py-20 px-4 md:px-8 border-y border-violet-900 relative overflow-hidden">
         <!-- Subtle background glow for tech feel -->
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-violet-600 rounded-full mix-blend-screen filter blur-3xl opacity-10 pointer-events-none"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-violet-600 rounded-full mix-blend-screen filter blur-3xl opacity-20 pointer-events-none"></div>
 
         <div class="max-w-6xl mx-auto relative z-10">
             <div class="mb-14 text-center">
@@ -204,32 +230,32 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                 
                 <!-- Step 1 -->
-                <div class="bg-violet-900/40 border border-violet-800 p-6 rounded-2xl relative mt-4 md:mt-0 hover:bg-violet-900/60 transition duration-300">
-                    <div class="absolute -top-4 left-6 bg-violet-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-lg shadow-violet-900/50">1</div>
+                <div class="bg-violet-900/40 border border-violet-800 p-6 rounded-2xl relative mt-4 md:mt-0 transition duration-300 hover:border-violet-500/50">
+                    <div class="absolute -top-4 left-6 bg-violet-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-lg shadow-violet-500/50">1</div>
                     <div class="text-violet-400 text-3xl mb-4 mt-2"><i class="fa-solid fa-id-badge"></i></div>
                     <h4 class="font-bold text-white mb-2 text-lg">Sign up</h4>
                     <p class="text-violet-300 text-sm leading-relaxed">Use your CCS student credentials to verify you're a student.</p>
                 </div>
 
                 <!-- Step 2 -->
-                <div class="bg-violet-900/40 border border-violet-800 p-6 rounded-2xl relative mt-4 md:mt-0 hover:bg-violet-900/60 transition duration-300">
-                    <div class="absolute -top-4 left-6 bg-violet-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-lg shadow-violet-900/50">2</div>
+                <div class="bg-violet-900/40 border border-violet-800 p-6 rounded-2xl relative mt-4 md:mt-0 transition duration-300 hover:border-violet-500/50">
+                    <div class="absolute -top-4 left-6 bg-violet-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-lg shadow-violet-500/50">2</div>
                     <div class="text-violet-400 text-3xl mb-4 mt-2"><i class="fa-solid fa-file-signature"></i></div>
                     <h4 class="font-bold text-white mb-2 text-lg">Submit or approve</h4>
                     <p class="text-violet-300 text-sm leading-relaxed">Students submit clearances, while officers manage events right from the dashboard.</p>
                 </div>
 
                 <!-- Step 3 -->
-                <div class="bg-violet-900/40 border border-violet-800 p-6 rounded-2xl relative mt-4 md:mt-0 hover:bg-violet-900/60 transition duration-300">
-                    <div class="absolute -top-4 left-6 bg-violet-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-lg shadow-violet-900/50">3</div>
+                <div class="bg-violet-900/40 border border-violet-800 p-6 rounded-2xl relative mt-4 md:mt-0 transition duration-300 hover:border-violet-500/50">
+                    <div class="absolute -top-4 left-6 bg-violet-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-lg shadow-violet-500/50">3</div>
                     <div class="text-violet-400 text-3xl mb-4 mt-2"><i class="fa-solid fa-chart-line"></i></div>
                     <h4 class="font-bold text-white mb-2 text-lg">Track it live</h4>
                     <p class="text-violet-300 text-sm leading-relaxed">Watch requests update instantly. No more waiting in line or chasing signatures.</p>
                 </div>
 
                 <!-- Step 4 -->
-                <div class="bg-violet-900/40 border border-violet-800 p-6 rounded-2xl relative mt-4 md:mt-0 hover:bg-violet-900/60 transition duration-300">
-                    <div class="absolute -top-4 left-6 bg-violet-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-lg shadow-violet-900/50">4</div>
+                <div class="bg-violet-900/40 border border-violet-800 p-6 rounded-2xl relative mt-4 md:mt-0 transition duration-300 hover:border-violet-500/50">
+                    <div class="absolute -top-4 left-6 bg-violet-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-lg shadow-violet-500/50">4</div>
                     <div class="text-violet-400 text-3xl mb-4 mt-2"><i class="fa-solid fa-check-double"></i></div>
                     <h4 class="font-bold text-white mb-2 text-lg">Check the results</h4>
                     <p class="text-violet-300 text-sm leading-relaxed">View reports on event attendance, membership growth, and clearance rates.</p>
@@ -240,13 +266,14 @@
     </section>
 
     <!-- ========================================== -->
-    <!-- 6. CALL TO ACTION (Reimagined: High-Contrast Dark Card) -->
+    <!-- 6. CALL TO ACTION (Updated to match Image 3) -->
     <!-- ========================================== -->
     <section class="bg-white py-20 px-4 md:px-8">
-        <div class="max-w-5xl mx-auto bg-violet-950 rounded-3xl p-12 md:p-20 text-center border border-violet-800 relative overflow-hidden shadow-2xl">
+        <!-- Changed from glass-card to solid deep violet to prevent muddy color over white background -->
+        <div class="max-w-5xl mx-auto bg-violet-950 rounded-3xl p-12 md:p-20 text-center border border-violet-800/50 relative overflow-hidden shadow-2xl">
             <!-- Bold abstract shapes for originality -->
-            <div class="absolute top-0 right-0 w-64 h-64 bg-violet-600 rounded-full mix-blend-screen filter blur-3xl opacity-20 translate-x-1/2 -translate-y-1/2"></div>
-            <div class="absolute bottom-0 left-0 w-64 h-64 bg-violet-400 rounded-full mix-blend-screen filter blur-3xl opacity-10 -translate-x-1/2 translate-y-1/2"></div>
+            <div class="absolute top-0 right-0 w-64 h-64 bg-violet-600 rounded-full mix-blend-screen filter blur-3xl opacity-30 translate-x-1/2 -translate-y-1/2"></div>
+            <div class="absolute bottom-0 left-0 w-64 h-64 bg-violet-400 rounded-full mix-blend-screen filter blur-3xl opacity-20 -translate-x-1/2 translate-y-1/2"></div>
             
             <div class="relative z-10 max-w-2xl mx-auto">
                 <h2 class="text-3xl md:text-5xl font-extrabold text-white mb-6 tracking-tight leading-tight">
@@ -255,7 +282,7 @@
                 <p class="text-violet-200 text-lg mb-10 max-w-lg mx-auto">
                     Log in with your CCS account and get started in just a minute.
                 </p>
-                <a href="#" class="inline-block bg-white text-violet-950 font-bold px-12 py-4 rounded-full transition shadow-lg hover:bg-gray-100 hover:scale-105 transform duration-200 text-lg">
+                <a href="index.html" class="inline-block bg-white text-violet-950 font-bold px-12 py-4 rounded-full transition shadow-lg hover:bg-gray-100 hover:scale-105 transform duration-200 text-lg">
                     Create your Account
                 </a>
                 <p class="text-xs text-violet-400 mt-6 font-medium tracking-wide uppercase">
@@ -277,20 +304,19 @@
                     <img src="src\ccs.png" alt="CCS OrgHub Logo" class="w-10 h-10 object-contain drop-shadow-md">
                     <h3 class="text-xl font-bold text-white">CCS OrgHub</h3>
                 </div>
-                <p class="text-sm text-violet-300 leading-relaxed">Discover. Explore. Experience. The official student organization portal of the College of Computer Studies.</p>
+                <p class="text-sm text-violet-300 leading-relaxed">The Official Student Organization Portal of the College of Computer Studies.</p>
             </div>
 
             <!-- Column 2: Explore -->
             <div>
-                <h4 class="text-white font-bold mb-4 uppercase tracking-wider text-sm">Explore</h4>
+                <h4 class="text-white font-bold mb-4 uppercase tracking-wider text-sm">ABOUT US</h4>
                 <ul class="space-y-3 text-sm text-violet-300 font-medium">
-                    <li><a href="#" class="hover:text-white transition">Organizations</a></li>
-                    <li><a href="#" class="hover:text-white transition">Events</a></li>
+                    <li><a href="#" class="hover:text-white transition">Mission Vision</a></li>
+                    <li><a href="#" class="hover:text-white transition">Organizational Chart</a></li>
                 </ul>
             </div>
 
             <!-- Column 3: Open Access -->
-    
             <div>
                 <h4 class="text-white font-bold mb-4 uppercase tracking-wider text-sm">Open Access</h4>
                 <ul class="space-y-3 text-sm text-violet-300 font-medium">
@@ -299,12 +325,12 @@
                     <li><a href="#" class="hover:text-white transition">Contact Us</a></li>
                 </ul>
             </div>
+        </div>
 
         <!-- Bottom Footer Bar -->
         <div class="max-w-7xl mx-auto border-t border-violet-800/50 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-violet-400">
             <div class="flex items-center gap-2">
                 <i class="fa-solid fa-seal text-violet-500"></i>
-                <p>Official Directory of Philippine Government Websites</p>
             </div>
             <p>&copy; 2026 CCS OrgHub. All content is public domain unless otherwise stated.</p>
         </div>
