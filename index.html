@@ -6,7 +6,7 @@
   <title>Login — CCS OrgHub</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js" onerror="console.warn('config.js not found. Running in demo mode.')"></script>
+  <script src="config.js" onerror="console.warn('config.js not found')"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 
@@ -25,7 +25,7 @@
               700: '#581c87', 600: '#7e22ce', 500: '#a855f7', 400: '#c084fc',
               300: '#d8b4fe', 200: '#e9d5ff', 100: '#f3e8ff', 50: '#faf5ff',
             }
-          },
+          }
         }
       }
     }
@@ -42,7 +42,7 @@
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
       border: 1px solid rgba(168, 85, 247, 0.3);
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     }
     .glass-header {
       background: rgba(15, 4, 28, 0.7);
@@ -57,59 +57,37 @@
       pointer-events: none;
       z-index: 0;
     }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: rgba(15, 4, 28, 0.2); }
-    ::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.3); border-radius: 9999px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(168, 85, 247, 0.6); }
-
     input::placeholder { color: rgba(216, 180, 254, 0.5); }
-    input:-webkit-autofill,
-    input:-webkit-autofill:hover,
-    input:-webkit-autofill:focus {
-      -webkit-text-fill-color: #fff;
-      -webkit-box-shadow: 0 0 0px 1000px rgba(30, 8, 54, 0.9) inset;
-      transition: background-color 5000s ease-in-out 0s;
-    }
   </style>
 </head>
 
 <body class="h-full font-sans antialiased selection:bg-purple-500 selection:text-white overflow-hidden">
 
-  <!-- Background video -->
   <video autoplay loop muted playsinline class="fixed inset-0 w-full h-full object-cover z-0 opacity-25">
     <source src="src/loop-bg.mp4" type="video/mp4">
   </video>
 
-  <!-- Ambient orbs -->
   <div class="orb w-96 h-96 bg-purple-700/40 top-0 left-10 animate-pulse"></div>
   <div class="orb w-[30rem] h-[30rem] bg-purple-900/50 bottom-0 right-10"></div>
   <div class="orb w-80 h-80 bg-fuchsia-600/25 top-1/2 left-1/3"></div>
 
-  <!-- Dark overlay -->
   <div class="fixed inset-0 bg-black/40 z-[1]"></div>
 
-  <!-- ============ HEADER ============ -->
   <header class="glass-header fixed top-0 left-0 right-0 z-30 px-4 md:px-10 py-3.5 flex items-center justify-between">
     <a href="index.html" class="flex items-center gap-3 md:gap-4 group">
-      <img src="src/logo.png" alt="ESSU Logo" class="h-10 md:h-12 w-auto drop-shadow-lg group-hover:scale-105 transition-transform">
-      <img src="src/ccs.png" alt="CCS Logo" class="h-10 md:h-12 w-auto drop-shadow-lg group-hover:scale-105 transition-transform">
+      <img src="src/logo.png" alt="ESSU Logo" class="h-10 md:h-12 w-auto">
+      <img src="src/ccs.png" alt="CCS Logo" class="h-10 md:h-12 w-auto">
       <div class="hidden sm:flex flex-col leading-tight">
         <span class="text-xs md:text-sm font-extrabold tracking-widest text-white">CCS ORGHUB</span>
         <span class="text-[10px] text-purple-300/70 uppercase tracking-wider">Organizational Portal</span>
       </div>
     </a>
-
-    <div class="text-[10px] text-purple-300/60 hidden md:block uppercase tracking-wider font-semibold">
-      Est. 2026 • College of Computer Studies
-    </div>
   </header>
 
-  <!-- ============ LOGIN FORM ============ -->
   <main class="relative z-10 flex items-center justify-center min-h-screen p-4 pt-24 pb-8">
 
     <div class="glass-card w-full max-w-md rounded-3xl p-7 md:p-8 space-y-6">
 
-      <!-- Header -->
       <div class="text-center space-y-2">
         <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-purple-500 to-purple-800 border border-purple-400/40 flex items-center justify-center shadow-lg shadow-purple-600/40">
           <i data-lucide="shield-check" class="w-7 h-7 text-white"></i>
@@ -118,195 +96,125 @@
         <p class="text-xs text-purple-300/70">Sign in to access CCS OrgHub</p>
       </div>
 
-      <!-- Form -->
       <form id="loginForm" class="space-y-4 text-xs">
 
-        <!-- Email -->
         <div>
           <label class="block font-semibold text-purple-200 mb-1.5 text-[11px] uppercase tracking-wider">Email Address</label>
           <div class="relative">
             <i data-lucide="mail" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-purple-400/70"></i>
             <input type="email" id="email" required placeholder="you@essu.edu.ph"
-              class="w-full bg-purple-950/60 border border-purple-500/40 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white placeholder-purple-300/40 focus:border-purple-400 focus:outline-none focus:ring-1 focus:ring-purple-400/50 transition-all" />
+              class="w-full bg-purple-950/60 border border-purple-500/40 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white placeholder-purple-300/40 focus:border-purple-400 focus:outline-none" />
           </div>
         </div>
 
-        <!-- Password -->
         <div>
-          <div class="flex items-center justify-between mb-1.5">
-            <label class="block font-semibold text-purple-200 text-[11px] uppercase tracking-wider">Password</label>
-            <a href="#" onclick="showToast('Password Reset','Contact the CCS Admin to reset your password.','info'); return false;"
-               class="text-[10px] text-purple-300/70 hover:text-purple-200 font-semibold transition-colors">Forgot?</a>
-          </div>
+          <label class="block font-semibold text-purple-200 mb-1.5 text-[11px] uppercase tracking-wider">Password</label>
           <div class="relative">
             <i data-lucide="lock" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-purple-400/70"></i>
             <input type="password" id="password" required placeholder="••••••••"
-              class="w-full bg-purple-950/60 border border-purple-500/40 rounded-xl pl-10 pr-16 py-2.5 text-sm text-white placeholder-purple-300/40 focus:border-purple-400 focus:outline-none focus:ring-1 focus:ring-purple-400/50 transition-all" />
-            <button type="button" id="togglePassword"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-purple-300 hover:text-white px-2 py-1 rounded-lg hover:bg-purple-500/20 transition-all">
+              class="w-full bg-purple-950/60 border border-purple-500/40 rounded-xl pl-10 pr-16 py-2.5 text-sm text-white placeholder-purple-300/40 focus:border-purple-400 focus:outline-none" />
+            <button type="button" id="togglePassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-purple-300 hover:text-white px-2 py-1 rounded-lg hover:bg-purple-500/20">
               Show
             </button>
           </div>
         </div>
 
-        <!-- Remember Me -->
         <div class="flex items-center justify-between pt-1">
           <label class="flex items-center gap-2 cursor-pointer select-none">
-            <input type="checkbox" id="rememberMe" class="w-4 h-4 rounded border-purple-500/40 bg-purple-950/60 text-purple-500 focus:ring-purple-400/50 focus:ring-offset-0">
+            <input type="checkbox" id="rememberMe" class="w-4 h-4 rounded border-purple-500/40 bg-purple-950/60 text-purple-500">
             <span class="text-[11px] text-purple-300/80 font-medium">Remember me</span>
           </label>
         </div>
 
-        <!-- Submit -->
         <button type="submit" id="submitBtn"
-          class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-purple-700 text-white font-extrabold text-sm shadow-lg shadow-purple-600/40 hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 border border-purple-400/40 mt-2">
+          class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-purple-700 text-white font-extrabold text-sm shadow-lg shadow-purple-600/40 hover:brightness-110 transition-all flex items-center justify-center gap-2 border border-purple-400/40 mt-2">
           <i data-lucide="log-in" class="w-4 h-4"></i>
           <span>Log In</span>
         </button>
 
-        <!-- Register link -->
         <p class="text-center text-xs text-purple-300/80 pt-2">
           Don't have an account?
-          <a href="register.html" class="text-purple-300 hover:text-white font-bold transition-colors">Sign Up</a>
+          <a href="register.html" class="text-purple-300 hover:text-white font-bold">Sign Up</a>
         </p>
 
       </form>
 
     </div>
-
   </main>
 
-  <!-- Footer -->
-  <footer class="fixed bottom-4 left-0 right-0 z-20 text-center px-4 pointer-events-none">
-    <p class="text-[10px] text-purple-300/50 font-medium tracking-wider uppercase">
-      © 2026 CCS OrgHub • All rights reserved
-    </p>
-  </footer>
-
-  <!-- TOAST -->
   <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-3 pointer-events-none"></div>
 
+  <script src="shared.js"></script>
   <script>
-    /* ---------- INIT ---------- */
     document.addEventListener('DOMContentLoaded', async () => {
+      // ✅ INIT SUPABASE FIRST
+      initSupabase();
       lucide.createIcons();
 
-      // Restore remembered email
+      // Verify
+      if (!window.supabaseClient) {
+        showToast('Connection Error', 'Supabase client not loaded. Check config.js.');
+        console.error('Supabase client is undefined. Check that config.js is loaded and has window.SUPABASE_URL + window.SUPABASE_ANON_KEY.');
+        return;
+      }
+
+      // Restore email
       const rememberedEmail = localStorage.getItem('rememberedEmail');
       if (rememberedEmail) {
         document.getElementById('email').value = rememberedEmail;
         document.getElementById('rememberMe').checked = true;
       }
 
-      // If already logged in, redirect based on role
-      if (window.supabaseClient) {
-        try {
-          const { data: { session } } = await window.supabaseClient.auth.getSession();
-          if (session) {
-            await redirectByRole(session.user);
-          }
-        } catch (e) { console.warn(e); }
-      }
+      // Auto-login check
+      try {
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
+        if (session) await redirectByRole(session.user);
+      } catch (e) { console.warn(e); }
     });
 
-    /* ---------- PASSWORD TOGGLE ---------- */
-    const togglePassword = document.getElementById('togglePassword');
-    const password = document.getElementById('password');
-    togglePassword.addEventListener('click', function () {
-      password.type = password.type === 'password' ? 'text' : 'password';
-      this.textContent = password.type === 'password' ? 'Show' : 'Hide';
+    /* Password toggle */
+    document.getElementById('togglePassword').addEventListener('click', function () {
+      const pw = document.getElementById('password');
+      pw.type = pw.type === 'password' ? 'text' : 'password';
+      this.textContent = pw.type === 'password' ? 'Show' : 'Hide';
     });
 
-    /* ---------- TOASTS ---------- */
-    function showToast(title, message, type = 'info') {
-      const c = document.getElementById('toast-container');
-      const t = document.createElement('div');
-
-      const colorMap = {
-        success: { bg: 'bg-emerald-500/20', text: 'text-emerald-300', border: 'border-emerald-400/40', icon: 'check-circle-2' },
-        error:   { bg: 'bg-red-500/20',     text: 'text-red-300',     border: 'border-red-400/40',     icon: 'x-circle' },
-        info:    { bg: 'bg-purple-500/20',  text: 'text-purple-300',  border: 'border-purple-400/40',  icon: 'info' },
-        warn:    { bg: 'bg-amber-500/20',   text: 'text-amber-300',   border: 'border-amber-400/40',   icon: 'alert-triangle' },
-      };
-      const style = colorMap[type] || colorMap.info;
-
-      t.className = `pointer-events-auto flex items-center space-x-3 p-4 rounded-2xl glass-card shadow-2xl border ${style.border} text-white transform translate-y-4 opacity-0 transition-all duration-300 min-w-[280px] max-w-md`;
-      t.innerHTML = `
-        <div class="p-2 rounded-xl ${style.bg} ${style.text} border ${style.border} shrink-0">
-          <i data-lucide="${style.icon}" class="w-5 h-5"></i>
-        </div>
-        <div>
-          <h4 class="font-bold text-xs text-white">${title}</h4>
-          <p class="text-[11px] text-purple-200/80 mt-0.5">${message}</p>
-        </div>
-      `;
-      c.appendChild(t);
-      lucide.createIcons();
-
-      setTimeout(() => t.classList.remove('translate-y-4', 'opacity-0'), 10);
-      setTimeout(() => {
-        t.classList.add('translate-y-4', 'opacity-0');
-        setTimeout(() => t.remove(), 300);
-      }, 4000);
-    }
-
-    /* ---------- ROLE-BASED REDIRECT ---------- */
+    /* Role redirect */
     async function redirectByRole(user) {
       let role = 'student';
-
       if (window.supabaseClient && user?.id) {
         try {
           const { data: profile } = await window.supabaseClient
-            .from('profiles')
-            .select('role')
-            .eq('id', user.id)
-            .single();
+            .from('profiles').select('role').eq('id', user.id).single();
           if (profile?.role) role = profile.role;
-        } catch (e) { console.warn('Using default role'); }
+        } catch {}
       }
-
-      // Route to correct dashboard
       const routes = {
-        admin:   'dashboard.html',
-        officer: 'officer-dashboard.html',
-        adviser: 'adviser-dashboard.html',
+        admin: 'dashboard.html',
+        officer: 'dashboard.html',
+        adviser: 'dashboard.html',
         student: 'student-dashboard.html',
       };
-
-      const target = routes[role] || 'student-dashboard.html';
-      console.log('Redirecting as', role, '→', target);
-      window.location.replace(target);
+      window.location.replace(routes[role] || 'student-dashboard.html');
     }
 
-    /* ---------- LOGIN SUBMIT ---------- */
+    /* Login submit */
     document.getElementById('loginForm').addEventListener('submit', async function (event) {
       event.preventDefault();
 
+      if (!window.supabaseClient) {
+        showToast('Connection Error', 'Supabase not initialized. Check config.js.');
+        return;
+      }
+
       const email = document.getElementById('email').value.trim();
-      const pass  = document.getElementById('password').value;
+      const pass = document.getElementById('password').value;
       const remember = document.getElementById('rememberMe').checked;
 
-      if (!email || !pass) {
-        showToast('Missing Fields', 'Please enter your email and password.', 'warn');
-        return;
-      }
-
-      if (typeof supabase === 'undefined' || !window.supabaseClient) {
-        showToast('Connection Error', 'Supabase client not loaded. Check your config.js.', 'error');
-        return;
-      }
-
-      // Disable button with spinner
-      const submitBtn = document.getElementById('submitBtn');
-      const originalHTML = submitBtn.innerHTML;
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = `
-        <svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-        </svg>
-        <span>Signing in...</span>
-      `;
+      const btn = document.getElementById('submitBtn');
+      const originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg><span>Signing in...</span>';
 
       try {
         const { data, error } = await window.supabaseClient.auth.signInWithPassword({
@@ -315,32 +223,22 @@
         });
 
         if (error) {
-          console.error('LOGIN ERROR:', error);
-          showToast('Login Failed', error.message, 'error');
+          showToast('Login Failed', error.message);
           return;
         }
 
-        // Remember email
-        if (remember) {
-          localStorage.setItem('rememberedEmail', email);
-        } else {
-          localStorage.removeItem('rememberedEmail');
-        }
+        if (remember) localStorage.setItem('rememberedEmail', email);
+        else localStorage.removeItem('rememberedEmail');
 
-        // Session tag
         sessionStorage.setItem('userEmail', email);
-
-        showToast('Welcome back!', 'Redirecting to your dashboard...', 'success');
-
-        // Redirect after short delay
+        showToast('Welcome back!', 'Redirecting...');
         setTimeout(() => redirectByRole(data.user), 900);
 
       } catch (err) {
-        console.error('Unexpected error:', err);
-        showToast('Unexpected Error', err.message || 'Something went wrong.', 'error');
+        showToast('Error', err.message);
       } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalHTML;
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
         lucide.createIcons();
       }
     });

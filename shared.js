@@ -7,12 +7,12 @@ function initSupabase() {
   if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY && typeof supabase !== 'undefined') {
     try {
       window.supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-      console.log('Supabase initialized.');
+      console.log('✅ Supabase initialized.');
     } catch (e) {
-      console.warn('Supabase init failed — demo mode.', e);
+      console.warn('❌ Supabase init failed — demo mode.', e);
     }
   } else {
-    console.log('Demo mode: no Supabase config.');
+    console.log('⚠️ Demo mode: no Supabase config.');
   }
 }
 
