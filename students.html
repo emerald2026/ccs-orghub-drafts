@@ -1,0 +1,149 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Students</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <style>
+    body { font-family: Arial; margin: 0; background: #f0f2f5; }
+    .topbar { background: linear-gradient(90deg,#661970,#4a104d); color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
+    .topbar a { color: #ffb3ff; text-decoration: none; font-weight: bold; margin-left: 20px; }
+    .container { padding: 40px; max-width: 1000px; margin: auto; }
+    .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 25px; }
+    input { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+    .btn { padding: 10px 18px; background: #8f228b; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    .btn:hover { background: #661970; }
+    .btn-edit { background: #f0ad4e; }
+    .btn-del { background: #d9534f; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+    th { background: #f8f8f8; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <h2 style="margin:0;">Students</h2>
+    <div>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="#" onclick="logout()" style="color:#ff9999;">Logout</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h3 id="formTitle">Add Student</h3>
+      <form id="studentForm">
+        <input type="hidden" id="editId">
+        <div class="row">
+          <input type="text" id="studentId" placeholder="Student ID (00-00000)" required>
+          <input type="text" id="firstName" placeholder="First Name" required>
+        </div>
+        <div class="row">
+          <input type="text" id="lastName" placeholder="Last Name" required>
+          <input type="email" id="email" placeholder="Email">
+        </div>
+        <div class="row">
+          <input type="text" id="course" placeholder="Course">
+          <input type="text" id="yearLevel" placeholder="Year Level">
+        </div>
+        <button type="submit" class="btn">Save Student</button>
+        <button type="button" class="btn btn-del" onclick="resetForm()">Clear</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3>Student Records</h3>
+      <table>
+        <thead>
+          <tr><th>Student ID</th><th>Name</th><th>Email</th><th>Course</th><th>Year</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="studentTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    async function loadStudents() {
+      const { data, error } = await window.supabaseClient
+        .from('students').select('*').order('id', { ascending: false });
+
+      const tbody = document.getElementById('studentTable');
+      tbody.innerHTML = '';
+      if (error) { console.error(error); return; }
+
+      data.forEach(s => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${s.student_id}</td>
+            <td>${s.first_name} ${s.last_name}</td>
+            <td>${s.email || ''}</td>
+            <td>${s.course || ''}</td>
+            <td>${s.year_level || ''}</td>
+            <td>
+              <button class="btn btn-edit" onclick='editStudent(${JSON.stringify(s)})'>Edit</button>
+              <button class="btn btn-del" onclick="deleteStudent(${s.id})">Delete</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    document.getElementById('studentForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('editId').value;
+      const payload = {
+        student_id: document.getElementById('studentId').value.trim(),
+        first_name: document.getElementById('firstName').value.trim(),
+        last_name:  document.getElementById('lastName').value.trim(),
+        email:      document.getElementById('email').value.trim(),
+        course:     document.getElementById('course').value.trim(),
+        year_level: document.getElementById('yearLevel').value.trim()
+      };
+
+      let error;
+      if (id) ({ error } = await window.supabaseClient.from('students').update(payload).eq('id', id));
+      else    ({ error } = await window.supabaseClient.from('students').insert([payload]));
+
+      if (error) alert('Error: ' + error.message);
+      else { resetForm(); loadStudents(); }
+    });
+
+    function editStudent(s) {
+      document.getElementById('editId').value    = s.id;
+      document.getElementById('studentId').value = s.student_id;
+      document.getElementById('firstName').value = s.first_name;
+      document.getElementById('lastName').value  = s.last_name;
+      document.getElementById('email').value     = s.email || '';
+      document.getElementById('course').value    = s.course || '';
+      document.getElementById('yearLevel').value = s.year_level || '';
+      document.getElementById('formTitle').textContent = 'Edit Student';
+    }
+
+    async function deleteStudent(id) {
+      if (!confirm('Delete this student?')) return;
+      const { error } = await window.supabaseClient.from('students').delete().eq('id', id);
+      if (error) alert('Error: ' + error.message);
+      else loadStudents();
+    }
+
+    function resetForm() {
+      document.getElementById('studentForm').reset();
+      document.getElementById('editId').value = '';
+      document.getElementById('formTitle').textContent = 'Add Student';
+    }
+
+    async function logout() {
+      await window.supabaseClient.auth.signOut();
+      sessionStorage.clear();
+      window.location.href = 'index.html';
+    }
+
+    (async () => {
+      const user = await requireLogin();
+      if (user) loadStudents();
+    })();
+  </script>
+</body>
+</html>
