@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Attendance — CCS OrgHub Student</title>
+
+  <link rel="icon" type="image/png" href="ccs.png" />
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js" onerror="console.warn('config.js not found. Demo mode.')"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="shared.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        fontFamily: { sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'] },
+        colors: { purple: {
+          950:'#0f041c',900:'#1e0836',850:'#2d0a4e',800:'#3b0764',700:'#581c87',
+          600:'#7e22ce',500:'#a855f7',400:'#c084fc',300:'#d8b4fe',200:'#e9d5ff',100:'#f3e8ff',50:'#faf5ff'
+        }}
+      }}
+    }
+  </script>
+</head>
+
+<body class="h-full font-sans antialiased selection:bg-purple-500 selection:text-white flex overflow-hidden">
+
+  <div id="bg-layer"></div>
+  <div id="sidebar-layer"></div>
+
+  <div class="flex-1 lg:ml-64 flex flex-col min-h-screen relative z-10 overflow-x-hidden">
+    <div id="topbar-layer"></div>
+
+    <main class="flex-1 p-4 md:p-8 space-y-6">
+
+      <!-- CONNECTION STATUS -->
+      <div id="connectionStatus" class="glass-card p-4 rounded-2xl flex items-center gap-3 text-xs">
+        <div id="connIcon" class="p-2 rounded-xl bg-amber-500/20 border border-amber-500/30">
+          <i data-lucide="wifi" class="w-4 h-4 text-amber-300"></i>
+        </div>
+        <div>
+          <div id="connTitle" class="font-bold text-white">Loading your attendance...</div>
+          <div id="connSub" class="text-purple-300/70">Verifying database</div>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Total Events</span>
+            <div class="p-2.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30"><i data-lucide="list" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-white" id="statTotal">—</div>
+        </div>
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Present</span>
+            <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-emerald-300" id="statPresent">—</div>
+        </div>
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Late</span>
+            <div class="p-2.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30"><i data-lucide="clock" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-amber-300" id="statLate">—</div>
+        </div>
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Absent</span>
+            <div class="p-2.5 rounded-xl bg-red-500/20 text-red-300 border border-red-500/30"><i data-lucide="x-circle" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-red-300" id="statAbsent">—</div>
+        </div>
+      </div>
+
+      <!-- ATTENDANCE RATE -->
+      <div class="glass-card p-6 rounded-3xl">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <i data-lucide="trending-up" class="w-5 h-5 text-emerald-400"></i> Attendance Rate
+          </h3>
+          <div class="text-3xl font-extrabold text-emerald-300" id="attendanceRate">—</div>
+        </div>
+        <div class="w-full bg-purple-950/60 rounded-full h-3 overflow-hidden border border-purple-500/30">
+          <div id="attendanceBar" class="h-full bg-gradient-to-r from-emerald-500 to-emerald-300 transition-all duration-500" style="width: 0%"></div>
+        </div>
+        <p class="text-xs text-purple-300/70 mt-3" id="attendanceSummary">Loading...</p>
+      </div>
+
+      <!-- ATTENDANCE RECORDS -->
+      <div class="glass-card p-6 rounded-3xl space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <i data-lucide="clipboard-check" class="w-5 h-5 text-purple-400"></i> My Attendance Records
+          </h3>
+          <button onclick="loadAttendance()" class="px-3 py-1.5 rounded-lg bg-purple-950/60 hover:bg-purple-800/60 text-purple-200 border border-purple-500/30 text-[11px] font-bold transition-all flex items-center gap-1.5">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
+          </button>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3">
+          <div class="relative flex-1">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-purple-300/60"></i>
+            <input id="searchRecords" oninput="renderAttendance()" placeholder="Search events..."
+              class="w-full bg-purple-950/60 border border-purple-500/30 rounded-xl py-2.5 pl-9 pr-3 text-xs text-white placeholder-purple-300/50 focus:border-purple-400 focus:outline-none" />
+          </div>
+          <select id="filterStatus" onchange="renderAttendance()"
+            class="bg-purple-950/60 border border-purple-500/30 rounded-xl py-2.5 px-3 text-xs text-white focus:border-purple-400 focus:outline-none">
+            <option value="all">All Status</option>
+            <option value="present">Present</option>
+            <option value="late">Late</option>
+            <option value="absent">Absent</option>
+            <option value="excused">Excused</option>
+          </select>
+        </div>
+
+        <div class="overflow-x-auto rounded-2xl border border-purple-500/20">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-purple-950/80 text-purple-300 uppercase tracking-wider font-semibold border-b border-purple-500/20">
+              <tr>
+                <th class="py-3.5 px-4">Event</th>
+                <th class="py-3.5 px-4">Date</th>
+                <th class="py-3.5 px-4">Status</th>
+                <th class="py-3.5 px-4">Remarks</th>
+              </tr>
+            </thead>
+            <tbody id="attendanceTable" class="divide-y divide-purple-500/10 text-purple-100">
+              <tr><td colspan="4" class="py-8 text-center text-purple-300/60 italic">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RECENT EVENT ATTENDANCE SUMMARY -->
+      <div class="glass-card p-6 rounded-3xl space-y-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="history" class="w-5 h-5 text-purple-400"></i> Recent Events Attended
+        </h3>
+        <div id="recentEvents" class="space-y-2">
+          <p class="text-center text-purple-300/60 py-6 text-xs italic">Loading...</p>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <div id="modal-layer"></div>
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-3 pointer-events-none"></div>
+
+  <script src="shared.js"></script>
+  <script>
+    let attendanceRecords = [];
+    let events = [];
+    let currentProfile = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      document.getElementById('bg-layer').innerHTML = buildBackground();
+      document.getElementById('sidebar-layer').innerHTML = buildSidebar('attendance', 'student');
+      document.getElementById('topbar-layer').innerHTML = buildTopbar('My Attendance', 'Your personal attendance records');
+      document.getElementById('modal-layer').innerHTML = buildLogoutModal();
+
+      lucide.createIcons();
+
+      initSupabase();
+      await checkConnection();
+
+      const ok = await guardAuth();
+      if (!ok) return;
+
+      // Get profile
+      try {
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        if (user) {
+          const { data } = await window.supabaseClient
+            .from('profiles').select('*').eq('id', user.id).maybeSingle();
+          currentProfile = data ? { ...data, email: user.email } : { id: user.id, email: user.email, role: 'student' };
+        }
+      } catch (e) { console.warn('Profile load failed:', e); }
+
+      await loadEvents();
+      await loadAttendance();
+    });
+
+    /* ---------- CONNECTION ---------- */
+    async function checkConnection() {
+      const iconEl = document.getElementById('connIcon');
+      const titleEl = document.getElementById('connTitle');
+      const subEl = document.getElementById('connSub');
+
+      if (!window.supabaseClient) {
+        iconEl.className = 'p-2 rounded-xl bg-red-500/20 border border-red-500/30';
+        iconEl.innerHTML = '<i data-lucide="wifi-off" class="w-4 h-4 text-red-300"></i>';
+        titleEl.textContent = 'Supabase NOT connected';
+        subEl.textContent = 'Check config.js';
+        lucide.createIcons();
+        return false;
+      }
+
+      try {
+        const { error } = await window.supabaseClient.from('attendance').select('id').limit(1);
+        if (error) {
+          iconEl.className = 'p-2 rounded-xl bg-red-500/20 border border-red-500/30';
+          iconEl.innerHTML = '<i data-lucide="alert-circle" class="w-4 h-4 text-red-300"></i>';
+          titleEl.textContent = 'Table error: ' + error.message;
+          subEl.textContent = 'Check RLS or table';
+        } else {
+          iconEl.className = 'p-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30';
+          iconEl.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-300"></i>';
+          titleEl.textContent = 'Connected to attendance database ✅';
+          subEl.textContent = 'Your records will load below';
+        }
+        lucide.createIcons();
+        return !error;
+      } catch (err) {
+        titleEl.textContent = 'Connection failed';
+        subEl.textContent = err.message;
+        return false;
+      }
+    }
+
+    /* ---------- HELPER: find numeric student id ---------- */
+    async function findStudentNumericId() {
+      if (!window.supabaseClient || !currentProfile?.student_id) return null;
+      try {
+        const { data } = await window.supabaseClient
+          .from('students').select('id')
+          .eq('student_id', currentProfile.student_id)
+          .maybeSingle();
+        return data?.id || null;
+      } catch { return null; }
+    }
+
+    /* ---------- LOAD EVENTS ---------- */
+    async function loadEvents() {
+      if (!window.supabaseClient) return;
+      try {
+        const { data, error } = await window.supabaseClient
+          .from('events').select('id, title, org, event_date, event_type')
+          .order('event_date', { ascending: false });
+        if (!error && data) events = data;
+      } catch (e) { console.warn('Events load failed:', e); }
+    }
+
+    /* ---------- LOAD ATTENDANCE ---------- */
+    async function loadAttendance() {
+      const tbody = document.getElementById('attendanceTable');
+      tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-purple-300/60 italic">Loading your attendance...</td></tr>`;
+
+      if (!window.supabaseClient || !currentProfile) {
+        attendanceRecords = [];
+        renderAttendance();
+        renderStats();
+        return;
+      }
+
+      // Get numeric student id
+      const numericId = await findStudentNumericId();
+
+      if (!numericId) {
+        tbody.innerHTML = `
+          <tr><td colspan="4" class="py-8 text-center text-purple-300/60 italic">
+            No student record linked to your account yet.
+            <br><span class="text-[10px]">Ask an admin to add you to the students list.</span>
+          </td></tr>`;
+        attendanceRecords = [];
+        renderStats();
+        return;
+      }
+
+      try {
+        const { data, error } = await window.supabaseClient
+          .from('attendance')
+          .select('*')
+          .eq('student_id', numericId)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-red-300 italic">Error: ${error.message}</td></tr>`;
+          return;
+        }
+
+        attendanceRecords = data || [];
+        renderAttendance();
+        renderStats();
+        renderRecentEvents();
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-red-300 italic">Error: ${err.message}</td></tr>`;
+      }
+    }
+
+    /* ---------- STATS ---------- */
+    function renderStats() {
+      const total = attendanceRecords.length;
+      const present = attendanceRecords.filter(a => a.status === 'present').length;
+      const late = attendanceRecords.filter(a => a.status === 'late').length;
+      const absent = attendanceRecords.filter(a => a.status === 'absent' || a.status === 'excused').length;
+
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statPresent').textContent = present;
+      document.getElementById('statLate').textContent = late;
+      document.getElementById('statAbsent').textContent = absent;
+
+      // Rate
+      const rate = total > 0 ? Math.round((present / total) * 100) : 0;
+      document.getElementById('attendanceRate').textContent = total > 0 ? rate + '%' : '—';
+      document.getElementById('attendanceBar').style.width = rate + '%';
+
+      // Summary text
+      const summaryEl = document.getElementById('attendanceSummary');
+      if (total === 0) {
+        summaryEl.textContent = 'No attendance records yet.';
+      } else {
+        summaryEl.textContent = `You attended ${present} out of ${total} events (${rate}% present rate).`;
+      }
+    }
+
+    /* ---------- RENDER TABLE ---------- */
+    function renderAttendance() {
+      const q = (document.getElementById('searchRecords').value || '').toLowerCase();
+      const filter = document.getElementById('filterStatus').value;
+
+      const list = attendanceRecords.filter(a => {
+        if (filter !== 'all' && a.status !== filter) return false;
+        if (q) {
+          const ev = events.find(e => String(e.id) === String(a.event_id));
+          const title = ev ? ev.title : '';
+          if (!title.toLowerCase().includes(q) && !(a.student_name || '').toLowerCase().includes(q)) return false;
+        }
+        return true;
+      });
+
+      const tbody = document.getElementById('attendanceTable');
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-purple-300/60 italic">No attendance records found.</td></tr>`;
+        return;
+      }
+
+      const statusColors = {
+        present: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30',
+        late: 'bg-amber-500/20 text-amber-300 border-amber-400/30',
+        absent: 'bg-red-500/20 text-red-300 border-red-400/30',
+        excused: 'bg-purple-500/20 text-purple-300 border-purple-400/30'
+      };
+
+      tbody.innerHTML = list.map(a => {
+        const ev = events.find(e => String(e.id) === String(a.event_id));
+        const title = ev ? ev.title : `Event #${a.event_id}`;
+        const date = ev?.event_date ? new Date(ev.event_date).toLocaleDateString() : (a.created_at ? new Date(a.created_at).toLocaleDateString() : '—');
+
+        return `
+          <tr class="hover:bg-purple-900/30 transition-colors">
+            <td class="py-3.5 px-4 font-semibold text-white">${title}</td>
+            <td class="py-3.5 px-4 text-purple-300/80">${date}</td>
+            <td class="py-3.5 px-4">
+              <span class="px-2 py-1 rounded-full text-[10px] font-bold border ${statusColors[a.status] || ''}">${a.status || '—'}</span>
+            </td>
+            <td class="py-3.5 px-4 text-purple-200/80">${a.remarks || '—'}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    /* ---------- RECENT EVENTS SUMMARY ---------- */
+    function renderRecentEvents() {
+      const el = document.getElementById('recentEvents');
+
+      if (attendanceRecords.length === 0) {
+        el.innerHTML = `<p class="text-center text-purple-300/60 py-6 text-xs italic">No recent attendance.</p>`;
+        return;
+      }
+
+      // Group by event_id, show last 5
+      const grouped = {};
+      attendanceRecords.forEach(a => {
+        const key = String(a.event_id);
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(a);
+      });
+
+      const entries = Object.entries(grouped).slice(0, 5);
+
+      el.innerHTML = entries.map(([eventId, records]) => {
+        const ev = events.find(e => String(e.id) === eventId);
+        const title = ev ? ev.title : `Event #${eventId}`;
+        const status = records[0]?.status || '—';
+        const remarks = records[0]?.remarks || '';
+
+        const statusColors = {
+          present: 'text-emerald-300 bg-emerald-500/20 border-emerald-400/30',
+          late: 'text-amber-300 bg-amber-500/20 border-amber-400/30',
+          absent: 'text-red-300 bg-red-500/20 border-red-400/30',
+          excused: 'text-purple-300 bg-purple-500/20 border-purple-400/30'
+        };
+
+        return `
+          <div class="p-3.5 rounded-2xl bg-purple-950/60 border border-purple-500/30 flex items-center justify-between gap-3">
+            <div class="space-y-0.5 min-w-0 flex-1">
+              <div class="font-bold text-white text-xs truncate">${title}</div>
+              ${remarks ? `<div class="text-[10px] text-purple-300/70 truncate">${remarks}</div>` : ''}
+            </div>
+            <span class="px-2 py-1 rounded-full text-[10px] font-bold border shrink-0 ${statusColors[status] || ''}">${status}</span>
+          </div>
+        `;
+      }).join('');
+    }
+  </script>
+
+</body>
+</html>

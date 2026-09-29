@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Student Dashboard — CCS OrgHub</title>
 
-        <link rel="icon" type="image/png" href="ccs.png" />
+  <link rel="icon" type="image/png" href="ccs.png" />
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js" onerror="console.warn('config.js not found. Demo mode.')"></script>
@@ -57,25 +57,51 @@
         </div>
       </div>
 
-      <!-- WELCOME + CLEARANCE -->
+      <!-- WELCOME + PROFILE PIC (READ-ONLY, LEFT SIDE) -->
       <div class="welcome-gradient rounded-3xl p-6 md:p-8 relative overflow-hidden shadow-2xl">
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div class="space-y-2">
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center gap-6">
+
+          <!-- ✅ LEFT: Profile Picture (READ-ONLY) -->
+          <div class="flex flex-col items-center gap-2 shrink-0 self-center lg:self-auto">
+            <div id="dashboardAvatar" class="w-32 h-32 rounded-3xl overflow-hidden border-2 border-purple-300/50 shadow-xl shadow-purple-600/40 bg-gradient-to-tr from-purple-600 to-purple-400 flex items-center justify-center">
+              <img id="dashboardAvatarImg" src="" alt="" class="w-full h-full object-cover hidden" />
+              <span id="dashboardAvatarInitial" class="font-bold text-5xl text-white">S</span>
+            </div>
+            <a href="student-profile.html" class="text-[10px] uppercase tracking-wider text-purple-300/80 hover:text-white font-bold flex items-center gap-1 transition-colors">
+              <i data-lucide="settings" class="w-3 h-3"></i>
+              Change in Profile
+            </a>
+          </div>
+
+          <!-- RIGHT: welcome + info -->
+          <div class="space-y-2 flex-1">
             <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-300/30 text-purple-200 text-xs font-semibold">
               <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-300"></i>
               <span>Semester SY 2026-2027 Active</span>
             </div>
             <h1 id="welcome" class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight">Welcome, Student!</h1>
-            <p id="studentInfo" class="text-purple-200/80 text-sm">Student ID: —  |  Course: —</p>
+
+            <div id="studentInfo" class="text-purple-200/80 text-sm flex flex-wrap items-center gap-x-4 gap-y-1">
+              <span class="flex items-center gap-1.5">
+                <i data-lucide="hash" class="w-3.5 h-3.5 text-purple-400"></i>
+                <span id="infoStudentId">Loading...</span>
+              </span>
+              <span class="flex items-center gap-1.5">
+                <i data-lucide="book-open" class="w-3.5 h-3.5 text-purple-400"></i>
+                <span id="infoCourse">Loading...</span>
+              </span>
+              <span class="flex items-center gap-1.5">
+                <i data-lucide="layers" class="w-3.5 h-3.5 text-purple-400"></i>
+                <span id="infoYear">Loading...</span>
+              </span>
+            </div>
+
             <div class="pt-2 flex flex-wrap items-center gap-4 text-xs text-purple-300/90 font-medium">
               <span class="flex items-center gap-1.5"><i data-lucide="shield" class="w-4 h-4 text-purple-400"></i> <strong id="roleBadge">Role: Student</strong></span>
               <span class="flex items-center gap-1.5"><i data-lucide="clock" class="w-4 h-4 text-purple-400"></i> <span id="live-time-display">Loading time...</span></span>
             </div>
           </div>
-          <div id="clearanceBadge" class="rounded-2xl px-5 py-4 text-center border border-purple-400/40 backdrop-blur-md bg-purple-900/40 min-w-[180px]">
-            <div class="text-[10px] uppercase tracking-wider text-purple-300/80 font-bold mb-1">Clearance Status</div>
-            <div id="clearanceStatus" class="text-lg font-extrabold text-amber-300">—</div>
-          </div>
+
         </div>
       </div>
 
@@ -226,6 +252,7 @@
   <script src="shared.js"></script>
   <script>
     let currentProfile = null;
+    let currentUser = null;
 
     document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('bg-layer').innerHTML = buildBackground();
@@ -243,11 +270,10 @@
       const ok = await guardAuth();
       if (!ok) return;
 
-      await loadUserProfile();
       await loadStudentDashboard();
     });
 
-    /* ---------- CONNECTION CHECK ---------- */
+    /* ---------- CONNECTION ---------- */
     async function checkConnection() {
       const iconEl = document.getElementById('connIcon');
       const titleEl = document.getElementById('connTitle');
@@ -264,14 +290,7 @@
 
       try {
         const { data: { user } } = await window.supabaseClient.auth.getUser();
-        if (!user) {
-          iconEl.className = 'p-2 rounded-xl bg-amber-500/20 border border-amber-500/30';
-          iconEl.innerHTML = '<i data-lucide="user-x" class="w-4 h-4 text-amber-300"></i>';
-          titleEl.textContent = 'Not logged in';
-          subEl.textContent = 'Redirecting to login...';
-          lucide.createIcons();
-          return false;
-        }
+        if (!user) { titleEl.textContent = 'Not logged in'; return false; }
 
         iconEl.className = 'p-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30';
         iconEl.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-300"></i>';
@@ -299,166 +318,138 @@
     async function loadStudentDashboard() {
       if (!window.supabaseClient) return;
 
-      // Get user & profile
-      let profile = null;
       try {
         const { data: { user } } = await window.supabaseClient.auth.getUser();
-        if (user) {
-          const { data } = await window.supabaseClient
-            .from('profiles').select('*').eq('id', user.id).single();
-          if (data) profile = { ...data, email: user.email };
-        }
+        currentUser = user;
+      } catch (e) { console.warn(e); }
+
+      if (!currentUser) return;
+
+      try {
+        const { data, error } = await window.supabaseClient
+          .from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+        if (!error && data) currentProfile = data;
       } catch (e) { console.warn('Profile load failed:', e); }
 
-      if (!profile) {
-        // Fallback: use auth user data
-        const { data: { user } } = await window.supabaseClient.auth.getUser();
-        profile = {
-          first_name: user?.email?.split('@')[0] || 'Student',
+      if (!currentProfile) {
+        currentProfile = {
+          first_name: currentUser.email?.split('@')[0] || 'Student',
+          last_name: '',
           student_id: '—',
           course: '—',
+          year_level: '—',
           role: 'student',
-          id: user?.id,
+          avatar_url: null,
+          id: currentUser.id,
         };
       }
 
-      // Block non-students
-      if (profile?.role && profile.role !== 'student') {
+      if (currentProfile.role && currentProfile.role !== 'student') {
         showToast('Access Denied', 'This panel is for students only.');
         setTimeout(() => window.location.replace('dashboard.html'), 1200);
         return;
       }
 
-      currentProfile = profile;
+      const firstName = currentProfile.first_name || 'Student';
+      document.getElementById('welcome').textContent = `Welcome, ${firstName}!`;
 
-      const name = profile.first_name || 'Student';
-      document.getElementById('welcome').textContent = `Welcome, ${name}!`;
-      document.getElementById('studentInfo').textContent =
-        `Student ID: ${profile.student_id || '—'}  |  Course: ${profile.course || '—'}`;
-      document.getElementById('roleBadge').textContent = `Role: ${profile.role || 'Student'}`;
-      document.getElementById('userName').textContent = name;
-      document.getElementById('userAvatar').textContent = (name[0] || 'S').toUpperCase();
+      document.getElementById('infoStudentId').textContent = 'ID: ' + (currentProfile.student_id || '—');
+      document.getElementById('infoCourse').textContent = currentProfile.course || 'No course set';
+      document.getElementById('infoYear').textContent = currentProfile.year_level || 'Year not set';
 
-      // Load all sections
-      await fetchClearanceStatus(profile);
-      await fetchStats(profile);
-      await fetchPendingItems(profile);
+      document.getElementById('roleBadge').textContent = `Role: ${currentProfile.role || 'Student'}`;
+
+      const fullName = `${firstName} ${currentProfile.last_name || ''}`.trim();
+      const nameEl = document.getElementById('userName');
+      const avEl = document.getElementById('userAvatar');
+      if (nameEl) nameEl.textContent = fullName;
+      if (avEl) avEl.textContent = (firstName[0] || 'S').toUpperCase();
+
+      renderDashboardAvatar(firstName);
+
+      await fetchStats(currentProfile);
+      await fetchPendingItems(currentProfile);
       await fetchAnnouncements();
       await fetchEvents();
-      await fetchPayments(profile);
+      await fetchPayments(currentProfile);
     }
 
-    /* ---------- CLEARANCE STATUS ---------- */
-    async function fetchClearanceStatus(profile) {
-      let status = 'not requested';
+    /* ---------- RENDER DASHBOARD AVATAR ---------- */
+    function renderDashboardAvatar(firstName) {
+      const img = document.getElementById('dashboardAvatarImg');
+      const initial = document.getElementById('dashboardAvatarInitial');
 
-      if (window.supabaseClient && profile?.id) {
-        try {
-          const { data } = await window.supabaseClient
-            .from('clearances')
-            .select('status')
-            .eq('student_id', profile.id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-          if (data?.status) status = data.status;
-        } catch (e) { /* table may not exist */ }
-      }
-
-      const badge = document.getElementById('clearanceBadge');
-      const statusEl = document.getElementById('clearanceStatus');
-      const formatted = status === 'not requested'
-        ? 'Not Requested'
-        : status.charAt(0).toUpperCase() + status.slice(1);
-      statusEl.textContent = formatted;
-
-      if (status === 'approved') {
-        badge.className = 'rounded-2xl px-5 py-4 text-center border border-emerald-400/40 backdrop-blur-md bg-emerald-900/40 min-w-[180px]';
-        statusEl.className = 'text-lg font-extrabold text-emerald-300';
-      } else if (status === 'rejected') {
-        badge.className = 'rounded-2xl px-5 py-4 text-center border border-red-400/40 backdrop-blur-md bg-red-900/40 min-w-[180px]';
-        statusEl.className = 'text-lg font-extrabold text-red-300';
+      const url = currentProfile?.avatar_url;
+      if (url) {
+        img.src = url;
+        img.classList.remove('hidden');
+        initial.classList.add('hidden');
       } else {
-        badge.className = 'rounded-2xl px-5 py-4 text-center border border-amber-400/40 backdrop-blur-md bg-amber-900/40 min-w-[180px]';
-        statusEl.className = 'text-lg font-extrabold text-amber-300';
+        img.classList.add('hidden');
+        initial.classList.remove('hidden');
+        initial.textContent = (firstName?.[0] || 'S').toUpperCase();
       }
+    }
+
+    /* ---------- HELPER ---------- */
+    async function findStudentNumericId(profile) {
+      if (!window.supabaseClient || !profile?.student_id) return null;
+      try {
+        const { data } = await window.supabaseClient
+          .from('students').select('id')
+          .eq('student_id', profile.student_id).maybeSingle();
+        return data?.id || null;
+      } catch { return null; }
     }
 
     /* ---------- STATS ---------- */
     async function fetchStats(profile) {
       if (!window.supabaseClient || !profile?.id) return;
 
-      // Organizations count
       let orgs = 0;
       try {
         const { count } = await window.supabaseClient
-          .from('memberships')
-          .select('*', { count: 'exact', head: true })
-          .eq('student_id', profile.id)
-          .eq('status', 'active');
+          .from('memberships').select('*', { count: 'exact', head: true })
+          .eq('student_id', profile.id).eq('status', 'active');
         orgs = count ?? 0;
       } catch { orgs = 0; }
       document.getElementById('myOrgs').textContent = orgs;
 
-      // Attendance rate (match student by profile.student_id string)
+      const numericId = await findStudentNumericId(profile);
+
       let rate = '—';
-      try {
-        const studentIdStr = profile.student_id;
-        if (studentIdStr) {
-          // Get student's numeric id first
-          const { data: studentRow } = await window.supabaseClient
-            .from('students').select('id').eq('student_id', studentIdStr).single();
-
-          if (studentRow?.id) {
-            const { data: att } = await window.supabaseClient
-              .from('attendance').select('status').eq('student_id', studentRow.id);
-
-            if (att && att.length > 0) {
-              const present = att.filter(a => a.status === 'present').length;
-              rate = Math.round((present / att.length) * 100) + '%';
-            }
+      if (numericId) {
+        try {
+          const { data: att } = await window.supabaseClient
+            .from('attendance').select('status').eq('student_id', numericId);
+          if (att && att.length > 0) {
+            const present = att.filter(a => a.status === 'present').length;
+            rate = Math.round((present / att.length) * 100) + '%';
           }
-        }
-      } catch { rate = '—'; }
+        } catch { rate = '—'; }
+      }
       document.getElementById('attendanceRate').textContent = rate;
 
-      // Unpaid fees — match by student_id string too
       let fees = 0;
-      try {
-        const studentIdStr = profile.student_id;
-        if (studentIdStr) {
-          const { data: studentRow } = await window.supabaseClient
-            .from('students').select('id').eq('student_id', studentIdStr).single();
-
-          if (studentRow?.id) {
-            const { count } = await window.supabaseClient
-              .from('fees').select('*', { count: 'exact', head: true })
-              .eq('student_id', studentRow.id)
-              .eq('status', 'unpaid');
-            fees = count ?? 0;
-          }
-        }
-      } catch { fees = 0; }
+      if (numericId) {
+        try {
+          const { count } = await window.supabaseClient
+            .from('fees').select('*', { count: 'exact', head: true })
+            .eq('student_id', numericId).eq('status', 'unpaid');
+          fees = count ?? 0;
+        } catch { fees = 0; }
+      }
       document.getElementById('unpaidFees').textContent = fees;
 
-      // Unpaid fines
       let fines = 0;
-      try {
-        const studentIdStr = profile.student_id;
-        if (studentIdStr) {
-          const { data: studentRow } = await window.supabaseClient
-            .from('students').select('id').eq('student_id', studentIdStr).single();
-
-          if (studentRow?.id) {
-            const { count } = await window.supabaseClient
-              .from('fines').select('*', { count: 'exact', head: true })
-              .eq('student_id', studentRow.id)
-              .eq('status', 'unpaid');
-            fines = count ?? 0;
-          }
-        }
-      } catch { fines = 0; }
+      if (numericId) {
+        try {
+          const { count } = await window.supabaseClient
+            .from('fines').select('*', { count: 'exact', head: true })
+            .eq('student_id', numericId).eq('status', 'unpaid');
+          fines = count ?? 0;
+        } catch { fines = 0; }
+      }
       document.getElementById('unpaidFines').textContent = fines;
     }
 
@@ -472,16 +463,9 @@
         return;
       }
 
-      // Look up numeric student id
-      let studentId = null;
-      try {
-        const { data } = await window.supabaseClient
-          .from('students').select('id').eq('student_id', profile.student_id).single();
-        studentId = data?.id;
-      } catch {}
+      const studentId = await findStudentNumericId(profile);
 
       if (studentId) {
-        // Unpaid fees
         try {
           const { data: unpaid } = await window.supabaseClient
             .from('fees').select('amount, org')
@@ -493,7 +477,6 @@
           }));
         } catch {}
 
-        // Unpaid fines
         try {
           const { data: fines } = await window.supabaseClient
             .from('fines').select('amount, reason')
@@ -521,52 +504,44 @@
     /* ---------- ANNOUNCEMENTS ---------- */
     async function fetchAnnouncements() {
       const el = document.getElementById('announcementsList');
-
       if (!window.supabaseClient) {
-        el.innerHTML = `<p class="text-center text-purple-300/60 py-6 text-xs italic">Announcements unavailable.</p>`;
+        el.innerHTML = `<p class="text-center text-purple-300/60 py-6 text-xs italic">Unavailable.</p>`;
         return;
       }
 
       try {
         const { data, error } = await window.supabaseClient
-          .from('announcements')
-          .select('id, title, content, created_at')
-          .order('created_at', { ascending: false })
-          .limit(3);
+          .from('announcements').select('id, title, content, created_at')
+          .order('created_at', { ascending: false }).limit(3);
 
         if (error || !data || data.length === 0) {
           el.innerHTML = `<p class="text-center text-purple-300/60 py-6 text-xs italic">No announcements yet.</p>`;
           return;
         }
-
         el.innerHTML = data.map(a => `
           <div class="p-3.5 rounded-2xl bg-purple-950/50 border-l-4 border-purple-400">
             <div class="font-bold text-white text-xs">${a.title}</div>
             <div class="text-[10px] text-purple-300/70 mt-1">${new Date(a.created_at).toLocaleDateString()}</div>
           </div>
         `).join('');
-
       } catch {
-        el.innerHTML = `<p class="text-center text-purple-300/60 py-6 text-xs italic">Announcements unavailable.</p>`;
+        el.innerHTML = `<p class="text-center text-purple-300/60 py-6 text-xs italic">Unavailable.</p>`;
       }
     }
 
     /* ---------- EVENTS ---------- */
     async function fetchEvents() {
       const el = document.getElementById('eventsList');
-
       if (!window.supabaseClient) {
-        el.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-purple-300/60 italic">Events unavailable.</td></tr>`;
+        el.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-purple-300/60 italic">Unavailable.</td></tr>`;
         return;
       }
 
       try {
         const { data, error } = await window.supabaseClient
-          .from('events')
-          .select('id, title, org, event_date, status')
+          .from('events').select('id, title, org, event_date, status')
           .gte('event_date', new Date().toISOString())
-          .order('event_date', { ascending: true })
-          .limit(5);
+          .order('event_date', { ascending: true }).limit(5);
 
         if (error || !data || data.length === 0) {
           el.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-purple-300/60 italic">No upcoming events.</td></tr>`;
@@ -581,35 +556,25 @@
             <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-400/30">${e.status || 'Upcoming'}</span></td>
           </tr>
         `).join('');
-
       } catch {
-        el.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-purple-300/60 italic">Events unavailable.</td></tr>`;
+        el.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-purple-300/60 italic">Unavailable.</td></tr>`;
       }
     }
 
     /* ---------- PAYMENTS ---------- */
     async function fetchPayments(profile) {
       const el = document.getElementById('paymentsList');
-
       if (!window.supabaseClient || !profile?.id) {
         el.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-purple-300/60 italic">No payments yet.</td></tr>`;
         return;
       }
 
-      // Look up numeric student id
-      let studentId = null;
-      try {
-        const { data } = await window.supabaseClient
-          .from('students').select('id').eq('student_id', profile.student_id).single();
-        studentId = data?.id;
-      } catch {}
-
+      const studentId = await findStudentNumericId(profile);
       if (!studentId) {
         el.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-purple-300/60 italic">No payments yet.</td></tr>`;
         return;
       }
 
-      // Combine fees + fines as "payments"
       const all = [];
       try {
         const { data: fees } = await window.supabaseClient
@@ -617,9 +582,7 @@
           .eq('student_id', studentId).eq('status', 'paid');
         (fees || []).forEach(f => all.push({
           type: 'Fee: ' + (f.org || 'Membership'),
-          amount: f.amount,
-          created_at: f.created_at,
-          status: 'paid'
+          amount: f.amount, created_at: f.created_at, status: 'paid'
         }));
       } catch {}
 
@@ -629,9 +592,7 @@
           .eq('student_id', studentId).eq('status', 'settled');
         (fines || []).forEach(f => all.push({
           type: 'Fine: ' + (f.reason || 'N/A'),
-          amount: f.amount,
-          created_at: f.created_at,
-          status: 'paid'
+          amount: f.amount, created_at: f.created_at, status: 'paid'
         }));
       } catch {}
 
