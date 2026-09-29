@@ -8,7 +8,6 @@
       <!-- Add or change this line to point to your new logo file -->
       <link rel="icon" type="image/png" href="ccs.png" />
 
-
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -94,7 +93,7 @@
         <!-- Right: Login/Register Buttons & Mobile Menu Toggle -->
         <div class="flex items-center gap-4">
             <!-- Desktop Login Link -->
-            <a href="index.html" class="text-sm font-semibold text-white hover:text-violet-300 transition hidden md:block">Log in</a>
+            <a href="login.html" class="text-sm font-semibold text-white hover:text-violet-300 transition hidden md:block">Log in</a>
             
             <!-- Create Account Button -->
             <a href="register.html" class="bg-violet-500 hover:bg-violet-600 text-white text-sm font-bold px-6 py-2.5 rounded-full transition btn-glow">Create Account</a>
@@ -116,7 +115,7 @@
         <a href="#" class="hover:text-white transition">About</a>
         <a href="#" class="hover:text-white transition">FAQs</a>
         <hr class="border-violet-800">
-        <a href="#" class="hover:text-white transition">Log in</a>
+        <a href="login.html" class="hover:text-white transition">Log in</a>
     </div>
 
     <!-- ========================================== -->
@@ -135,10 +134,11 @@
                 Easily monitor your clearance progress and stay updated on college events through a fast, completely digital portal — built for the College of Computer Studies.           </p>
 
             <div class="flex flex-col sm:flex-row justify-center gap-4 pt-8">
-                <a href="#" class="bg-violet-600 hover:bg-violet-700 text-white font-bold px-8 py-3.5 rounded-full transition btn-glow text-center text-lg">
+                <a href="register.html" class="bg-violet-600 hover:bg-violet-700 text-white font-bold px-8 py-3.5 rounded-full transition btn-glow text-center text-lg">
                     Get Started
                 </a>
-                <a href="#features" class="bg-white border-2 border-gray-200 hover:border-violet-600 text-gray-700 hover:text-violet-700 font-bold px-8 py-3.5 rounded-full transition text-center text-lg flex items-center justify-center gap-2">
+                <!-- UPDATED HREF TO #how-it-works -->
+                <a href="#how-it-works" class="bg-white border-2 border-gray-200 hover:border-violet-600 text-gray-700 hover:text-violet-700 font-bold px-8 py-3.5 rounded-full transition text-center text-lg flex items-center justify-center gap-2">
                     See how it works <i class="fa-solid fa-arrow-right text-sm"></i>
                 </a>
             </div>
@@ -175,8 +175,8 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Card 1: Dark Violet (Officers) - Updated to solid deep violet to match Image 3 -->
-                <div class="bg-violet-950 p-10 rounded-3xl shadow-xl flex flex-col justify-between text-white relative overflow-hidden border border-violet-800/50">
+                <!-- Card 1: Dark Violet (Officers) - No Button -->
+                <div class="bg-violet-950 p-10 rounded-3xl shadow-xl flex flex-col justify-start text-white relative overflow-hidden border border-violet-800/50">
                     <div class="absolute top-0 right-0 w-48 h-48 bg-violet-600 rounded-full mix-blend-screen filter blur-3xl opacity-30 translate-x-1/4 -translate-y-1/4"></div>
                     <div class="relative z-10">
                         <div class="w-14 h-14 bg-violet-800 rounded-xl flex items-center justify-center text-violet-300 text-2xl mb-6 border border-violet-600/50">
@@ -185,26 +185,16 @@
                         <h3 class="text-2xl font-bold mb-4">For Officers</h3>
                         <p class="text-violet-200 leading-relaxed">Approve clearance requests, manage event logistics, track attendance, and generate reports instantly from your admin dashboard.</p>
                     </div>
-                    <div class="mt-10 relative z-10">
-                        <a href="#" class="inline-flex items-center gap-2 text-sm font-bold text-white bg-violet-500 hover:bg-violet-400 px-5 py-2.5 rounded-full transition btn-glow">
-                            Access Admin Portal <i class="fa-solid fa-arrow-right"></i>
-                        </a>
-                    </div>
                 </div>
 
-                <!-- Card 2: Light Violet/White (Students) -->
-                <div class="bg-violet-50 p-10 rounded-3xl border border-violet-100 shadow-sm flex flex-col justify-between relative overflow-hidden">
+                <!-- Card 2: Light Violet/White (Students) - No Button -->
+                <div class="bg-violet-50 p-10 rounded-3xl border border-violet-100 shadow-sm flex flex-col justify-start relative overflow-hidden">
                     <div class="relative z-10">
                         <div class="w-14 h-14 bg-white rounded-xl flex items-center justify-center text-violet-600 text-2xl mb-6 shadow-sm border border-violet-100">
                             <i class="fa-solid fa-user-graduate"></i>
                         </div>
                         <h3 class="text-2xl font-bold text-violet-950 mb-4">For Students</h3>
-                        <p class="text-gray-600 leading-relaxed">Submit clearance requests online, view org announcements, browse upcoming events, and check your membership status — all in one place.</p>
-                    </div>
-                    <div class="mt-10 relative z-10">
-                        <a href="register.html" class="inline-flex items-center gap-2 text-sm font-bold text-violet-700 bg-white border border-violet-200 hover:border-violet-600 px-5 py-2.5 rounded-full transition shadow-sm">
-                            Create Student Account <i class="fa-solid fa-arrow-right"></i>
-                        </a>
+                        <p class="text-gray-600 leading-relaxed">Submit clearance requests online, view org announcements, browse upcoming events, and check your membership status, all in one place.</p>
                     </div>
                 </div>
             </div>
@@ -214,7 +204,8 @@
     <!-- ========================================== -->
     <!-- 5. HOW IT WORKS (Matches Image 3)          -->
     <!-- ========================================== -->
-    <section class="bg-violet-950 py-20 px-4 md:px-8 border-y border-violet-900 relative overflow-hidden">
+    <!-- ADDED ID="how-it-works" -->
+    <section id="how-it-works" class="bg-violet-950 py-20 px-4 md:px-8 border-y border-violet-900 relative overflow-hidden">
         <!-- Subtle background glow for tech feel -->
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-violet-600 rounded-full mix-blend-screen filter blur-3xl opacity-20 pointer-events-none"></div>
 
@@ -304,15 +295,15 @@
                     <img src="src\ccs.png" alt="CCS OrgHub Logo" class="w-10 h-10 object-contain drop-shadow-md">
                     <h3 class="text-xl font-bold text-white">CCS OrgHub</h3>
                 </div>
-                <p class="text-sm text-violet-300 leading-relaxed">The Official Student Organization Portal of the College of Computer Studies.</p>
+                <p class="text-sm text-violet-300 leading-relaxed">The Official Student Organization Portal <br> of the College of Computer Studies.</p>
             </div>
 
             <!-- Column 2: Explore -->
             <div>
                 <h4 class="text-white font-bold mb-4 uppercase tracking-wider text-sm">ABOUT US</h4>
                 <ul class="space-y-3 text-sm text-violet-300 font-medium">
-                    <li><a href="#" class="hover:text-white transition">Mission Vision</a></li>
-                    <li><a href="#" class="hover:text-white transition">Organizational Chart</a></li>
+                    <li><a href="mission-vision.html" class="hover:text-white transition">Mission Vision</a></li>
+                    <li><a href="organizational-chart.html" class="hover:text-white transition">Organizational Chart</a></li>
                 </ul>
             </div>
 
@@ -322,7 +313,7 @@
                 <ul class="space-y-3 text-sm text-violet-300 font-medium">
                     <!-- UPDATED DATA PRIVACY LINK -->
                     <li><a href="https://privacy.gov.ph/wp-content/uploads/2023/06/IRR_RA-10173-as-amended.pdf" target="_blank" rel="noopener noreferrer" class="hover:text-white transition">Data Privacy</a></li>
-                    <li><a href="#" class="hover:text-white transition">Contact Us</a></li>
+                    <li><a href="contact-us.html" class="hover:text-white transition">Contact Us</a></li>
                 </ul>
             </div>
         </div>

@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organizational Chart - CCS OrgHub</title>
+    
+    <link rel="icon" type="image/png" href="ccs.png" />
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts (Inter for modern UI) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        violet: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            300: '#c4b5fd',
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            800: '#4c1d95',
+                            900: '#2e1065',
+                            950: '#1a0b2e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html { scroll-behavior: smooth; }
+        
+        .glass-card-dark {
+            background: rgba(30, 15, 60, 0.9);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-glow {
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+        }
+        .btn-glow:hover {
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.8);
+        }
+
+        .glow-text {
+            text-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+        }
+
+        /* Hover effect for person cards */
+        .person-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .person-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-800 font-sans antialiased selection:bg-violet-200 selection:text-violet-900">
+
+    <!-- ========================================== -->
+    <!-- 1. MASTHEAD (GWTD Standard)                -->
+    <!-- ========================================== -->
+    <header class="bg-violet-950 py-4 px-4 md:px-8 flex flex-col md:flex-row items-center justify-between border-b border-violet-800/50 relative z-50">
+        <div class="flex items-center gap-4 mb-4 md:mb-0">
+            <!-- REPLACE 'src\ccs.png' WITH YOUR ACTUAL FILE PATH -->
+            <img src="src\ccs.png" alt="CCS OrgHub Logo" class="w-14 h-14 object-contain drop-shadow-md">
+            <div>
+                <h1 class="text-xl font-extrabold text-white leading-tight tracking-tight">CCS OrgHub</h1>
+                <p class="text-[11px] text-violet-200 font-medium">College of Computer Studies - Student Organization Portal</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <a href="index.html" class="text-sm font-semibold text-white hover:text-violet-300 transition hidden md:block">Log in</a>
+            <a href="register.html" class="bg-violet-500 hover:bg-violet-600 text-white text-sm font-bold px-6 py-2.5 rounded-full transition btn-glow">Create Account</a>
+            <button id="mobile-menu-btn" class="md:hidden text-white focus:outline-none ml-2">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ========================================== -->
+    <!-- 2. MOBILE MENU DROPDOWN                    -->
+    <!-- ========================================== -->
+    <div id="mobile-menu" class="hidden md:hidden bg-violet-900 border-b border-violet-800 px-4 py-4 flex flex-col gap-4 text-sm font-semibold text-violet-100 shadow-lg absolute w-full z-40">
+        <a href="index.html" class="hover:text-white transition">Home</a>
+        <a href="#" class="hover:text-white transition">Organizations</a>
+        <a href="#" class="hover:text-white transition">Events</a>
+        <a href="mission-vision.html" class="hover:text-white transition">Mission & Vision</a>
+        <a href="organizational-chart.html" class="text-violet-300 hover:text-white transition">Organizational Chart</a>
+        <hr class="border-violet-800">
+        <a href="index.html" class="hover:text-white transition">Log in</a>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 3. BANNER / HERO SECTION                   -->
+    <!-- ========================================== -->
+    <section class="bg-white pt-20 pb-12 px-4 md:px-8 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#4c1d95 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+        <div class="max-w-4xl mx-auto text-center relative z-10 space-y-6">
+            <p class="text-violet-600 font-bold tracking-widest uppercase text-sm mb-2">The People Behind CCS</p>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight tracking-tight">
+                Our <span class="text-violet-600 italic glow-text">Organizational Chart</span>
+            </h1>
+            <p class="text-gray-500 text-lg md:text-xl max-w-2xl mx-auto font-medium">
+                Meet the faculty and staff leading the College of Computer Studies.
+            </p>
+        </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 4. ORGANIZATIONAL CHART                    -->
+    <!-- ========================================== -->
+    <section class="bg-white py-12 px-4 md:px-8">
+        <div class="max-w-7xl mx-auto">
+
+            <!-- ========================================= -->
+            <!-- LEVEL 1: COLLEGE DEAN                     -->
+            <!-- ========================================= -->
+            <div class="flex justify-center">
+                <div class="person-card glass-card-dark p-8 rounded-3xl text-center w-full max-w-xs">
+                    <div class="w-28 h-28 mx-auto rounded-full overflow-hidden border-4 border-violet-500/50 mb-5 shadow-lg">
+                        <!-- REPLACE WITH DEAN'S PHOTO -->
+                        <img src="https://placehold.co/200x200/1a0b2e/ffffff?text=Dean" alt="College Dean" class="w-full h-full object-cover">
+                    </div>
+                    <h3 class="text-xl font-extrabold text-white mb-1">Dr. Jeffrey A. Co</h3>
+                    <p class="text-violet-300 text-sm font-semibold uppercase tracking-wider">College Dean</p>
+                    <!-- ADDED: Credentials -->
+                    <p class="text-violet-400 text-xs italic mt-2">Ph.D. in Computer Science</p>
+                </div>
+            </div>
+
+            <!-- Vertical Connector -->
+            <div class="flex justify-center">
+                <div class="w-px h-12 bg-violet-300"></div>
+            </div>
+
+            <!-- ========================================= -->
+            <!-- LEVEL 2: ASSOCIATE DEAN                   -->
+            <!-- ========================================= -->
+            <div class="flex justify-center">
+                <div class="person-card glass-card-dark p-6 rounded-3xl text-center w-full max-w-xs">
+                    <div class="w-24 h-24 mx-auto rounded-full overflow-hidden border-4 border-violet-500/40 mb-4 shadow-lg">
+                        <!-- REPLACE WITH ASSOCIATE DEAN'S PHOTO -->
+                        <img src="https://placehold.co/200x200/2e1065/ffffff?text=Assoc+Dean" alt="Associate Dean" class="w-full h-full object-cover">
+                    </div>
+                    <h3 class="text-lg font-extrabold text-white mb-1">𝖣𝗋. 𝖠𝗇𝖽𝗒 𝖠. 𝖫𝖺𝗉𝖺𝖽𝖺</h3>
+                    <p class="text-violet-300 text-xs font-semibold uppercase tracking-wider">Associate Dean</p>
+                    <!-- ADDED: Credentials -->
+                    <p class="text-violet-400 text-xs italic mt-2">M.S. in Information Technology</p>
+                </div>
+            </div>
+
+            <!-- Vertical Connector -->
+            <div class="flex justify-center">
+                <div class="w-px h-12 bg-violet-300"></div>
+            </div>
+
+            <!-- ========================================= -->
+            <!-- HORIZONTAL BRANCHING (Desktop Only)       -->
+            <!-- ========================================= -->
+            <div class="hidden md:block relative h-12">
+                <!-- Horizontal line spanning from 1st to 4th column center -->
+                <div class="absolute top-0 left-[12.5%] right-[12.5%] h-px bg-violet-300"></div>
+                <!-- Vertical drops at each column center (12.5%, 37.5%, 62.5%, 87.5%) -->
+                <div class="absolute top-0 left-[12.5%] w-px h-12 bg-violet-300"></div>
+                <div class="absolute top-0 left-[37.5%] w-px h-12 bg-violet-300"></div>
+                <div class="absolute top-0 left-[62.5%] w-px h-12 bg-violet-300"></div>
+                <div class="absolute top-0 left-[87.5%] w-px h-12 bg-violet-300"></div>
+            </div>
+
+            <!-- ========================================= -->
+            <!-- LEVEL 3: FOUR DEPARTMENT HEADS            -->
+            <!-- ========================================= -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-6 mb-0">
+                <!-- Dept Head 1: BSIT -->
+                <div class="flex flex-col items-center">
+                    <div class="person-card glass-card-dark p-6 rounded-3xl text-center w-full">
+                        <div class="w-20 h-20 mx-auto rounded-full overflow-hidden border-4 border-violet-500/40 mb-4 shadow-lg">
+                            <img src="https://placehold.co/200x200/4c1d95/ffffff?text=Head" alt="Department Head" class="w-full h-full object-cover">
+                        </div>
+                        <h3 class="text-base font-extrabold text-white mb-1">Dr. Karen W. Cantilang</h3>
+                        <p class="text-violet-300 text-[11px] font-semibold uppercase tracking-wider">Department Head</p>
+                        <!-- ADDED: Credentials -->
+                        <p class="text-violet-400 text-[11px] italic mt-1">Ph.D. in Information Technology</p>
+                        <p class="text-violet-400 text-[11px] mt-1 font-medium">BS Information Technology</p>
+                    </div>
+                    <div class="w-px h-8 bg-violet-300"></div>
+                </div>
+
+                <!-- Dept Head 2: BSCS -->
+                <div class="flex flex-col items-center">
+                    <div class="person-card glass-card-dark p-6 rounded-3xl text-center w-full">
+                        <div class="w-20 h-20 mx-auto rounded-full overflow-hidden border-4 border-violet-500/40 mb-4 shadow-lg">
+                            <img src="https://placehold.co/200x200/4c1d95/ffffff?text=Head" alt="Department Head" class="w-full h-full object-cover">
+                        </div>
+                        <h3 class="text-base font-extrabold text-white mb-1">𝖯𝗋𝗈𝖿. 𝖩𝖾𝗌𝗎𝗌 𝖬. 𝖬𝖾𝗇𝖾𝗌𝖾𝗌</h3>
+                        <p class="text-violet-300 text-[11px] font-semibold uppercase tracking-wider">Department Head</p>
+                        <!-- ADDED: Credentials -->
+                        <p class="text-violet-400 text-[11px] italic mt-1">M.S. in Computer Science</p>
+                        <p class="text-violet-400 text-[11px] mt-1 font-medium">BS Computer Science</p>
+                    </div>
+                    <div class="w-px h-8 bg-violet-300"></div>
+                </div>
+
+                <!-- Dept Head 3: EMC -->
+                <div class="flex flex-col items-center">
+                    <div class="person-card glass-card-dark p-6 rounded-3xl text-center w-full">
+                        <div class="w-20 h-20 mx-auto rounded-full overflow-hidden border-4 border-violet-500/40 mb-4 shadow-lg">
+                            <img src="https://placehold.co/200x200/4c1d95/ffffff?text=Head" alt="Department Head" class="w-full h-full object-cover">
+                        </div>
+                        <h3 class="text-base font-extrabold text-white mb-1">[Dept Head Name]</h3>
+                        <p class="text-violet-300 text-[11px] font-semibold uppercase tracking-wider">Department Head</p>
+                        <!-- ADDED: Credentials -->
+                        <p class="text-violet-400 text-[11px] italic mt-1">M.S. in Multimedia Arts</p>
+                        <p class="text-violet-400 text-[11px] mt-1 font-medium">Electronic Multimedia Computing</p>
+                    </div>
+                    <div class="w-px h-8 bg-violet-300"></div>
+                </div>
+
+                <!-- Dept Head 4: ACT -->
+                <div class="flex flex-col items-center">
+                    <div class="person-card glass-card-dark p-6 rounded-3xl text-center w-full">
+                        <div class="w-20 h-20 mx-auto rounded-full overflow-hidden border-4 border-violet-500/40 mb-4 shadow-lg">
+                            <img src="https://placehold.co/200x200/4c1d95/ffffff?text=Head" alt="Department Head" class="w-full h-full object-cover">
+                        </div>
+                        <h3 class="text-base font-extrabold text-white mb-1">𝖣𝗋. 𝖭𝗂𝖾𝗅 𝖥𝗋𝖺𝗇𝖼𝗂𝗌 𝖡. 𝖢𝖺𝗌𝗂𝗅𝗅𝖺𝗇𝗈</h3>
+                        <p class="text-violet-300 text-[11px] font-semibold uppercase tracking-wider">Department Head</p>
+                        <!-- ADDED: Credentials -->
+                        <p class="text-violet-400 text-[11px] italic mt-1">M.S. in Computer Technology</p>
+                        <p class="text-violet-400 text-[11px] mt-1 font-medium">Associate in Computer Technology</p>
+                    </div>
+                    <div class="w-px h-8 bg-violet-300"></div>
+                </div>
+            </div>
+
+            <!-- ========================================= -->
+            <!-- CONNECTING BRACKET TO GENERAL POOL        -->
+            <!-- ========================================= -->
+            <div class="hidden md:block relative h-8 mb-6">
+                <!-- Horizontal line connecting all 4 drops -->
+                <div class="absolute top-0 left-[12.5%] right-[12.5%] h-px bg-violet-300"></div>
+                <!-- Central vertical drop down to the instructor pool -->
+                <div class="absolute top-0 left-1/2 w-px h-8 bg-violet-300"></div>
+            </div>
+
+            <!-- ========================================= -->
+            <!-- LEVEL 4: GENERAL INSTRUCTORS POOL         -->
+            <!-- ========================================= -->
+            <div class="w-full bg-violet-50 rounded-3xl p-6 md:p-8 border border-violet-100 relative">
+                <p class="text-xs font-bold uppercase tracking-widest text-violet-600 text-center mb-6">CCS Instructors</p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    
+                    <!-- Instructor 1 -->
+                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
+                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
+                            <img src="https://placehold.co/150x150/8b5cf6/ffffff?text=Photo" alt="Instructor" class="w-full h-full object-cover">
+                        </div>
+                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Mila Silvero</p>
+                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
+                        <!-- ADDED: Credentials -->
+                        <p class="text-[9px] text-violet-400 italic mt-0.5">M.S. in IT</p>
+                    </div>
+
+                    <!-- Instructor 2 -->
+                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
+                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
+                            <img src="https://placehold.co/150x150/8b5cf6/ffffff?text=Photo" alt="Instructor" class="w-full h-full object-cover">
+                        </div>
+                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Hilario Domingo Chicano</p>
+                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
+                        <!-- ADDED: Credentials -->
+                        <p class="text-[9px] text-violet-400 italic mt-0.5">M.S. in CS</p>
+                    </div>
+
+                    <!-- Instructor 3 -->
+                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
+                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
+                            <img src="https://placehold.co/150x150/8b5cf6/ffffff?text=Photo" alt="Instructor" class="w-full h-full object-cover">
+                        </div>
+                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Mark Philip D. Alegre</p>
+                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
+                        <!-- ADDED: Credentials -->
+                        <p class="text-[9px] text-violet-400 italic mt-0.5">Ph.D. in CS</p>
+                    </div>
+
+                    <!-- Instructor 4 -->
+                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
+                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
+                            <img src="https://placehold.co/150x150/8b5cf6/ffffff?text=Photo" alt="Instructor" class="w-full h-full object-cover">
+                        </div>
+                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Michael Angelo Yape</p>
+                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
+                        <!-- ADDED: Credentials -->
+                        <p class="text-[9px] text-violet-400 italic mt-0.5">M.S. in IT</p>
+                    </div>
+
+                    <!-- Instructor 5 -->
+                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
+                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
+                            <img src="https://placehold.co/150x150/8b5cf6/ffffff?text=Photo" alt="Instructor" class="w-full h-full object-cover">
+                        </div>
+                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Rolliedel Pajanustan</p>
+                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
+                        <!-- ADDED: Credentials -->
+                        <p class="text-[9px] text-violet-400 italic mt-0.5">M.S. in CS</p>
+                    </div>
+
+                    <!-- Instructor 6 -->
+                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
+                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
+                            <img src="https://placehold.co/150x150/8b5cf6/ffffff?text=Photo" alt="Instructor" class="w-full h-full object-cover">
+                        </div>
+                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Lourence Villaluz </p>
+                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
+                        <!-- ADDED: Credentials -->
+                        <p class="text-[9px] text-violet-400 italic mt-0.5">M.S. in IT</p>
+                    </div>
+
+                    <!-- Instructor 7 -->
+                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
+                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
+                            <img src="https://placehold.co/150x150/8b5cf6/ffffff?text=Photo" alt="Instructor" class="w-full h-full object-cover">
+                        </div>
+                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Laarni Cemat Maraño Ladiao</p>
+                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
+                        <!-- ADDED: Credentials -->
+                        <p class="text-[9px] text-violet-400 italic mt-0.5">M.S. in CS</p>
+                    </div>
+
+                    <!-- Instructor 8 -->
+                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
+                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
+                            <img src="https://placehold.co/150x150/8b5cf6/ffffff?text=Photo" alt="Instructor" class="w-full h-full object-cover">
+                        </div>
+                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Benj Lapada</p>
+                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
+                        <!-- ADDED: Credentials -->
+                        <p class="text-[9px] text-violet-400 italic mt-0.5">Ph.D. in IT</p>
+                    </div>
+
+                    <!-- Instructor 9 -->
+                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
+                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
+                            <img src="https://placehold.co/150x150/8b5cf6/ffffff?text=Photo" alt="Instructor" class="w-full h-full object-cover">
+                        </div>
+                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Richard Cabil</p>
+                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
+                        <!-- ADDED: Credentials -->
+                        <p class="text-[9px] text-violet-400 italic mt-0.5">M.S. in CS</p>
+                    </div>
+
+                    <!-- Instructor 10 -->
+                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
+                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
+                            <img src="https://placehold.co/150x150/8b5cf6/ffffff?text=Photo" alt="Instructor" class="w-full h-full object-cover">
+                        </div>
+                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Julius Vincent Baleña</p>
+                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
+                        <!-- ADDED: Credentials -->
+                        <p class="text-[9px] text-violet-400 italic mt-0.5">M.S. in IT</p>
+                    </div>
+
+                    <!-- Instructor 11 -->
+                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
+                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
+                            <img src="https://placehold.co/150x150/8b5cf6/ffffff?text=Photo" alt="Instructor" class="w-full h-full object-cover">
+                        </div>
+                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Patz Caballa</p>
+                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
+                        <!-- ADDED: Credentials -->
+                        <p class="text-[9px] text-violet-400 italic mt-0.5">M.S. in CS</p>
+                    </div>
+
+                    <!-- Instructor 12 -->
+                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
+                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
+                            <img src="https://placehold.co/150x150/8b5cf6/ffffff?text=Photo" alt="Instructor" class="w-full h-full object-cover">
+                        </div>
+                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Alexis Oliver Caraga</p>
+                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
+                        <!-- ADDED: Credentials -->
+                        <p class="text-[9px] text-violet-400 italic mt-0.5">M.S. in IT</p>
+                    </div>
+
+                    <!-- Instructor 13 -->
+                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
+                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
+                            <img src="https://placehold.co/150x150/8b5cf6/ffffff?text=Photo" alt="Instructor" class="w-full h-full object-cover">
+                        </div>
+                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Jennifer Abogaa</p>
+                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
+                        <!-- ADDED: Credentials -->
+                        <p class="text-[9px] text-violet-400 italic mt-0.5">M.S. in CS</p>
+                    </div>
+
+                    <!-- Instructor 14 -->
+                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
+                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
+                            <img src="https://placehold.co/150x150/8b5cf6/ffffff?text=Photo" alt="Instructor" class="w-full h-full object-cover">
+                        </div>
+                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Humphrey Herbon</p>
+                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
+                        <!-- ADDED: Credentials -->
+                        <p class="text-[9px] text-violet-400 italic mt-0.5">M.S. in IT</p>
+                    </div>
+
+                    <!-- Instructor 15 -->
+                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
+                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
+                            <img src="https://placehold.co/150x150/8b5cf6/ffffff?text=Photo" alt="Instructor" class="w-full h-full object-cover">
+                        </div>
+                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Aliza Mae Rapatan</p>
+                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
+                        <!-- ADDED: Credentials -->
+                        <p class="text-[9px] text-violet-400 italic mt-0.5">M.S. in CS</p>
+                    </div>
+
+                    <!-- Instructor 16 -->
+                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
+                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
+                            <img src="https://placehold.co/150x150/8b5cf6/ffffff?text=Photo" alt="Instructor" class="w-full h-full object-cover">
+                        </div>
+                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Mona Liza Cabais</p>
+                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
+                        <!-- ADDED: Credentials -->
+                        <p class="text-[9px] text-violet-400 italic mt-0.5">Ph.D. in IT</p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Back to Home Button -->
+            <div class="text-center mt-16">
+                <a href="landing-page.html" class="inline-flex items-center gap-2 text-violet-600 font-bold hover:text-violet-800 transition">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Home
+                </a>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 5. FOOTER (GWTD Standard)                  -->
+    <!-- ========================================== -->
+    <footer class="bg-violet-950 text-violet-200 pt-16 pb-8 px-4 md:px-8 border-t-4 border-violet-600">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+            <div class="space-y-4">
+                <div class="flex items-center gap-3">
+                    <img src="src\ccs.png" alt="CCS OrgHub Logo" class="w-10 h-10 object-contain drop-shadow-md">
+                    <h3 class="text-xl font-bold text-white">CCS OrgHub</h3>
+                </div>
+                <p class="text-sm text-violet-300 leading-relaxed">The Official Student Organization Portal <br> of the College of Computer Studies.</p>
+            </div>
+
+            <div>
+                <h4 class="text-white font-bold mb-4 uppercase tracking-wider text-sm">ABOUT US</h4>
+                <ul class="space-y-3 text-sm text-violet-300 font-medium">
+                    <li><a href="mission-vision.html" class="hover:text-white transition">Mission Vision</a></li>
+                    <li><a href="organizational-chart.html" class="text-white hover:text-violet-300 transition">Organizational Chart</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="text-white font-bold mb-4 uppercase tracking-wider text-sm">Open Access</h4>
+                <ul class="space-y-3 text-sm text-violet-300 font-medium">
+                    <li><a href="https://privacy.gov.ph/wp-content/uploads/2023/06/IRR_RA-10173-as-amended.pdf" target="_blank" rel="noopener noreferrer" class="hover:text-white transition">Data Privacy</a></li>
+                    <li><a href="contact-us.html" class="hover:text-white transition">Contact Us</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto border-t border-violet-800/50 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-violet-400">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-seal text-violet-500"></i>
+            </div>
+            <p>&copy; 2026 CCS OrgHub. All content is public domain unless otherwise stated.</p>
+        </div>
+    </footer>
+
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT                                 -->
+    <!-- ========================================== -->
+    <script>
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+    </script>
+</body>
+</html>

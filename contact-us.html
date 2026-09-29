@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mission & Vision - CCS OrgHub</title>
+    <title>Contact Us - CCS OrgHub</title>
     
-      <link rel="icon" type="image/png" href="ccs.png" />
-
+    <!-- Add or change this line to point to your new logo file -->
+    <link rel="icon" type="image/png" href="ccs.png" />
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,7 +17,7 @@
     <!-- Google Fonts (Inter for modern UI) -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet">
 
-    <!-- Tailwind Config for Custom Colors -->
+    <!-- Tailwind Config -->
     <script>
         tailwind.config = {
             theme: {
@@ -45,10 +45,8 @@
         }
     </script>
     <style>
-        /* Smooth scrolling */
         html { scroll-behavior: smooth; }
         
-        /* Glassmorphism effect for dark backgrounds */
         .glass-card-dark {
             background: rgba(30, 15, 60, 0.9);
             backdrop-filter: blur(16px);
@@ -57,7 +55,6 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
         }
         
-        /* Glowing hover effect for buttons */
         .btn-glow {
             box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
         }
@@ -65,9 +62,18 @@
             box-shadow: 0 0 25px rgba(139, 92, 246, 0.8);
         }
 
-        /* Glowing text effect */
         .glow-text {
             text-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+        }
+
+        /* Hover effect for contact cards */
+        .contact-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+        .contact-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(139, 92, 246, 0.8);
         }
     </style>
 </head>
@@ -77,22 +83,18 @@
     <!-- 1. MASTHEAD (GWTD Standard)                -->
     <!-- ========================================== -->
     <header class="bg-violet-950 py-4 px-4 md:px-8 flex flex-col md:flex-row items-center justify-between border-b border-violet-800/50 relative z-50">
-        <!-- Left: Logo and Text -->
         <div class="flex items-center gap-4 mb-4 md:mb-0">
             <!-- REPLACE 'src\ccs.png' WITH YOUR ACTUAL FILE PATH -->
             <img src="src\ccs.png" alt="CCS OrgHub Logo" class="w-14 h-14 object-contain drop-shadow-md">
-            
             <div>
                 <h1 class="text-xl font-extrabold text-white leading-tight tracking-tight">CCS OrgHub</h1>
                 <p class="text-[11px] text-violet-200 font-medium">College of Computer Studies - Student Organization Portal</p>
             </div>
         </div>
 
-        <!-- Right: Login/Register Buttons & Mobile Menu Toggle -->
         <div class="flex items-center gap-4">
-            <a href="index.html" class="text-sm font-semibold text-white hover:text-violet-300 transition hidden md:block">Log in</a>
+            <a href="index.html " class="text-sm font-semibold text-white hover:text-violet-300 transition hidden md:block">Log in</a>
             <a href="register.html" class="bg-violet-500 hover:bg-violet-600 text-white text-sm font-bold px-6 py-2.5 rounded-full transition btn-glow">Create Account</a>
-            
             <button id="mobile-menu-btn" class="md:hidden text-white focus:outline-none ml-2">
                 <i class="fa-solid fa-bars text-xl"></i>
             </button>
@@ -106,68 +108,104 @@
         <a href="index.html" class="hover:text-white transition">Home</a>
         <a href="#" class="hover:text-white transition">Organizations</a>
         <a href="#" class="hover:text-white transition">Events</a>
-        <a href="mission-vision.html" class="text-violet-300 hover:text-white transition">Mission & Vision</a>
+        <a href="mission-vision.html" class="hover:text-white transition">Mission & Vision</a>
         <a href="organizational-chart.html" class="hover:text-white transition">Organizational Chart</a>
+        <a href="contact.html" class="text-violet-300 hover:text-white transition">Contact Us</a>
         <hr class="border-violet-800">
-        <a href="index.html" class="hover:text-white transition">Log in</a>
+        <a href="login.html" class="hover:text-white transition">Log in</a>
     </div>
 
     <!-- ========================================== -->
     <!-- 3. BANNER / HERO SECTION                   -->
     <!-- ========================================== -->
-    <section class="bg-white pt-20 pb-16 px-4 md:px-8 relative overflow-hidden">
+    <section class="bg-white pt-20 pb-12 px-4 md:px-8 relative overflow-hidden">
         <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#4c1d95 1px, transparent 1px); background-size: 20px 20px;"></div>
 
         <div class="max-w-4xl mx-auto text-center relative z-10 space-y-6">
-            <p class="text-violet-600 font-bold tracking-widest uppercase text-sm mb-2">About CCS OrgHub</p>
+            <p class="text-violet-600 font-bold tracking-widest uppercase text-sm mb-2">We'd Love to Hear From You</p>
             <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight tracking-tight">
-                Our <span class="text-violet-600 italic glow-text">Mission & Vision</span>
+                Contact <span class="text-violet-600 italic glow-text">Us</span>
             </h1>
             <p class="text-gray-500 text-lg md:text-xl max-w-2xl mx-auto font-medium">
-               Our goal is to bring CCS students together and make college life more engaging and accessible for everyone.
+                Whether you have a question, feedback, or need assistance, <br> the CCS OrgHub team is here to help.
             </p>
         </div>
     </section>
 
     <!-- ========================================== -->
-    <!-- 4. CONTENT AREA (Mission & Vision Cards)   -->
+    <!-- 4. CONTACT INFO GRID                       -->
     <!-- ========================================== -->
-    <section class="bg-white py-16 px-4 md:px-8 border-t border-gray-100">
-        <div class="max-w-6xl mx-auto">
+    <section class="bg-white py-16 px-4 md:px-8">
+        <div class="max-w-5xl mx-auto">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                
-                <!-- Card 1: Mission (Light Theme) -->
-                <div class="bg-violet-50 p-10 rounded-3xl border border-violet-100 shadow-sm flex flex-col justify-between relative overflow-hidden">
-                    <div class="relative z-10">
-                        <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-violet-600 text-3xl mb-8 shadow-sm border border-violet-100">
-                            <i class="fa-solid fa-bullseye"></i>
+
+                <!-- Card 1: Facebook (Redirects to Facebook Page) -->
+                <a href="https://www.facebook.com/fco.icso" target="_blank" rel="noopener noreferrer" class="contact-card glass-card-dark p-8 rounded-3xl block cursor-pointer">
+                    <div class="flex items-start gap-6">
+                        <div class="w-16 h-16 bg-violet-800 rounded-2xl flex items-center justify-center text-white text-3xl border border-violet-600/50 flex-shrink-0">
+                            <i class="fa-brands fa-facebook-f"></i>
                         </div>
-                        <h2 class="text-3xl font-extrabold text-violet-950 mb-6">Our Mission</h2>
-                        <p class="text-gray-600 leading-relaxed text-lg">
-                            To provide a centralized, efficient, and user-friendly digital platform that streamlines student organization workflows, enhances communication, and empowers student leaders in the College of Computer Studies.
-                        </p>
-                        <p class="text-gray-600 leading-relaxed text-lg mt-4">
-                            We are committed to replacing manual, paper-based processes with modern, accessible technology that serves both students and faculty.
-                        </p>
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-2">Facebook Page</h3>
+                            <p class="text-violet-200 text-sm leading-relaxed">Follow us for the latest announcements, events, and updates from the College of Computer Studies.</p>
+                            <span class="inline-block mt-4 text-violet-400 text-xs font-bold uppercase tracking-wider">
+                                facebook.com/fco.icso <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Card 2: Phone (Click to Copy) -->
+                <div onclick="copyPhoneNumber()" class="contact-card glass-card-dark p-8 rounded-3xl block cursor-pointer relative">
+                    <div class="flex items-start gap-6">
+                        <div class="w-16 h-16 bg-violet-800 rounded-2xl flex items-center justify-center text-white text-3xl border border-violet-600/50 flex-shrink-0">
+                            <i class="fa-solid fa-phone"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-2">Phone Number</h3>
+                            <p class="text-violet-200 text-sm leading-relaxed">Click to copy our number for immediate assistance regarding clearances and portal issues.</p>
+                            <span class="inline-block mt-4 text-violet-400 text-xs font-bold uppercase tracking-wider">
+                                +63 912 345 6789 <i class="fa-regular fa-copy ml-1"></i>
+                            </span>
+                            <!-- Feedback message for copy action -->
+                            <p id="copy-feedback" class="text-green-400 text-xs mt-2 font-bold hidden">
+                                <i class="fa-solid fa-check-circle mr-1"></i> Copied to clipboard!
+                            </p>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Card 2: Vision (Dark Glass Theme) -->
-                <div class="bg-violet-950 p-10 rounded-3xl shadow-xl flex flex-col justify-between text-white relative overflow-hidden border border-violet-800/50">
-                    <div class="absolute top-0 right-0 w-48 h-48 bg-violet-600 rounded-full mix-blend-screen filter blur-3xl opacity-30 translate-x-1/4 -translate-y-1/4"></div>
-                    <div class="relative z-10">
-                        <div class="w-16 h-16 bg-violet-800 rounded-2xl flex items-center justify-center text-violet-300 text-3xl mb-8 border border-violet-600/50">
-                            <i class="fa-solid fa-eye"></i>
+                <!-- Card 3: Email (Redirects to Email Client) -->
+                <a href="mailto:fcoicso@gmail.com" class="contact-card glass-card-dark p-8 rounded-3xl block cursor-pointer">
+                    <div class="flex items-start gap-6">
+                        <div class="w-16 h-16 bg-violet-800 rounded-2xl flex items-center justify-center text-white text-3xl border border-violet-600/50 flex-shrink-0">
+                            <i class="fa-solid fa-envelope"></i>
                         </div>
-                        <h2 class="text-3xl font-extrabold mb-6">Our Vision</h2>
-                        <p class="text-violet-200 leading-relaxed text-lg">
-                            To be the leading student organization portal in the university, fostering a vibrant, engaged, and digitally-driven community that supports the holistic development of every CCS student.
-                        </p>
-                        <p class="text-violet-200 leading-relaxed text-lg mt-4">
-                            We envision a future where administrative tasks are seamless, allowing students to focus on innovation, leadership, and academic excellence.
-                        </p>
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-2">Email Address</h3>
+                            <p class="text-violet-200 text-sm leading-relaxed">Send us an email for non-urgent inquiries, partnership proposals, or technical support.</p>
+                            <span class="inline-block mt-4 text-violet-400 text-xs font-bold uppercase tracking-wider">
+                                fcoicso@gmail.com <i class="fa-solid fa-paper-plane ml-1"></i>
+                            </span>
+                        </div>
                     </div>
-                </div>
+                </a>
+
+                <!-- Card 4: Location (Redirects to Google Maps) -->
+                <a href="https://maps.app.goo.gl/GEQjq6h9z1Suu3g26" target="_blank" rel="noopener noreferrer" class="contact-card glass-card-dark p-8 rounded-3xl block cursor-pointer">
+                    <div class="flex items-start gap-6">
+                        <div class="w-16 h-16 bg-violet-800 rounded-2xl flex items-center justify-center text-white text-3xl border border-violet-600/50 flex-shrink-0">
+                            <i class="fa-solid fa-location-dot"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-2">Location</h3>
+                            <p class="text-violet-200 text-sm leading-relaxed">Visit our office at the Computer Laboratory for face-to-face transactions.</p>
+                            <span class="inline-block mt-4 text-violet-400 text-xs font-bold uppercase tracking-wider">
+                                Computer Laboratory, ESSU Main <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
 
             </div>
 
@@ -185,7 +223,6 @@
     <!-- ========================================== -->
     <footer class="bg-violet-950 text-violet-200 pt-16 pb-8 px-4 md:px-8 border-t-4 border-violet-600">
         <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
-            <!-- Column 1: Branding -->
             <div class="space-y-4">
                 <div class="flex items-center gap-3">
                     <img src="src\ccs.png" alt="CCS OrgHub Logo" class="w-10 h-10 object-contain drop-shadow-md">
@@ -194,26 +231,23 @@
                 <p class="text-sm text-violet-300 leading-relaxed">The Official Student Organization Portal <br> of the College of Computer Studies.</p>
             </div>
 
-            <!-- Column 2: About Us -->
             <div>
                 <h4 class="text-white font-bold mb-4 uppercase tracking-wider text-sm">ABOUT US</h4>
                 <ul class="space-y-3 text-sm text-violet-300 font-medium">
-                    <li><a href="mission-vision.html" class="text-white hover:text-violet-300 transition">Mission Vision</a></li>
+                    <li><a href="mission-vision.html" class="hover:text-white transition">Mission Vision</a></li>
                     <li><a href="organizational-chart.html" class="hover:text-white transition">Organizational Chart</a></li>
                 </ul>
             </div>
 
-            <!-- Column 3: Open Access -->
             <div>
                 <h4 class="text-white font-bold mb-4 uppercase tracking-wider text-sm">Open Access</h4>
                 <ul class="space-y-3 text-sm text-violet-300 font-medium">
                     <li><a href="https://privacy.gov.ph/wp-content/uploads/2023/06/IRR_RA-10173-as-amended.pdf" target="_blank" rel="noopener noreferrer" class="hover:text-white transition">Data Privacy</a></li>
-                    <li><a href="contact-us.html" class="hover:text-white transition">Contact Us</a></li>
+                    <li><a href="contact.html" class="text-white hover:text-violet-300 transition">Contact Us</a></li>
                 </ul>
             </div>
         </div>
 
-        <!-- Bottom Footer Bar -->
         <div class="max-w-7xl mx-auto border-t border-violet-800/50 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-violet-400">
             <div class="flex items-center gap-2">
                 <i class="fa-solid fa-seal text-violet-500"></i>
@@ -226,6 +260,7 @@
     <!-- JAVASCRIPT                                 -->
     <!-- ========================================== -->
     <script>
+        // Mobile Menu Toggle Logic
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
         const mobileMenu = document.getElementById('mobile-menu');
 
@@ -238,6 +273,37 @@
                 mobileMenu.classList.add('hidden');
             });
         });
+
+        // Copy to Clipboard Function
+        function copyPhoneNumber() {
+            // Replace this with the actual phone number you want to copy
+            const phoneNumber = "+639123456789"; 
+            
+            navigator.clipboard.writeText(phoneNumber).then(() => {
+                const feedback = document.getElementById('copy-feedback');
+                feedback.classList.remove('hidden');
+                
+                // Hide the message after 2 seconds
+                setTimeout(() => {
+                    feedback.classList.add('hidden');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+                // Fallback for older browsers
+                const textArea = document.createElement("textarea");
+                textArea.value = phoneNumber;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand("copy");
+                document.body.removeChild(textArea);
+                
+                const feedback = document.getElementById('copy-feedback');
+                feedback.classList.remove('hidden');
+                setTimeout(() => {
+                    feedback.classList.add('hidden');
+                }, 2000);
+            });
+        }
     </script>
 </body>
 </html>
