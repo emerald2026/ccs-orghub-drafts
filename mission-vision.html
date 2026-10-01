@@ -7,7 +7,6 @@
     
       <link rel="icon" type="image/png" href="ccs.png" />
 
-
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -133,43 +132,76 @@
     <!-- 4. CONTENT AREA (Mission & Vision Cards)   -->
     <!-- ========================================== -->
     <section class="bg-white py-16 px-4 md:px-8 border-t border-gray-100">
-        <div class="max-w-6xl mx-auto">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex flex-col gap-8">
                 
-                <!-- Card 1: Mission (Light Theme) -->
+                <!-- Card 1: Mission (Light Theme) - Fully Centered -->
                 <div class="bg-violet-50 p-10 rounded-3xl border border-violet-100 shadow-sm flex flex-col justify-between relative overflow-hidden">
-                    <div class="relative z-10">
-                        <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-violet-600 text-3xl mb-8 shadow-sm border border-violet-100">
+                    <div class="relative z-10 flex flex-col items-center text-center">
+                        <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-violet-600 text-3xl mb-6 shadow-sm border border-violet-100">
                             <i class="fa-solid fa-bullseye"></i>
                         </div>
                         <h2 class="text-3xl font-extrabold text-violet-950 mb-6">Our Mission</h2>
-                        <p class="text-gray-600 leading-relaxed text-lg">
+                        <p class="text-gray-600 leading-relaxed text-lg max-w-2xl mx-auto">
                             To provide a centralized, efficient, and user-friendly digital platform that streamlines student organization workflows, enhances communication, and empowers student leaders in the College of Computer Studies.
                         </p>
-                        <p class="text-gray-600 leading-relaxed text-lg mt-4">
+                        <p class="text-gray-600 leading-relaxed text-lg mt-4 max-w-2xl mx-auto">
                             We are committed to replacing manual, paper-based processes with modern, accessible technology that serves both students and faculty.
                         </p>
                     </div>
                 </div>
 
-                <!-- Card 2: Vision (Dark Glass Theme) -->
+                <!-- Card 2: Vision (Dark Glass Theme) - Fully Centered -->
                 <div class="bg-violet-950 p-10 rounded-3xl shadow-xl flex flex-col justify-between text-white relative overflow-hidden border border-violet-800/50">
                     <div class="absolute top-0 right-0 w-48 h-48 bg-violet-600 rounded-full mix-blend-screen filter blur-3xl opacity-30 translate-x-1/4 -translate-y-1/4"></div>
-                    <div class="relative z-10">
-                        <div class="w-16 h-16 bg-violet-800 rounded-2xl flex items-center justify-center text-violet-300 text-3xl mb-8 border border-violet-600/50">
+                    <div class="relative z-10 flex flex-col items-center text-center">
+                        <div class="w-16 h-16 bg-violet-800 rounded-2xl flex items-center justify-center text-violet-300 text-3xl mb-6 border border-violet-600/50">
                             <i class="fa-solid fa-eye"></i>
                         </div>
                         <h2 class="text-3xl font-extrabold mb-6">Our Vision</h2>
-                        <p class="text-violet-200 leading-relaxed text-lg">
+                        <p class="text-violet-200 leading-relaxed text-lg max-w-2xl mx-auto">
                             To be the leading student organization portal in the university, fostering a vibrant, engaged, and digitally-driven community that supports the holistic development of every CCS student.
                         </p>
-                        <p class="text-violet-200 leading-relaxed text-lg mt-4">
+                        <p class="text-violet-200 leading-relaxed text-lg mt-4 max-w-2xl mx-auto">
                             We envision a future where administrative tasks are seamless, allowing students to focus on innovation, leadership, and academic excellence.
                         </p>
                     </div>
                 </div>
 
             </div>
+
+            <!-- ========================================== -->
+            <!-- 5. COLLEGE GOALS SECTION (LIGHT THEME)     -->
+            <!-- ========================================== -->
+            <section class="bg-white py-16 px-4 md:px-8 border-t border-gray-100 mt-8">
+                <div class="max-w-4xl mx-auto">
+                    <div class="text-center mb-12">
+                        <h2 class="text-3xl md:text-4xl font-extrabold text-violet-950 mb-4 tracking-tight">College Goals</h2>
+                        <p class="text-gray-500 text-lg max-w-2xl mx-auto">
+                            The College of Computer Studies is committed to develop globally competent Information Technology professionals, through:
+                        </p>
+                    </div>
+                    
+                    <!-- Unboxed Goals List (Kept left-aligned for readability) -->
+                    <div class="space-y-8">
+                        <!-- Goal A -->
+                        <div class="flex items-start gap-5">
+                            <div class="w-10 h-10 bg-violet-100 rounded-full flex items-center justify-center text-violet-700 font-bold flex-shrink-0 mt-1">a</div>
+                            <p class="text-gray-700 leading-relaxed text-base md:text-lg">Provision of relevant knowledge and skills in information technology responsive to the changing needs of the industry and the society;</p>
+                        </div>
+                        <!-- Goal B -->
+                        <div class="flex items-start gap-5">
+                            <div class="w-10 h-10 bg-violet-100 rounded-full flex items-center justify-center text-violet-700 font-bold flex-shrink-0 mt-1">b</div>
+                            <p class="text-gray-700 leading-relaxed text-base md:text-lg">Development of competent faculty and students through industry-led training and experiences which will enable them to advance in the profession of information technology; and</p>
+                        </div>
+                        <!-- Goal C -->
+                        <div class="flex items-start gap-5">
+                            <div class="w-10 h-10 bg-violet-100 rounded-full flex items-center justify-center text-violet-700 font-bold flex-shrink-0 mt-1">c</div>
+                            <p class="text-gray-700 leading-relaxed text-base md:text-lg">Application of learned theories and competencies through the conduct of IT driven research and extension programs.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
             <!-- Back to Home Button -->
             <div class="text-center mt-16">
@@ -181,7 +213,7 @@
     </section>
 
     <!-- ========================================== -->
-    <!-- 5. FOOTER (GWTD Standard)                  -->
+    <!-- 6. FOOTER (GWTD Standard)                  -->
     <!-- ========================================== -->
     <footer class="bg-violet-950 text-violet-200 pt-16 pb-8 px-4 md:px-8 border-t-4 border-violet-600">
         <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
