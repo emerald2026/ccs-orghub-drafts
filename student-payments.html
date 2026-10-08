@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Payment History — CCS OrgHub</title>
+  <title>Payment History — CCS OrgHub Student</title>
 
-        <link rel="icon" type="image/png" href="ccs.png" />
+  <link rel="icon" type="image/png" href="ccs.png" />
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js" onerror="console.warn('config.js not found. Demo mode.')"></script>
@@ -13,24 +13,17 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="shared.css">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <script>
     tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'] },
-          colors: {
-            purple: {
-              950: '#0f041c', 900: '#1e0836', 850: '#2d0a4e', 800: '#3b0764',
-              700: '#581c87', 600: '#7e22ce', 500: '#a855f7', 400: '#c084fc',
-              300: '#d8b4fe', 200: '#e9d5ff', 100: '#f3e8ff', 50: '#faf5ff',
-            }
-          }
-        }
-      }
+      theme: { extend: {
+        fontFamily: { sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'] },
+        colors: { purple: {
+          950:'#0f041c',900:'#1e0836',850:'#2d0a4e',800:'#3b0764',700:'#581c87',
+          600:'#7e22ce',500:'#a855f7',400:'#c084fc',300:'#d8b4fe',200:'#e9d5ff',100:'#f3e8ff',50:'#faf5ff'
+        }}
+      }}
     }
   </script>
 </head>
@@ -41,84 +34,81 @@
   <div id="sidebar-layer"></div>
 
   <div class="flex-1 lg:ml-64 flex flex-col min-h-screen relative z-10 overflow-x-hidden">
-
     <div id="topbar-layer"></div>
 
     <main class="flex-1 p-4 md:p-8 space-y-6">
 
-      <!-- CONNECTION STATUS -->
       <div id="connectionStatus" class="glass-card p-4 rounded-2xl flex items-center gap-3 text-xs">
         <div id="connIcon" class="p-2 rounded-xl bg-amber-500/20 border border-amber-500/30">
           <i data-lucide="wifi" class="w-4 h-4 text-amber-300"></i>
         </div>
         <div>
-          <div id="connTitle" class="font-bold text-white">Checking Supabase connection...</div>
-          <div id="connSub" class="text-purple-300/70">Verifying database access</div>
+          <div id="connTitle" class="font-bold text-white">Loading your payments...</div>
+          <div id="connSub" class="text-purple-300/70">Verifying your account</div>
         </div>
       </div>
 
       <!-- STATS -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
           <div class="flex items-center justify-between mb-3">
             <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Total Paid</span>
-            <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-              <i data-lucide="check-circle-2" class="w-5 h-5"></i>
-            </div>
+            <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
           </div>
-          <div class="text-3xl font-extrabold text-emerald-300" id="statPaid">₱0.00</div>
-          <p class="text-xs text-emerald-400/80 mt-2 font-medium">Completed transactions</p>
+          <div class="text-2xl font-extrabold text-emerald-300" id="statPaid">₱0.00</div>
         </div>
-
         <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
           <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Unpaid</span>
-            <div class="p-2.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30">
-              <i data-lucide="clock" class="w-5 h-5"></i>
-            </div>
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Total Unpaid</span>
+            <div class="p-2.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30"><i data-lucide="clock" class="w-5 h-5"></i></div>
           </div>
-          <div class="text-3xl font-extrabold text-amber-300" id="statUnpaid">₱0.00</div>
-          <p class="text-xs text-amber-300/80 mt-2 font-medium">Requires payment</p>
+          <div class="text-2xl font-extrabold text-amber-300" id="statUnpaid">₱0.00</div>
         </div>
-
         <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
           <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Transactions</span>
-            <div class="p-2.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30">
-              <i data-lucide="list" class="w-5 h-5"></i>
-            </div>
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Total Items</span>
+            <div class="p-2.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30"><i data-lucide="list" class="w-5 h-5"></i></div>
           </div>
-          <div class="text-3xl font-extrabold text-white" id="statTotal">0</div>
-          <p class="text-xs text-purple-300 mt-2 font-medium">All records</p>
+          <div class="text-3xl font-extrabold text-white" id="statTotal">—</div>
+        </div>
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Fines Owed</span>
+            <div class="p-2.5 rounded-xl bg-red-500/20 text-red-300 border border-red-500/30"><i data-lucide="alert-circle" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-red-300" id="statFineCount">—</div>
         </div>
       </div>
 
-      <!-- FILTERS -->
-      <div class="glass-card p-5 rounded-3xl">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div class="sm:col-span-2 relative">
+      <!-- RECORDS -->
+      <div class="glass-card p-6 rounded-3xl space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <i data-lucide="credit-card" class="w-5 h-5 text-purple-400"></i> My Payment History
+          </h3>
+          <button onclick="loadAll()" class="px-3 py-1.5 rounded-lg bg-purple-950/60 hover:bg-purple-800/60 text-purple-200 border border-purple-500/30 text-[11px] font-bold transition-all flex items-center gap-1.5">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
+          </button>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3">
+          <div class="relative flex-1">
             <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-purple-300/60"></i>
-            <input id="searchPayments" oninput="renderPayments()" placeholder="Search payments..."
+            <input id="paymentSearch" oninput="renderPayments()" placeholder="Search by description..."
               class="w-full bg-purple-950/60 border border-purple-500/30 rounded-xl py-2.5 pl-9 pr-3 text-xs text-white placeholder-purple-300/50 focus:border-purple-400 focus:outline-none" />
           </div>
-          <select id="filterType" onchange="renderPayments()"
+          <select id="paymentFilter" onchange="renderPayments()"
             class="bg-purple-950/60 border border-purple-500/30 rounded-xl py-2.5 px-3 text-xs text-white focus:border-purple-400 focus:outline-none">
             <option value="all">All Types</option>
             <option value="Fee">Fees Only</option>
             <option value="Fine">Fines Only</option>
           </select>
-        </div>
-      </div>
-
-      <!-- PAYMENTS TABLE -->
-      <div class="glass-card p-6 rounded-3xl space-y-4">
-        <div class="flex items-center justify-between">
-          <h3 class="text-base font-bold text-white flex items-center gap-2">
-            <i data-lucide="credit-card" class="w-5 h-5 text-purple-400"></i> Payment History
-          </h3>
-          <button onclick="refreshAll()" class="px-3 py-1.5 rounded-lg bg-purple-950/60 hover:bg-purple-800/60 text-purple-200 border border-purple-500/30 text-[11px] font-bold transition-all flex items-center gap-1.5">
-            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
-          </button>
+          <select id="statusFilter" onchange="renderPayments()"
+            class="bg-purple-950/60 border border-purple-500/30 rounded-xl py-2.5 px-3 text-xs text-white focus:border-purple-400 focus:outline-none">
+            <option value="all">All Status</option>
+            <option value="paid">Paid</option>
+            <option value="unpaid">Unpaid</option>
+          </select>
         </div>
 
         <div class="overflow-x-auto rounded-2xl border border-purple-500/20">
@@ -128,12 +118,13 @@
                 <th class="py-3.5 px-4">Type</th>
                 <th class="py-3.5 px-4">Description</th>
                 <th class="py-3.5 px-4">Amount</th>
-                <th class="py-3.5 px-4">Date</th>
+                <th class="py-3.5 px-4">Due Date</th>
                 <th class="py-3.5 px-4">Status</th>
+                <th class="py-3.5 px-4">Recorded</th>
               </tr>
             </thead>
             <tbody id="paymentsTable" class="divide-y divide-purple-500/10 text-purple-100">
-              <tr><td colspan="5" class="py-8 text-center text-purple-300/60 italic">Loading...</td></tr>
+              <tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">Loading...</td></tr>
             </tbody>
           </table>
         </div>
@@ -146,17 +137,17 @@
 
   <script src="shared.js"></script>
   <script>
+    let allPayments = [];
     let currentProfile = null;
-    let payments = [];
+    let currentUser = null;
 
     document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('bg-layer').innerHTML = buildBackground();
       document.getElementById('sidebar-layer').innerHTML = buildSidebar('payments', 'student');
-      document.getElementById('topbar-layer').innerHTML = buildTopbar('Payment History', 'View all your fee and fine payments');
+      document.getElementById('topbar-layer').innerHTML = buildTopbar('Payment History', 'Your complete payment records');
       document.getElementById('modal-layer').innerHTML = buildLogoutModal();
 
       lucide.createIcons();
-
       initSupabase();
       await checkConnection();
 
@@ -164,10 +155,9 @@
       if (!ok) return;
 
       await loadProfile();
-      await refreshAll();
+      await loadAll();
     });
 
-    /* ---------- CONNECTION CHECK ---------- */
     async function checkConnection() {
       const iconEl = document.getElementById('connIcon');
       const titleEl = document.getElementById('connTitle');
@@ -183,20 +173,15 @@
       }
 
       try {
-        const { error } = await window.supabaseClient.from('fees').select('id').limit(1);
-        if (error) {
-          iconEl.className = 'p-2 rounded-xl bg-red-500/20 border border-red-500/30';
-          iconEl.innerHTML = '<i data-lucide="alert-circle" class="w-4 h-4 text-red-300"></i>';
-          titleEl.textContent = 'Table error: ' + error.message;
-          subEl.textContent = 'Check RLS or table name';
-        } else {
-          iconEl.className = 'p-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30';
-          iconEl.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-300"></i>';
-          titleEl.textContent = 'Supabase connected ✅';
-          subEl.textContent = 'Showing your live payments';
-        }
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        if (!user) { titleEl.textContent = 'Not logged in'; return false; }
+
+        iconEl.className = 'p-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30';
+        iconEl.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-300"></i>';
+        titleEl.textContent = 'Connected as ' + user.email;
+        subEl.textContent = 'Payment history loaded';
         lucide.createIcons();
-        return !error;
+        return true;
       } catch (err) {
         titleEl.textContent = 'Connection failed';
         subEl.textContent = err.message;
@@ -204,111 +189,133 @@
       }
     }
 
-    /* ---------- LOAD PROFILE ---------- */
     async function loadProfile() {
-      if (!window.supabaseClient) return;
+      try {
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        currentUser = user;
+        if (!user) return;
 
-      const { data: { user } } = await window.supabaseClient.auth.getUser();
-      if (!user) {
-        window.location.replace('index.html');
+        const { data } = await window.supabaseClient
+          .from('profiles').select('*').eq('id', user.id).maybeSingle();
+        currentProfile = data || { id: user.id, email: user.email, role: 'student' };
+      } catch (e) { console.warn('Profile load failed:', e); }
+    }
+
+    async function findStudentNumericId() {
+      if (!currentProfile?.student_id) return null;
+      try {
+        const { data } = await window.supabaseClient
+          .from('students').select('id')
+          .eq('student_id', currentProfile.student_id).maybeSingle();
+        return data?.id || null;
+      } catch { return null; }
+    }
+
+    async function loadAll() {
+      const tbody = document.getElementById('paymentsTable');
+      tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">Loading from Supabase...</td></tr>`;
+
+      if (!window.supabaseClient || !currentProfile) {
+        allPayments = [];
+        renderPayments(); renderStats();
         return;
       }
 
-      const { data: profile } = await window.supabaseClient
-        .from('profiles').select('*').eq('id', user.id).single();
+      const studentId = await findStudentNumericId();
+      if (!studentId) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">No student record linked. Ask admin to register you.</td></tr>`;
+        allPayments = [];
+        renderStats();
+        return;
+      }
 
-      currentProfile = profile || null;
-    }
-
-    /* ---------- REFRESH ALL ---------- */
-    async function refreshAll() {
-      if (!currentProfile) return;
-      await fetchPayments();
-      renderPayments();
-      renderStats();
-    }
-
-    /* ---------- FETCH PAYMENTS (Fees + Fines Combined) ---------- */
-    async function fetchPayments() {
-      payments = [];
-
-      if (!window.supabaseClient || !currentProfile) return;
+      allPayments = [];
 
       // Load fees
       try {
         const { data: fees } = await window.supabaseClient
-          .from('fees').select('*')
-          .eq('student_id', currentProfile.id)
+          .from('fees').select('*').eq('student_id', studentId)
           .order('created_at', { ascending: false });
-
-        (fees || []).forEach(f => payments.push({
+        (fees || []).forEach(f => allPayments.push({
           type: 'Fee',
           description: f.org || 'Membership Fee',
-          amount: f.amount || 0,
+          amount: parseFloat(f.amount) || 0,
           status: f.status === 'paid' ? 'paid' : 'unpaid',
-          created_at: f.created_at
+          due_date: f.due_date,
+          created_at: f.created_at,
         }));
       } catch (e) { console.warn('Fees load failed:', e); }
 
       // Load fines
       try {
         const { data: fines } = await window.supabaseClient
-          .from('fines').select('*')
-          .eq('student_id', currentProfile.id)
+          .from('fines').select('*').eq('student_id', studentId)
           .order('created_at', { ascending: false });
-
-        (fines || []).forEach(f => payments.push({
+        (fines || []).forEach(f => allPayments.push({
           type: 'Fine',
           description: f.reason || 'Fine',
-          amount: f.amount || 0,
+          amount: parseFloat(f.amount) || 0,
           status: f.status === 'settled' ? 'paid' : 'unpaid',
-          created_at: f.created_at
+          due_date: f.due_date,
+          created_at: f.created_at,
         }));
       } catch (e) { console.warn('Fines load failed:', e); }
 
-      // Sort by date descending
-      payments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      // Sort by created_at desc
+      allPayments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      renderPayments();
+      renderStats();
     }
 
-    /* ---------- STATS ---------- */
     function renderStats() {
-      const paid = payments.filter(p => p.status === 'paid').reduce((s, p) => s + (p.amount || 0), 0);
-      const unpaid = payments.filter(p => p.status === 'unpaid').reduce((s, p) => s + (p.amount || 0), 0);
+      const paid = allPayments.filter(p => p.status === 'paid').reduce((s, p) => s + p.amount, 0);
+      const unpaid = allPayments.filter(p => p.status === 'unpaid').reduce((s, p) => s + p.amount, 0);
+      const fineCount = allPayments.filter(p => p.type === 'Fine' && p.status === 'unpaid').length;
 
       document.getElementById('statPaid').textContent = '₱' + paid.toFixed(2);
       document.getElementById('statUnpaid').textContent = '₱' + unpaid.toFixed(2);
-      document.getElementById('statTotal').textContent = payments.length;
+      document.getElementById('statTotal').textContent = allPayments.length;
+      document.getElementById('statFineCount').textContent = fineCount;
     }
 
-    /* ---------- RENDER TABLE ---------- */
     function renderPayments() {
-      const q = (document.getElementById('searchPayments').value || '').toLowerCase();
-      const filter = document.getElementById('filterType').value;
+      const q = (document.getElementById('paymentSearch').value || '').toLowerCase();
+      const typeFilter = document.getElementById('paymentFilter').value;
+      const statusFilter = document.getElementById('statusFilter').value;
 
-      const list = payments.filter(p => {
-        if (filter !== 'all' && p.type !== filter) return false;
-        if (q && !(`${p.description}`).toLowerCase().includes(q)) return false;
+      const list = allPayments.filter(p => {
+        if (typeFilter !== 'all' && p.type !== typeFilter) return false;
+        if (statusFilter !== 'all' && p.status !== statusFilter) return false;
+        if (q && !(p.description || '').toLowerCase().includes(q)) return false;
         return true;
       });
 
       const tbody = document.getElementById('paymentsTable');
-
       if (list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-purple-300/60 italic">No payment records found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">No payment records found.</td></tr>`;
         return;
       }
 
       tbody.innerHTML = list.map(p => `
         <tr class="hover:bg-purple-900/30 transition-colors">
           <td class="py-3.5 px-4">
-            <span class="px-2 py-1 rounded-full text-[10px] font-bold ${p.type === 'Fee' ? 'bg-purple-500/20 text-purple-300 border border-purple-400/30' : 'bg-red-500/20 text-red-300 border border-red-400/30'}">${p.type}</span>
+            <span class="px-2 py-1 rounded-full text-[10px] font-bold border
+              ${p.type === 'Fee' ? 'bg-purple-500/20 text-purple-300 border-purple-400/30' : ''}
+              ${p.type === 'Fine' ? 'bg-red-500/20 text-red-300 border-red-400/30' : ''}">
+              ${p.type}
+            </span>
           </td>
-          <td class="py-3.5 px-4 text-white font-semibold">${p.description}</td>
-          <td class="py-3.5 px-4 text-purple-200 font-bold">₱${(p.amount || 0).toFixed(2)}</td>
-          <td class="py-3.5 px-4 text-purple-300/80">${p.created_at ? new Date(p.created_at).toLocaleDateString() : '—'}</td>
+          <td class="py-3.5 px-4 font-semibold text-white">${p.description}</td>
+          <td class="py-3.5 px-4 font-bold ${p.type === 'Fine' ? 'text-red-300' : 'text-purple-200'}">₱${p.amount.toFixed(2)}</td>
+          <td class="py-3.5 px-4 text-purple-300/80">${p.due_date ? new Date(p.due_date).toLocaleDateString() : '—'}</td>
           <td class="py-3.5 px-4">
-            <span class="px-2 py-1 rounded-full text-[10px] font-bold ${p.status === 'paid' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30' : 'bg-amber-500/20 text-amber-300 border border-amber-400/30'}">${p.status}</span>
+            <span class="px-2 py-1 rounded-full text-[10px] font-bold border
+              ${p.status === 'paid' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30' : 'bg-amber-500/20 text-amber-300 border-amber-400/30'}">
+              ${p.status}
+            </span>
           </td>
+          <td class="py-3.5 px-4 text-purple-300/80">${p.created_at ? new Date(p.created_at).toLocaleDateString() : '—'}</td>
         </tr>
       `).join('');
     }
