@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard — CCS OrgHub Admin Panel</title>
 
-        <link rel="icon" type="image/png" href="ccs.png" />
-
+  <link rel="icon" type="image/png" href="ccs.png" />
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js" onerror="console.warn('config.js not found. Demo mode.')"></script>
@@ -181,7 +180,9 @@
         </div>
       </div>
 
-      <!-- RECENT STUDENTS -->
+      <!-- ============================================
+           RECENT STUDENTS (WITH PROFILE PICTURES)
+           ============================================ -->
       <div class="glass-card p-6 rounded-3xl space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -205,8 +206,8 @@
           <table class="w-full text-left text-xs">
             <thead class="bg-purple-950/80 text-purple-300 uppercase tracking-wider font-semibold border-b border-purple-500/20">
               <tr>
+                <th class="py-3.5 px-4">Student</th>
                 <th class="py-3.5 px-4">Student ID</th>
-                <th class="py-3.5 px-4">Name</th>
                 <th class="py-3.5 px-4">Course</th>
                 <th class="py-3.5 px-4">Year Level</th>
               </tr>
@@ -391,14 +392,12 @@
         return;
       }
 
-      // Count organizations (or 0 if table missing)
       try {
         const { count } = await window.supabaseClient
           .from('organizations').select('*', { count: 'exact', head: true });
         document.getElementById('totalOrgs').textContent = count ?? 0;
       } catch { document.getElementById('totalOrgs').textContent = '0'; }
 
-      // Count profiles
       try {
         const { count } = await window.supabaseClient
           .from('profiles').select('*', { count: 'exact', head: true });
@@ -406,7 +405,9 @@
       } catch { document.getElementById('totalUsers').textContent = '0'; }
     }
 
-    /* ---------- STUDENTS ---------- */
+    /* ============================================
+       RECENT STUDENTS — WITH PROFILE PICTURES
+       ============================================ */
     async function fetchAndRenderStudents() {
       const tbody = document.getElementById('recentStudents');
 
@@ -417,7 +418,8 @@
       }
 
       try {
-        const { data, error } = await window.supabaseClient
+        // 1. Fetch students
+        const { data: students, error } = await window.supabaseClient
           .from('students').select('*').order('id', { ascending: false });
 
         if (error) {
@@ -426,26 +428,65 @@
           return;
         }
 
-        const students = data || [];
-        document.getElementById('totalStudents').textContent = students.length;
+        const list = students || [];
+        document.getElementById('totalStudents').textContent = list.length;
 
-        if (students.length === 0) {
+        if (list.length === 0) {
           tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-purple-300/60 italic">No students yet. Click "Add Student" above.</td></tr>`;
-        } else {
-          tbody.innerHTML = students.slice(0, 6).map(s => `
+          return;
+        }
+
+        // 2. Fetch matching profiles to get avatar_url (match by student_id string)
+        const studentIds = list.map(s => s.student_id).filter(Boolean);
+        let avatarMap = {};
+
+        if (studentIds.length > 0) {
+          try {
+            const { data: profiles } = await window.supabaseClient
+              .from('profiles')
+              .select('student_id, avatar_url, first_name, last_name')
+              .in('student_id', studentIds);
+
+            (profiles || []).forEach(p => {
+              if (p.student_id) avatarMap[p.student_id] = p.avatar_url || null;
+            });
+          } catch (e) { console.warn('Avatar fetch failed:', e); }
+        }
+
+        // 3. Render table
+        tbody.innerHTML = list.slice(0, 6).map(s => {
+          const avatar = avatarMap[s.student_id] || null;
+          const initial = (s.first_name || 'S').charAt(0).toUpperCase();
+          const fullName = `${s.first_name || ''} ${s.last_name || ''}`.trim();
+
+          // Avatar HTML — image if available, else initial letter
+          const avatarHTML = avatar
+            ? `<img src="${avatar}" alt="${fullName}" class="w-9 h-9 rounded-xl object-cover border border-purple-400/40 shadow" onerror="this.outerHTML='<div class=\\'w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-purple-400 border border-purple-300/40 flex items-center justify-center font-bold text-sm text-white\\'>${initial}</div>'" />`
+            : `<div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-purple-400 border border-purple-300/40 flex items-center justify-center font-bold text-sm text-white shadow-md shadow-purple-600/30">${initial}</div>`;
+
+          return `
             <tr class="hover:bg-purple-900/30 transition-colors">
-              <td class="py-3 px-4 font-mono font-bold text-purple-300">
-                <span class="px-2 py-1 rounded-lg bg-purple-500/20 border border-purple-400/30">${s.student_id}</span>
+              <td class="py-3 px-4">
+                <div class="flex items-center gap-3">
+                  ${avatarHTML}
+                  <div class="min-w-0">
+                    <div class="font-semibold text-white truncate">${fullName || '—'}</div>
+                  </div>
+                </div>
               </td>
-              <td class="py-3 px-4 font-semibold text-white">${s.first_name} ${s.last_name}</td>
+              <td class="py-3 px-4 font-mono font-bold text-purple-300">
+                <span class="px-2 py-1 rounded-lg bg-purple-500/20 border border-purple-400/30">${s.student_id || '—'}</span>
+              </td>
               <td class="py-3 px-4 text-purple-200">
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-900/80 border border-purple-500/30">${s.course || '—'}</span>
               </td>
               <td class="py-3 px-4 text-purple-300/80">${s.year_level || '—'}</td>
             </tr>
-          `).join('');
-        }
+          `;
+        }).join('');
+
         lucide.createIcons();
+
       } catch (err) {
         tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-red-300 italic">Error: ${err.message}</td></tr>`;
       }
@@ -460,7 +501,7 @@
           const { data } = await window.supabaseClient
             .from('clearances').select('*').eq('status', 'pending');
           if (data) pending = data;
-        } catch (e) { /* table might not exist — that's OK */ }
+        } catch (e) { /* table might not exist */ }
       }
 
       document.getElementById('pendingClearances').textContent = pending.length;

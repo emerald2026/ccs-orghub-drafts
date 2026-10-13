@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Students — CCS OrgHub</title>
 
-        <link rel="icon" type="image/png" href="ccs.png" />
+  <link rel="icon" type="image/png" href="ccs.png" />
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js" onerror="console.warn('config.js not found')"></script>
@@ -155,6 +155,7 @@
         </div>
       </div>
 
+      <!-- STUDENT RECORDS WITH AVATARS -->
       <div class="glass-card p-6 rounded-3xl space-y-4">
         <div class="flex items-center justify-between">
           <h3 class="text-base font-bold text-white flex items-center gap-2">
@@ -168,8 +169,8 @@
           <table class="w-full text-left text-xs">
             <thead class="bg-purple-950/80 text-purple-300 uppercase tracking-wider font-semibold border-b border-purple-500/20">
               <tr>
+                <th class="py-3.5 px-4">Student</th>
                 <th class="py-3.5 px-4">Student ID</th>
-                <th class="py-3.5 px-4">Name</th>
                 <th class="py-3.5 px-4">Email</th>
                 <th class="py-3.5 px-4">Course</th>
                 <th class="py-3.5 px-4">Year</th>
@@ -186,12 +187,23 @@
     </main>
   </div>
 
+  <!-- IMAGE PREVIEW MODAL -->
+  <div id="modal-preview" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="relative max-w-md w-full">
+      <button onclick="closeModal('modal-preview')" class="absolute -top-12 right-0 text-white hover:text-purple-300 p-2">
+        <i data-lucide="x" class="w-6 h-6"></i>
+      </button>
+      <img id="previewImg" src="" alt="Preview" class="w-full rounded-3xl border-2 border-purple-400/40 shadow-2xl" />
+    </div>
+  </div>
+
   <div id="modal-layer"></div>
   <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-3 pointer-events-none"></div>
 
   <script src="shared.js"></script>
   <script>
     let students = [];
+    let avatarMap = {};
 
     document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('bg-layer').innerHTML = buildBackground();
@@ -246,6 +258,7 @@
       }
     }
 
+    /* ---------- LOAD STUDENTS ---------- */
     async function loadStudents() {
       const tbody = document.getElementById('studentTable');
       tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">Loading from Supabase...</td></tr>`;
@@ -258,6 +271,7 @@
       }
 
       try {
+        // 1. Fetch students
         const { data, error } = await window.supabaseClient
           .from('students').select('*').order('id', { ascending: false });
 
@@ -267,6 +281,28 @@
         }
 
         students = data || [];
+
+        // 2. Fetch profiles for matching avatars (by student_id)
+        avatarMap = {};
+        const studentIds = students.map(s => s.student_id).filter(Boolean);
+
+        if (studentIds.length > 0) {
+          try {
+            const { data: profiles, error: profErr } = await window.supabaseClient
+              .from('profiles')
+              .select('student_id, avatar_url')
+              .in('student_id', studentIds);
+
+            if (!profErr && profiles) {
+              profiles.forEach(p => {
+                if (p.student_id && p.avatar_url) {
+                  avatarMap[p.student_id] = p.avatar_url;
+                }
+              });
+            }
+          } catch (e) { console.warn('Profile avatar fetch failed:', e); }
+        }
+
         renderStudents();
         renderStats();
 
@@ -281,6 +317,7 @@
       document.getElementById('statYears').textContent = new Set(students.map(s => s.year_level).filter(Boolean)).size;
     }
 
+    /* ---------- RENDER WITH AVATARS ---------- */
     function renderStudents() {
       const q = (document.getElementById('searchStudents').value || '').toLowerCase();
       const list = students.filter(s => {
@@ -294,30 +331,65 @@
         return;
       }
 
-      tbody.innerHTML = list.map(s => `
-        <tr class="hover:bg-purple-900/30 transition-colors">
-          <td class="py-3.5 px-4 font-mono font-bold text-purple-300">
-            <span class="px-2 py-1 rounded-lg bg-purple-500/20 border border-purple-400/30">${s.student_id}</span>
-          </td>
-          <td class="py-3.5 px-4 font-semibold text-white">${s.first_name} ${s.last_name}</td>
-          <td class="py-3.5 px-4 text-purple-200">${s.email || '—'}</td>
-          <td class="py-3.5 px-4">
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-900/80 border border-purple-500/30">${s.course || '—'}</span>
-          </td>
-          <td class="py-3.5 px-4 text-purple-300/80">${s.year_level || '—'}</td>
-          <td class="py-3.5 px-4 text-right space-x-1">
-            <button onclick='editStudent(${JSON.stringify(s).replace(/'/g, "&#39;")})' class="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-white text-[10px] font-bold border border-amber-500/30">
-              Edit
-            </button>
-            <button onclick="deleteStudent(${s.id})" class="p-1.5 rounded-lg text-purple-400 hover:text-red-300 hover:bg-red-500/20">
-              <i data-lucide="trash-2" class="w-4 h-4"></i>
-            </button>
-          </td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = list.map(s => {
+        const avatarUrl = avatarMap[s.student_id] || null;
+        const initial = (s.first_name || 'S').charAt(0).toUpperCase();
+        const fullName = `${s.first_name || ''} ${s.last_name || ''}`.trim();
+
+        // Avatar: image if available, else initial in purple circle
+        const avatarHTML = avatarUrl
+          ? `<img src="${avatarUrl}" alt="${fullName}"
+                class="w-10 h-10 rounded-xl object-cover border border-purple-400/40 shadow-md cursor-pointer hover:scale-110 transition-transform"
+                onclick="openPreview('${avatarUrl}')"
+                onerror="this.outerHTML='<div class=\\'w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-purple-400 border border-purple-300/40 flex items-center justify-center font-bold text-sm text-white shadow-md\\'>${initial}</div>'" />`
+          : `<div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-purple-400 border border-purple-300/40 flex items-center justify-center font-bold text-sm text-white shadow-md shadow-purple-600/30">
+              ${initial}
+            </div>`;
+
+        return `
+          <tr class="hover:bg-purple-900/30 transition-colors">
+            <td class="py-3 px-4">
+              <div class="flex items-center gap-3">
+                ${avatarHTML}
+                <div class="min-w-0">
+                  <div class="font-semibold text-white truncate">${fullName || '—'}</div>
+                </div>
+              </div>
+            </td>
+            <td class="py-3 px-4 font-mono font-bold text-purple-300">
+              <span class="px-2 py-1 rounded-lg bg-purple-500/20 border border-purple-400/30">${s.student_id || '—'}</span>
+            </td>
+            <td class="py-3 px-4 text-purple-200">${s.email || '—'}</td>
+            <td class="py-3 px-4">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-900/80 border border-purple-500/30">${s.course || '—'}</span>
+            </td>
+            <td class="py-3 px-4 text-purple-300/80">${s.year_level || '—'}</td>
+            <td class="py-3 px-4 text-right space-x-1">
+              <button onclick='editStudent(${JSON.stringify(s).replace(/'/g, "&#39;")})' class="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-white text-[10px] font-bold border border-amber-500/30">
+                Edit
+              </button>
+              <button onclick="deleteStudent(${s.id})" class="p-1.5 rounded-lg text-purple-400 hover:text-red-300 hover:bg-red-500/20">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
       lucide.createIcons();
     }
 
+    /* ---------- IMAGE PREVIEW ---------- */
+    function openPreview(url) {
+      document.getElementById('previewImg').src = url;
+      document.getElementById('modal-preview').classList.remove('opacity-0', 'pointer-events-none');
+    }
+
+    function closeModal(id) {
+      const m = document.getElementById(id);
+      if (m) m.classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    /* ---------- SUBMIT ---------- */
     document.getElementById('studentForm').addEventListener('submit', async (e) => {
       e.preventDefault();
 
