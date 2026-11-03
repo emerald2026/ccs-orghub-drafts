@@ -81,7 +81,6 @@ function buildSidebar(activePage, role = 'admin') {
     ],
     Clearance: [
       { key: 'clearance', label: 'Clearance Status', icon: 'shield-check', href: 'student-clearance.html' },
-      { key: 'clearance-request', label: 'Request Clearance', icon: 'file-plus', href: 'student-clearance-request.html' },
     ],
   };
 
@@ -144,6 +143,7 @@ function buildSidebar(activePage, role = 'admin') {
 }
 
 /* ---------- BUILD TOPBAR ---------- */
+// ✅ FIX: Now dynamically sets "CCS Faculty Admin" or "CCS Student"
 function buildTopbar(title, subtitle) {
   return `
     <header class="glass-topbar sticky top-0 z-30 px-4 md:px-8 py-3.5 flex items-center justify-between">
@@ -163,10 +163,12 @@ function buildTopbar(title, subtitle) {
           <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-400"></span>
         </button>
         <div class="flex items-center space-x-2.5 pl-2 border-l border-purple-500/20">
-          <div id="userAvatar" class="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-purple-400 border border-purple-300/40 flex items-center justify-center font-bold text-sm text-white">A</div>
+          <div id="userAvatar" class="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-purple-400 border border-purple-300/40 flex items-center justify-center font-bold text-sm text-white overflow-hidden">
+            A
+          </div>
           <div class="hidden sm:block text-left">
-            <div id="userName" class="text-xs font-bold text-white leading-tight">Admin User</div>
-            <div class="text-[10px] text-purple-300/80 font-medium">CCS Faculty Admin</div>
+            <div id="userName" class="text-xs font-bold text-white leading-tight">User</div>
+            <div id="userRoleLabel" class="text-[10px] text-purple-300/80 font-medium">Loading...</div>
           </div>
         </div>
       </div>
@@ -265,20 +267,45 @@ function buildLogoutModal() {
 
 /* ---------- LOAD USER PROFILE ---------- */
 async function loadUserProfile() {
-  let profile = { first_name: 'Admin', role: 'Faculty Admin' };
+  let profile = { first_name: 'User', role: 'student', avatar_url: null };
+  
   if (window.supabaseClient) {
     try {
       const { data: { user } } = await window.supabaseClient.auth.getUser();
       if (user) {
-        const { data } = await window.supabaseClient.from('profiles').select('*').eq('id', user.id).single();
+        const { data } = await window.supabaseClient
+          .from('profiles').select('*').eq('id', user.id).single();
         if (data) profile = data;
       }
     } catch (e) {}
   }
-  const name = profile.first_name || 'Admin';
+
+  const name = profile.first_name || 'User';
+  const role = profile.role || 'student';
+  
   const nameEl = document.getElementById('userName');
   const avEl = document.getElementById('userAvatar');
+  const roleEl = document.getElementById('userRoleLabel');
+
   if (nameEl) nameEl.textContent = `${name} User`;
-  if (avEl) avEl.textContent = (name[0] || 'A').toUpperCase();
+
+  // ✅ FIX: Check if user has an avatar image
+  if (avEl) {
+    if (profile.avatar_url) {
+      avEl.innerHTML = `<img src="${profile.avatar_url}" class="w-full h-full object-cover" alt="Avatar" />`;
+    } else {
+      avEl.textContent = (name[0] || 'U').toUpperCase();
+    }
+  }
+
+  // ✅ FIX: Set Role Label dynamically
+  if (roleEl) {
+    if (role === 'admin' || role === 'officer' || role === 'adviser') {
+      roleEl.textContent = 'CCS Faculty Admin';
+    } else {
+      roleEl.textContent = 'CCS Student';
+    }
+  }
+
   return profile;
 }
