@@ -72,9 +72,7 @@
         </div>
       </div>
 
-      <!-- ============================================
-           TASK 2: CLEARANCE REQUIREMENTS LIST
-           ============================================ -->
+      <!-- CLEARANCE REQUIREMENTS LIST -->
       <div class="glass-card p-6 rounded-3xl space-y-4">
         <div class="flex items-center justify-between">
           <h3 class="text-base font-bold text-white flex items-center gap-2">
@@ -101,9 +99,7 @@
         </div>
       </div>
 
-      <!-- ============================================
-           MY CLEARANCE HISTORY
-           ============================================ -->
+      <!-- MY CLEARANCE HISTORY -->
       <div class="glass-card p-6 rounded-3xl space-y-4">
         <h3 class="text-base font-bold text-white flex items-center gap-2">
           <i data-lucide="history" class="w-5 h-5 text-purple-400"></i> My Clearance History
@@ -117,9 +113,7 @@
     </main>
   </div>
 
-  <!-- ============================================
-       REQUEST CLEARANCE MODAL
-       ============================================ -->
+  <!-- REQUEST CLEARANCE MODAL -->
   <div id="modal-request" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
     <div class="glass-card w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-purple-400/40 space-y-5 relative max-h-[90vh] overflow-y-auto">
       <button onclick="closeModal('modal-request')" class="absolute top-5 right-5 text-purple-300 hover:text-white">
@@ -139,9 +133,11 @@
       <form id="clearanceForm" onsubmit="submitClearance(event)" class="space-y-4 text-xs">
 
         <div>
-          <label class="block font-semibold text-purple-200 mb-1.5 text-[11px] uppercase tracking-wider">Organization *</label>
-          <input id="req-org" required placeholder="e.g. CCS Student Council"
-            class="w-full bg-purple-950/60 border border-purple-500/40 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-purple-300/40 focus:border-purple-400 focus:outline-none" />
+          <label class="block font-semibold text-purple-200 mb-1.5 text-[11px] uppercase tracking-wider">Organization (Auto-Assigned) *</label>
+          <select id="req-org" required disabled
+            class="w-full bg-purple-950/40 border border-purple-500/20 rounded-xl px-3 py-2.5 text-sm text-purple-300/70 cursor-not-allowed focus:outline-none">
+            <option value="">Loading organization...</option>
+          </select>
         </div>
 
         <div>
@@ -187,14 +183,11 @@
   <script>
     let currentProfile = null;
     let currentUser = null;
+    let studentRecordId = null;
+    let studentOrg = ''; // Will hold ITSO, CSSO, or EMCO
     let requirements = [];
     let myClearances = [];
-    let checks = {
-      feesCleared: false,
-      finesCleared: false,
-      attendanceOk: true,
-      hasActiveClearance: false,
-    };
+    let manualChecks = {}; 
 
     document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('bg-layer').innerHTML = buildBackground();
@@ -212,63 +205,48 @@
       await loadProfile();
       await loadRequirements();
       await loadMyClearances();
-      await computeRequirementsStatus();
       renderRequirements();
       renderHistory();
       renderStatusBanner();
     });
 
-    /* ---------- CONNECTION ---------- */
     async function checkConnection() {
-      const iconEl = document.getElementById('connIcon');
-      const titleEl = document.getElementById('connTitle');
-      const subEl = document.getElementById('connSub');
-
-      if (!window.supabaseClient) {
-        iconEl.className = 'p-2 rounded-xl bg-red-500/20 border border-red-500/30';
-        iconEl.innerHTML = '<i data-lucide="wifi-off" class="w-4 h-4 text-red-300"></i>';
-        titleEl.textContent = 'Supabase NOT connected';
-        subEl.textContent = 'Check config.js';
-        lucide.createIcons();
-        return false;
-      }
-
+      if (!window.supabaseClient) return;
       try {
-        const { error } = await window.supabaseClient.from('clearances').select('id').limit(1);
-        if (error) {
-          iconEl.className = 'p-2 rounded-xl bg-red-500/20 border border-red-500/30';
-          iconEl.innerHTML = '<i data-lucide="alert-circle" class="w-4 h-4 text-red-300"></i>';
-          titleEl.textContent = 'Table error: ' + error.message;
-          subEl.textContent = 'Run SQL to create clearances table';
-        } else {
-          iconEl.className = 'p-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30';
-          iconEl.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-300"></i>';
-          titleEl.textContent = 'Connected ✅';
-          subEl.textContent = 'Clearance records are synced';
-        }
-        lucide.createIcons();
-        return !error;
-      } catch (err) {
-        titleEl.textContent = 'Connection failed';
-        subEl.textContent = err.message;
-        return false;
-      }
+        await window.supabaseClient.from('clearances').select('id').limit(1);
+      } catch (err) { console.error(err); }
     }
 
-    /* ---------- LOAD PROFILE ---------- */
     async function loadProfile() {
       try {
         const { data: { user } } = await window.supabaseClient.auth.getUser();
         currentUser = user;
         if (!user) return;
 
-        const { data } = await window.supabaseClient
+        const { data: profile } = await window.supabaseClient
           .from('profiles').select('*').eq('id', user.id).maybeSingle();
-        currentProfile = data || { id: user.id, email: user.email, role: 'student' };
+        currentProfile = profile || { id: user.id, email: user.email, role: 'student' };
+
+        if (currentProfile.student_id) {
+          const { data: student } = await window.supabaseClient
+            .from('students').select('id, course').eq('student_id', currentProfile.student_id).maybeSingle();
+          
+          if (student) {
+            studentRecordId = student.id;
+            
+            // Map course to Organization
+            if (student.course === 'BS Information Technology' || student.course === 'Associate in Computer Tech') {
+              studentOrg = 'ITSO';
+            } else if (student.course === 'BS Computer Science') {
+              studentOrg = 'CSSO';
+            } else if (student.course === 'BS Entertainment & Multimedia') {
+              studentOrg = 'EMCO';
+            }
+          }
+        }
       } catch (e) { console.warn('Profile load failed:', e); }
     }
 
-    /* ---------- LOAD REQUIREMENTS ---------- */
     async function loadRequirements() {
       if (!window.supabaseClient) return;
       try {
@@ -277,81 +255,62 @@
           .select('*')
           .order('sort_order', { ascending: true });
         requirements = data || [];
-      } catch (e) { console.warn('Requirements load failed:', e); }
+      } catch (e) { 
+        requirements = [
+          { name: 'Cleared from all fees', required: true, description: 'No unpaid fees on record.' },
+          { name: 'Cleared from all fines', required: true, description: 'No unsettled fines on record.' },
+          { name: 'Returned org property', required: true, description: 'No pending org items.' },
+          { name: 'Attendance requirement met', required: false, description: 'No pending attendance issues.' }
+        ];
+      }
     }
 
-    /* ---------- LOAD MY CLEARANCES ---------- */
     async function loadMyClearances() {
       if (!window.supabaseClient || !currentUser) return;
       try {
         const { data } = await window.supabaseClient
           .from('clearances')
           .select('*')
-          .eq('student_id', currentUser.id)
+          .or(`student_id.eq.${currentUser.id},student_id.eq.${studentRecordId}`)
           .order('created_at', { ascending: false });
         myClearances = data || [];
       } catch (e) { console.warn('Clearances load failed:', e); }
     }
 
-    /* ---------- COMPUTE REQUIREMENT STATUS ---------- */
-    async function computeRequirementsStatus() {
-      if (!window.supabaseClient || !currentProfile) return;
+    async function checkRequirementStatus(reqName) {
+      if (manualChecks[reqName] !== undefined) return manualChecks[reqName];
 
-      // Find numeric student id
-      let studentId = null;
-      try {
-        const { data } = await window.supabaseClient
-          .from('students').select('id')
-          .eq('student_id', currentProfile.student_id).maybeSingle();
-        studentId = data?.id;
-      } catch {}
-
-      // Check fees
-      if (studentId) {
-        try {
-          const { count } = await window.supabaseClient
-            .from('fees').select('*', { count: 'exact', head: true })
-            .eq('student_id', studentId).eq('status', 'unpaid');
-          checks.feesCleared = (count ?? 0) === 0;
-        } catch { checks.feesCleared = false; }
-
-        try {
-          const { count } = await window.supabaseClient
-            .from('fines').select('*', { count: 'exact', head: true })
-            .eq('student_id', studentId).eq('status', 'unpaid');
-          checks.finesCleared = (count ?? 0) === 0;
-        } catch { checks.finesCleared = false; }
+      if (reqName.toLowerCase().includes('fees') && studentRecordId) {
+        const { count } = await window.supabaseClient.from('fees').select('*', { count: 'exact', head: true }).eq('student_id', studentRecordId).eq('status', 'unpaid');
+        return (count ?? 0) === 0;
+      }
+      
+      if (reqName.toLowerCase().includes('fines') && studentRecordId) {
+        const { count } = await window.supabaseClient.from('fines').select('*', { count: 'exact', head: true }).eq('student_id', studentRecordId).eq('status', 'unpaid');
+        return (count ?? 0) === 0;
       }
 
-      // Check no active pending request
-      checks.hasActiveClearance = myClearances.some(c => c.status === 'pending' || c.status === 'approved');
+      if (reqName.toLowerCase().includes('attendance')) return true;
+      return false; 
     }
 
-    /* ---------- RENDER REQUIREMENTS ---------- */
-    function renderRequirements() {
+    async function renderRequirements() {
       const el = document.getElementById('requirementsList');
-      const checksMap = {
-        'Cleared from all fees': checks.feesCleared,
-        'Cleared from all fines': checks.finesCleared,
-        'Attendance requirement met': checks.attendanceOk,
-      };
-
-      if (requirements.length === 0) {
-        el.innerHTML = `<p class="text-center text-purple-300/60 py-6 text-xs italic">No requirements configured yet.</p>`;
-        return;
-      }
-
       let total = 0, done = 0;
-      el.innerHTML = requirements.map(r => {
-        const isChecked = checksMap[r.name] ?? false;
+      let html = '';
+
+      for (const r of requirements) {
+        const isChecked = await checkRequirementStatus(r.name);
         if (r.required) total++;
         if (r.required && isChecked) done++;
 
-        return `
+        const isManual = !r.name.toLowerCase().includes('fees') && !r.name.toLowerCase().includes('fines') && !r.name.toLowerCase().includes('attendance');
+        
+        html += `
           <div class="flex items-start gap-3 p-3 rounded-2xl ${isChecked ? 'bg-emerald-950/30 border border-emerald-500/30' : 'bg-purple-950/50 border border-purple-500/30'}">
-            <div class="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${isChecked ? 'bg-emerald-500/30 border border-emerald-400/50' : 'bg-purple-800/50 border border-purple-500/40'}">
+            <button type="button" ${isManual ? `onclick="toggleManualCheck('${r.name}')"` : 'disabled'} class="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${isChecked ? 'bg-emerald-500/30 border border-emerald-400/50' : 'bg-purple-800/50 border border-purple-500/40'} ${isManual ? 'cursor-pointer hover:border-purple-400' : ''}">
               <i data-lucide="${isChecked ? 'check' : 'circle'}" class="w-3.5 h-3.5 ${isChecked ? 'text-emerald-300' : 'text-purple-300/60'}"></i>
-            </div>
+            </button>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
                 <span class="font-semibold text-white text-xs">${r.name}</span>
@@ -361,30 +320,41 @@
             </div>
           </div>
         `;
-      }).join('');
+      }
+
+      el.innerHTML = html;
 
       const pct = total ? Math.round((done / total) * 100) : 100;
       document.getElementById('reqSummary').textContent = `${done}/${total} cleared (${pct}%)`;
       document.getElementById('reqProgressBar').style.width = pct + '%';
 
-      // Update modal requirements
-      const modalReq = document.getElementById('modalRequirements');
-      if (modalReq) {
-        modalReq.innerHTML = requirements.slice(0, 4).map(r => {
-          const isChecked = checksMap[r.name] ?? false;
-          return `
-            <div class="flex items-center gap-2 ${isChecked ? 'text-emerald-300' : 'text-purple-300/70'}">
-              <i data-lucide="${isChecked ? 'check-circle-2' : 'circle'}" class="w-3 h-3"></i>
-              <span>${r.name}</span>
-            </div>
-          `;
-        }).join('');
-      }
-
+      renderModalRequirements();
       lucide.createIcons();
     }
 
-    /* ---------- RENDER HISTORY ---------- */
+    async function renderModalRequirements() {
+      const modalReq = document.getElementById('modalRequirements');
+      if (!modalReq) return;
+      
+      let html = '';
+      for (const r of requirements.slice(0, 4)) {
+        const isChecked = await checkRequirementStatus(r.name);
+        html += `
+          <div class="flex items-center gap-2 ${isChecked ? 'text-emerald-300' : 'text-purple-300/70'}">
+            <i data-lucide="${isChecked ? 'check-circle-2' : 'circle'}" class="w-3 h-3"></i>
+            <span>${r.name}</span>
+          </div>
+        `;
+      }
+      modalReq.innerHTML = html;
+      lucide.createIcons();
+    }
+
+    window.toggleManualCheck = (reqName) => {
+      manualChecks[reqName] = !manualChecks[reqName];
+      renderRequirements();
+    };
+
     function renderHistory() {
       const el = document.getElementById('clearanceHistory');
       if (myClearances.length === 0) {
@@ -407,7 +377,7 @@
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusColor[c.status] || ''}">${c.status}</span>
               </div>
               <div class="text-[11px] text-purple-300/70 mt-1">
-                Purpose: ${c.purpose || '—'} • Submitted: ${new Date(c.created_at).toLocaleDateString()}
+                Purpose: ${c.purpose || '—'} • Submitted: ${new Date(c.created_at || c.request_date).toLocaleDateString()}
               </div>
               ${c.remarks ? `<div class="text-[11px] text-purple-200/80 mt-2 p-2 rounded-lg bg-purple-900/40 border border-purple-500/30">Admin: ${c.remarks}</div>` : ''}
             </div>
@@ -416,7 +386,6 @@
       `).join('');
     }
 
-    /* ---------- STATUS BANNER ---------- */
     function renderStatusBanner() {
       const banner = document.getElementById('statusIcon');
       const iconInner = document.getElementById('statusIconInner');
@@ -424,7 +393,6 @@
       const msg = document.getElementById('statusMessage');
       const btn = document.getElementById('requestBtn');
 
-      // Find latest
       const latest = myClearances[0];
 
       if (!latest) {
@@ -463,17 +431,33 @@
       lucide.createIcons();
     }
 
-    /* ---------- MODAL ---------- */
-    function openClearanceModal() {
-      if (checks.hasActiveClearance) {
-        showToast('Already Requested', 'You already have an active clearance.');
+    async function openClearanceModal() {
+      let allMet = true;
+      for (const r of requirements) {
+        if (r.required) {
+          const isChecked = await checkRequirementStatus(r.name);
+          if (!isChecked) allMet = false;
+        }
+      }
+
+      if (!allMet) {
+        showToast('Requirements Not Met', 'Please complete all required items first.');
         return;
       }
-      if (!checks.feesCleared || !checks.finesCleared) {
-        showToast('Requirements Not Met', 'Please clear your fees and fines first.');
-        return;
+
+      // Auto-fill the organization select box
+      const orgSelect = document.getElementById('req-org');
+      if (studentOrg) {
+        orgSelect.innerHTML = `<option value="${studentOrg}">${studentOrg}</option>`;
+        orgSelect.value = studentOrg;
+      } else {
+        orgSelect.innerHTML = `<option value="">Organization not found</option>`;
       }
+
       document.getElementById('clearanceForm').reset();
+      // Re-apply org after reset
+      if (studentOrg) orgSelect.value = studentOrg; 
+
       renderRequirements();
       document.getElementById('modal-request').classList.remove('opacity-0', 'pointer-events-none');
     }
@@ -483,17 +467,16 @@
       if (m) m.classList.add('opacity-0', 'pointer-events-none');
     }
 
-    /* ---------- SUBMIT CLEARANCE ---------- */
     async function submitClearance(event) {
       event.preventDefault();
       if (!window.supabaseClient || !currentUser) return;
 
-      const org = document.getElementById('req-org').value.trim();
+      const org = document.getElementById('req-org').value;
       const purpose = document.getElementById('req-purpose').value;
       const notes = document.getElementById('req-notes').value.trim();
 
       if (!org) {
-        showToast('Missing Org', 'Please enter the organization name.');
+        showToast('Missing Org', 'Your organization could not be determined. Contact admin.');
         return;
       }
 
@@ -504,14 +487,13 @@
 
       try {
         const payload = {
-          student_id: currentUser.id,
-          student_name: `${currentProfile.first_name || ''} ${currentProfile.last_name || ''}`.trim(),
-          student_code: currentProfile.student_id || null,
-          org: org,
+          student_id: currentUser.id, 
+          student_name: `${currentProfile.first_name || ''} ${currentProfile.last_name || ''}`.trim() || currentProfile.email,
+          org: org, // Automatically set to ITSO, CSSO, or EMCO
           purpose: purpose,
-          requirements: requirements.map(r => r.name),
           status: 'pending',
           remarks: notes || null,
+          request_date: new Date().toISOString().slice(0, 10)
         };
 
         const { error } = await window.supabaseClient
@@ -524,10 +506,9 @@
 
         closeModal('modal-request');
         await loadMyClearances();
-        checks.hasActiveClearance = true;
         renderHistory();
         renderStatusBanner();
-        showToast('Request Submitted ✅', 'Your clearance request is now pending.');
+        showToast('Request Submitted ✅', `Your clearance request has been sent to ${org}.`);
 
       } catch (err) {
         showToast('Submit Failed', err.message);

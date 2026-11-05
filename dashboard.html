@@ -180,9 +180,7 @@
         </div>
       </div>
 
-      <!-- ============================================
-           RECENT STUDENTS (WITH PROFILE PICTURES)
-           ============================================ -->
+      <!-- RECENT STUDENTS -->
       <div class="glass-card p-6 rounded-3xl space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -202,6 +200,20 @@
           </div>
         </div>
 
+        <div class="relative">
+          <i data-lucide="search" class="w-4 h-4 text-purple-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+          <input
+            type="text"
+            id="student-search"
+            oninput="handleStudentSearch(this.value)"
+            placeholder="Search by name, student ID, course, or year level..."
+            class="w-full bg-purple-950/80 border border-purple-500/40 rounded-xl pl-10 pr-10 py-2.5 text-xs text-white placeholder-purple-300/40 focus:border-purple-400 focus:outline-none"
+          />
+          <button type="button" onclick="clearStudentSearch()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-purple-300 hover:text-white" id="search-clear-btn" title="Clear search">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
         <div class="overflow-x-auto rounded-2xl border border-purple-500/20">
           <table class="w-full text-left text-xs">
             <thead class="bg-purple-950/80 text-purple-300 uppercase tracking-wider font-semibold border-b border-purple-500/20">
@@ -217,6 +229,7 @@
             </tbody>
           </table>
         </div>
+        <p id="student-count-label" class="text-[11px] text-purple-300/60"></p>
       </div>
 
     </main>
@@ -328,7 +341,6 @@
       await loadDashboard();
     });
 
-    /* ---------- CONNECTION CHECK ---------- */
     async function checkConnection() {
       const iconEl = document.getElementById('connIcon');
       const titleEl = document.getElementById('connTitle');
@@ -365,7 +377,6 @@
       }
     }
 
-    /* ---------- LIVE CLOCK ---------- */
     function updateLiveClock() {
       const timeElem = document.getElementById('live-time-display');
       if (timeElem) {
@@ -374,7 +385,6 @@
       }
     }
 
-    /* ---------- LOAD DASHBOARD ---------- */
     async function loadDashboard() {
       await fetchAndRenderStudents();
       await fetchAndRenderClearances();
@@ -384,7 +394,6 @@
       document.getElementById('role').textContent = 'Role: System Admin';
     }
 
-    /* ---------- STATS (Orgs + Users) ---------- */
     async function fetchStats() {
       if (!window.supabaseClient) {
         document.getElementById('totalOrgs').textContent = '0';
@@ -405,9 +414,8 @@
       } catch { document.getElementById('totalUsers').textContent = '0'; }
     }
 
-    /* ============================================
-       RECENT STUDENTS — WITH PROFILE PICTURES
-       ============================================ */
+    let currentStudentRows = [];
+
     async function fetchAndRenderStudents() {
       const tbody = document.getElementById('recentStudents');
 
@@ -418,9 +426,11 @@
       }
 
       try {
-        // 1. Fetch students
         const { data: students, error } = await window.supabaseClient
-          .from('students').select('*').order('id', { ascending: false });
+          .from('students')
+          .select('*')
+          .order('first_name', { ascending: true })
+          .order('last_name', { ascending: true });
 
         if (error) {
           document.getElementById('totalStudents').textContent = '0';
@@ -428,15 +438,21 @@
           return;
         }
 
-        const list = students || [];
+        const list = (students || []).slice().sort((a, b) => {
+          const fa = `${a.first_name || ''} ${a.last_name || ''}`.trim().toLowerCase();
+          const fb = `${b.first_name || ''} ${b.last_name || ''}`.trim().toLowerCase();
+          return fa.localeCompare(fb, undefined, { sensitivity: 'base' });
+        });
+
         document.getElementById('totalStudents').textContent = list.length;
 
         if (list.length === 0) {
+          currentStudentRows = [];
           tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-purple-300/60 italic">No students yet. Click "Add Student" above.</td></tr>`;
+          updateStudentCountLabel(0, 0);
           return;
         }
 
-        // 2. Fetch matching profiles to get avatar_url (match by student_id string)
         const studentIds = list.map(s => s.student_id).filter(Boolean);
         let avatarMap = {};
 
@@ -453,46 +469,97 @@
           } catch (e) { console.warn('Avatar fetch failed:', e); }
         }
 
-        // 3. Render table
-        tbody.innerHTML = list.slice(0, 6).map(s => {
-          const avatar = avatarMap[s.student_id] || null;
-          const initial = (s.first_name || 'S').charAt(0).toUpperCase();
-          const fullName = `${s.first_name || ''} ${s.last_name || ''}`.trim();
+        currentStudentRows = list.map(s => ({ student: s, avatar: avatarMap[s.student_id] || null }));
 
-          // Avatar HTML — image if available, else initial letter
-          const avatarHTML = avatar
-            ? `<img src="${avatar}" alt="${fullName}" class="w-9 h-9 rounded-xl object-cover border border-purple-400/40 shadow" onerror="this.outerHTML='<div class=\\'w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-purple-400 border border-purple-300/40 flex items-center justify-center font-bold text-sm text-white\\'>${initial}</div>'" />`
-            : `<div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-purple-400 border border-purple-300/40 flex items-center justify-center font-bold text-sm text-white shadow-md shadow-purple-600/30">${initial}</div>`;
-
-          return `
-            <tr class="hover:bg-purple-900/30 transition-colors">
-              <td class="py-3 px-4">
-                <div class="flex items-center gap-3">
-                  ${avatarHTML}
-                  <div class="min-w-0">
-                    <div class="font-semibold text-white truncate">${fullName || '—'}</div>
-                  </div>
-                </div>
-              </td>
-              <td class="py-3 px-4 font-mono font-bold text-purple-300">
-                <span class="px-2 py-1 rounded-lg bg-purple-500/20 border border-purple-400/30">${s.student_id || '—'}</span>
-              </td>
-              <td class="py-3 px-4 text-purple-200">
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-900/80 border border-purple-500/30">${s.course || '—'}</span>
-              </td>
-              <td class="py-3 px-4 text-purple-300/80">${s.year_level || '—'}</td>
-            </tr>
-          `;
-        }).join('');
-
-        lucide.createIcons();
+        const activeQuery = document.getElementById('student-search')?.value || '';
+        renderStudentRows(activeQuery);
 
       } catch (err) {
         tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-red-300 italic">Error: ${err.message}</td></tr>`;
       }
     }
 
-    /* ---------- CLEARANCES ---------- */
+    function buildStudentRow(s, avatar) {
+      const initial = (s.first_name || 'S').charAt(0).toUpperCase();
+      const fullName = `${s.first_name || ''} ${s.last_name || ''}`.trim();
+
+      const avatarHTML = avatar
+        ? `<img src="${avatar}" alt="${fullName}" class="w-9 h-9 rounded-xl object-cover border border-purple-400/40 shadow" onerror="this.outerHTML='<div class=\\'w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-purple-400 border border-purple-300/40 flex items-center justify-center font-bold text-sm text-white\\'>${initial}</div>'" />`
+        : `<div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-purple-400 border border-purple-300/40 flex items-center justify-center font-bold text-sm text-white shadow-md shadow-purple-600/30">${initial}</div>`;
+
+      return `
+        <tr class="hover:bg-purple-900/30 transition-colors">
+          <td class="py-3 px-4">
+            <div class="flex items-center gap-3">
+              ${avatarHTML}
+              <div class="min-w-0">
+                <div class="font-semibold text-white truncate">${fullName || '—'}</div>
+              </div>
+            </div>
+          </td>
+          <td class="py-3 px-4 font-mono font-bold text-purple-300">
+            <span class="px-2 py-1 rounded-lg bg-purple-500/20 border border-purple-400/30">${s.student_id || '—'}</span>
+          </td>
+          <td class="py-3 px-4 text-purple-200">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-900/80 border border-purple-500/30">${s.course || '—'}</span>
+          </td>
+          <td class="py-3 px-4 text-purple-300/80">${s.year_level || '—'}</td>
+        </tr>
+      `;
+    }
+
+    function renderStudentRows(query = '') {
+      const tbody = document.getElementById('recentStudents');
+      const q = query.toLowerCase().trim();
+
+      const filtered = q
+        ? currentStudentRows.filter(({ student: s }) => {
+            const fullName = `${s.first_name || ''} ${s.last_name || ''}`.toLowerCase();
+            return (
+              fullName.includes(q) ||
+              String(s.student_id || '').toLowerCase().includes(q) ||
+              String(s.course || '').toLowerCase().includes(q) ||
+              String(s.year_level || '').toLowerCase().includes(q)
+            );
+          })
+        : currentStudentRows;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-purple-300/60 italic">No students match your search.</td></tr>`;
+      } else {
+        tbody.innerHTML = filtered.map(({ student, avatar }) => buildStudentRow(student, avatar)).join('');
+      }
+
+      updateStudentCountLabel(filtered.length, currentStudentRows.length);
+      lucide.createIcons();
+    }
+
+    function updateStudentCountLabel(shown, total) {
+      const label = document.getElementById('student-count-label');
+      if (!label) return;
+      if (total === 0) {
+        label.textContent = '';
+      } else if (shown === total) {
+        label.textContent = `Showing all ${total} student${total === 1 ? '' : 's'}.`;
+      } else {
+        label.textContent = `Showing ${shown} of ${total} student${total === 1 ? '' : 's'} (filtered).`;
+      }
+    }
+
+    function handleStudentSearch(query) {
+      renderStudentRows(query);
+
+      const clearBtn = document.getElementById('search-clear-btn');
+      if (clearBtn) clearBtn.classList.toggle('hidden', !query.trim());
+    }
+
+    function clearStudentSearch() {
+      const input = document.getElementById('student-search');
+      if (input) { input.value = ''; }
+      handleStudentSearch('');
+      input?.focus();
+    }
+
     async function fetchAndRenderClearances() {
       let pending = [];
 
@@ -538,7 +605,6 @@
       showToast('Clearance ' + action, `Request #${id} marked as ${action.toLowerCase()}.`);
     }
 
-    /* ---------- STUDENT CRUD ---------- */
     async function submitNewStudent(event) {
       event.preventDefault();
 
@@ -574,7 +640,6 @@
       }
     }
 
-    /* ---------- MODALS ---------- */
     function openAddStudentModal() {
       document.getElementById('modal-add-student').classList.remove('opacity-0', 'pointer-events-none');
     }
@@ -588,7 +653,6 @@
       if (modal) modal.classList.add('opacity-0', 'pointer-events-none');
     }
 
-    /* ---------- SEARCH ---------- */
     function handleGlobalSearch(query) {
       const q = query.toLowerCase().trim();
       document.querySelectorAll('#recentStudents tr').forEach(row => {

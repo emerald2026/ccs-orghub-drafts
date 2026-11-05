@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CSSO Fees — CCS OrgHub</title>
+  <link rel="icon" type="image/png" href="ccs.png" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js" onerror="console.warn('config.js not found')"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="shared.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        fontFamily: { sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'] },
+        colors: { purple: { 950:'#0f041c',900:'#1e0836',850:'#2d0a4e',800:'#3b0764',700:'#581c87',600:'#7e22ce',500:'#a855f7',400:'#c084fc',300:'#d8b4fe',200:'#e9d5ff',100:'#f3e8ff',50:'#faf5ff' }}
+      }}
+    }
+  </script>
+</head>
+<body class="h-full font-sans antialiased selection:bg-emerald-500 selection:text-white flex overflow-hidden">
+
+  <div id="bg-layer"></div>
+  <div id="sidebar-layer"></div>
+
+  <div class="flex-1 lg:ml-64 flex flex-col min-h-screen relative z-10 overflow-x-hidden">
+    <div id="topbar-layer"></div>
+
+    <main class="flex-1 p-4 md:p-8 space-y-6">
+      <div id="connectionStatus" class="glass-card p-4 rounded-2xl flex items-center gap-3 text-xs">
+        <div id="connIcon" class="p-2 rounded-xl bg-amber-500/20 border border-amber-500/30">
+          <i data-lucide="wifi" class="w-4 h-4 text-amber-300"></i>
+        </div>
+        <div>
+          <div id="connTitle" class="font-bold text-white">Checking connection...</div>
+          <div id="connSub" class="text-emerald-300/70">Verifying fees table</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-300/70">Total Fees</span>
+            <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"><i data-lucide="receipt" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-white" id="statTotal">—</div>
+        </div>
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-300/70">Collected</span>
+            <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-2xl font-extrabold text-emerald-300" id="statPaidAmount">₱0.00</div>
+        </div>
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-300/70">Outstanding</span>
+            <div class="p-2.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30"><i data-lucide="clock" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-2xl font-extrabold text-amber-300" id="statUnpaidAmount">₱0.00</div>
+        </div>
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-300/70">Unpaid</span>
+            <div class="p-2.5 rounded-xl bg-red-500/20 text-red-300 border border-red-500/30"><i data-lucide="alert-circle" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-red-300" id="statUnpaid">—</div>
+        </div>
+      </div>
+
+      <div class="glass-card p-6 rounded-3xl space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <i data-lucide="receipt" class="w-5 h-5 text-emerald-400"></i> CSSO Membership Fees
+          </h3>
+          <div class="flex items-center gap-2">
+            <button onclick="loadFees()" class="px-3 py-1.5 rounded-lg bg-emerald-950/60 hover:bg-emerald-800/60 text-emerald-200 border border-emerald-500/30 text-[11px] font-bold transition-all flex items-center gap-1.5">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
+            </button>
+            <button onclick="openFeeModal()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-700 text-white font-bold text-xs shadow-lg shadow-emerald-600/40 hover:brightness-110 flex items-center gap-2 border border-emerald-400/40">
+              <i data-lucide="plus" class="w-4 h-4"></i><span>Record Fee</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3">
+          <div class="relative flex-1">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-emerald-300/60"></i>
+            <input id="feeSearch" oninput="renderFees()" placeholder="Search by student, amount, or status..."
+              class="w-full bg-emerald-950/60 border border-emerald-500/30 rounded-xl py-2.5 pl-9 pr-10 text-xs text-white placeholder-emerald-300/50 focus:border-emerald-400 focus:outline-none" />
+            <button type="button" id="feeSearchClearBtn" onclick="clearFeeSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-emerald-300 hover:text-white p-1" title="Clear search">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <select id="feeFilter" onchange="renderFees()"
+            class="bg-emerald-950/60 border border-emerald-500/30 rounded-xl py-2.5 px-3 text-xs text-white focus:border-emerald-400 focus:outline-none">
+            <option value="all">All Status</option>
+            <option value="paid">Paid</option>
+            <option value="unpaid">Unpaid</option>
+            <option value="waived">Waived</option>
+          </select>
+        </div>
+
+        <p id="feeCountLabel" class="text-[11px] text-emerald-300/60 px-1"></p>
+
+        <div class="overflow-x-auto rounded-2xl border border-emerald-500/20">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-emerald-950/80 text-emerald-300 uppercase tracking-wider font-semibold border-b border-emerald-500/20">
+              <tr>
+                <th class="py-3.5 px-4">Student</th>
+                <th class="py-3.5 px-4">Organization</th>
+                <th class="py-3.5 px-4">Amount</th>
+                <th class="py-3.5 px-4">Status</th>
+                <th class="py-3.5 px-4">Due Date</th>
+                <th class="py-3.5 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="feesTable" class="divide-y divide-emerald-500/10 text-emerald-100">
+              <tr><td colspan="6" class="py-8 text-center text-emerald-300/60 italic">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="modal-fee" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="glass-card w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-emerald-400/40 space-y-5 relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeModal('modal-fee')" class="absolute top-5 right-5 text-emerald-300 hover:text-white">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center space-x-3">
+        <div class="p-2.5 rounded-xl bg-emerald-600/30 text-emerald-300 border border-emerald-400/40">
+          <i data-lucide="receipt" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-white">Record CSSO Fee</h3>
+          <p class="text-xs text-emerald-300/70">Add a new fee entry for a CSSO student</p>
+        </div>
+      </div>
+
+      <form id="feeForm" onsubmit="saveFee(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-emerald-200 mb-1.5 text-[11px] uppercase tracking-wider">Student *</label>
+          <input type="hidden" id="fee-student" />
+          <div id="selectedStudentChip" class="hidden mb-2 flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-emerald-600/20 border border-emerald-400/40">
+            <div class="flex items-center gap-2 min-w-0">
+              <div class="p-1 rounded-lg bg-emerald-500/30 text-emerald-200"><i data-lucide="user-check" class="w-3.5 h-3.5"></i></div>
+              <span id="selectedStudentLabel" class="text-xs font-semibold text-white truncate"></span>
+            </div>
+            <button type="button" onclick="clearSelectedStudent()" class="text-emerald-300 hover:text-white p-0.5"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+          </div>
+          <div class="relative">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-emerald-300/60"></i>
+            <input type="text" id="studentPickerSearch" autocomplete="off" placeholder="Search student by name or ID..."
+              oninput="renderStudentPicker(this.value)" onfocus="renderStudentPicker(this.value)"
+              class="w-full bg-emerald-950/60 border border-emerald-500/40 rounded-xl px-3.5 py-2.5 pl-9 text-sm text-white placeholder-emerald-300/40 focus:border-emerald-400 focus:outline-none" />
+          </div>
+          <div id="studentPickerList" class="mt-1.5 max-h-44 overflow-y-auto rounded-xl border border-emerald-500/30 bg-emerald-950/80 divide-y divide-emerald-500/10 text-xs"></div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-emerald-200 mb-1.5 text-[11px] uppercase tracking-wider">Organization</label>
+          <input id="fee-org" value="CSSO" readonly class="w-full bg-emerald-950/40 border border-emerald-500/20 rounded-xl px-3.5 py-2.5 text-emerald-300/70 cursor-not-allowed focus:outline-none" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-emerald-200 mb-1.5 text-[11px] uppercase tracking-wider">Amount (₱) *</label>
+            <input id="fee-amount" type="number" required min="0" step="0.01" placeholder="250.00"
+              class="w-full bg-emerald-950/60 border border-emerald-500/40 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-emerald-300/40 focus:border-emerald-400 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block font-semibold text-emerald-200 mb-1.5 text-[11px] uppercase tracking-wider">Status</label>
+            <select id="fee-status" class="w-full bg-emerald-950/60 border border-emerald-500/40 rounded-xl px-3 py-2.5 text-sm text-white focus:border-emerald-400 focus:outline-none">
+              <option value="unpaid" selected>Unpaid</option>
+              <option value="paid">Paid</option>
+              <option value="waived">Waived</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-emerald-200 mb-1.5 text-[11px] uppercase tracking-wider">Due Date</label>
+          <input id="fee-due" type="date" class="w-full bg-emerald-950/60 border border-emerald-500/40 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-emerald-400 focus:outline-none" />
+        </div>
+
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-fee')" class="px-4 py-2 rounded-xl bg-emerald-950/60 hover:bg-emerald-800/60 text-emerald-200 border border-emerald-500/30 text-xs font-bold transition-all">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-700 text-white font-bold text-xs shadow-lg shadow-emerald-600/40 hover:brightness-110 flex items-center gap-2 border border-emerald-400/40">
+            <i data-lucide="save" class="w-4 h-4"></i> Save Fee
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-layer"></div>
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-3 pointer-events-none"></div>
+
+  <script src="shared.js"></script>
+  <script>
+    const ORG_CODE = 'CSSO';
+    const ORG_LABEL = 'CSSO';
+    const ORG_COURSES = ['BS Computer Science'];
+    const ACTIVE_PAGE = 'org-fees';
+
+    let fees = [];
+    let students = [];
+    let selectedStudent = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      document.getElementById('bg-layer').innerHTML = buildBackground();
+      document.getElementById('sidebar-layer').innerHTML = buildSidebar(ACTIVE_PAGE);
+      document.getElementById('topbar-layer').innerHTML = buildTopbar('CSSO Fees', 'Record and monitor organization membership fees');
+      document.getElementById('modal-layer').innerHTML = buildLogoutModal();
+
+      lucide.createIcons();
+      initSupabase();
+      
+      const auth = await guardOrgAuth(ORG_CODE);
+      if (!auth.ok) return;
+      
+      await loadStudents();
+      await loadFees();
+    });
+
+    async function loadStudents() {
+      if (!window.supabaseClient) return;
+      try {
+        const { data } = await window.supabaseClient
+          .from('students')
+          .select('id, first_name, last_name, student_id')
+          .in('course', ORG_COURSES)
+          .order('first_name', { ascending: true });
+
+        students = (data || []).slice().sort((a, b) => {
+          const fa = `${a.first_name || ''} ${a.last_name || ''}`.trim().toLowerCase();
+          const fb = `${b.first_name || ''} ${b.last_name || ''}`.trim().toLowerCase();
+          return fa.localeCompare(fb, undefined, { sensitivity: 'base' });
+        });
+      } catch { students = []; }
+    }
+
+    function renderStudentPicker(query = '') {
+      const listEl = document.getElementById('studentPickerList');
+      if (!listEl) return;
+
+      const q = (query || '').toLowerCase().trim();
+      const matches = students.filter(s => !q || `${s.student_id || ''} ${s.first_name || ''} ${s.last_name || ''}`.toLowerCase().includes(q));
+
+      if (students.length === 0) {
+        listEl.innerHTML = `<div class="px-3 py-3 text-center text-emerald-300/60 italic">No students in ${ORG_LABEL}.</div>`;
+        return;
+      }
+      if (matches.length === 0) {
+        listEl.innerHTML = `<div class="px-3 py-3 text-center text-emerald-300/60 italic">No students match "${q}".</div>`;
+        return;
+      }
+
+      listEl.innerHTML = matches.slice(0, 50).map(s => {
+        const isSelected = selectedStudent && String(selectedStudent.id) === String(s.id);
+        const initial = (s.first_name || 'S').charAt(0).toUpperCase();
+        const fullName = `${s.first_name || ''} ${s.last_name || ''}`.trim();
+        return `
+          <button type="button" onclick='pickStudent(${JSON.stringify(s).replace(/'/g, "&#39;")})'
+            class="w-full text-left px-3 py-2 flex items-center gap-2.5 hover:bg-emerald-800/40 transition-colors ${isSelected ? 'bg-emerald-700/40' : ''}">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-emerald-600 to-emerald-400 border border-emerald-300/40 flex items-center justify-center font-bold text-[11px] text-white shrink-0">
+              ${initial}
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="font-semibold text-white truncate text-xs">${fullName || '—'}</div>
+              <div class="text-[10px] text-emerald-300/70 font-mono truncate">${s.student_id || ''}</div>
+            </div>
+            ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>' : ''}
+          </button>
+        `;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    function pickStudent(s) {
+      selectedStudent = s;
+      document.getElementById('fee-student').value = s.id;
+      const chip = document.getElementById('selectedStudentChip');
+      const label = document.getElementById('selectedStudentLabel');
+      label.textContent = `${s.student_id || ''} — ${s.first_name || ''} ${s.last_name || ''}`.trim();
+      chip.classList.remove('hidden');
+      document.getElementById('studentPickerSearch').value = '';
+      renderStudentPicker('');
+    }
+
+    function clearSelectedStudent() {
+      selectedStudent = null;
+      document.getElementById('fee-student').value = '';
+      document.getElementById('selectedStudentChip').classList.add('hidden');
+      document.getElementById('studentPickerSearch').value = '';
+      renderStudentPicker('');
+    }
+
+    async function loadFees() {
+      const tbody = document.getElementById('feesTable');
+      tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-emerald-300/60 italic">Loading...</td></tr>`;
+
+      if (!window.supabaseClient) return;
+
+      try {
+        const { data, error } = await window.supabaseClient
+          .from('fees')
+          .select('*')
+          .eq('org', ORG_LABEL)
+          .order('student_name', { ascending: true });
+
+        if (error) {
+          tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-red-300 italic">Error: ${error.message}</td></tr>`;
+          return;
+        }
+
+        fees = (data || []).slice().sort((a, b) => {
+          const fa = (a.student_name || '').trim().toLowerCase();
+          const fb = (b.student_name || '').trim().toLowerCase();
+          return fa.localeCompare(fb, undefined, { sensitivity: 'base' });
+        });
+
+        renderFees(); renderStats();
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-red-300 italic">Error: ${err.message}</td></tr>`;
+      }
+    }
+
+    function renderStats() {
+      const total = fees.length;
+      const paidAmount = fees.filter(f => f.status === 'paid').reduce((s, f) => s + (parseFloat(f.amount) || 0), 0);
+      const unpaidAmount = fees.filter(f => f.status === 'unpaid').reduce((s, f) => s + (parseFloat(f.amount) || 0), 0);
+      const unpaidCount = fees.filter(f => f.status === 'unpaid').length;
+
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statPaidAmount').textContent = '₱' + paidAmount.toFixed(2);
+      document.getElementById('statUnpaidAmount').textContent = '₱' + unpaidAmount.toFixed(2);
+      document.getElementById('statUnpaid').textContent = unpaidCount;
+    }
+
+    function renderFees() {
+      const q = (document.getElementById('feeSearch').value || '').toLowerCase().trim();
+      const filter = document.getElementById('feeFilter').value;
+
+      const clearBtn = document.getElementById('feeSearchClearBtn');
+      if (clearBtn) clearBtn.classList.toggle('hidden', !q);
+
+      const list = fees.filter(f => {
+        if (filter !== 'all' && f.status !== filter) return false;
+        if (!q) return true;
+        const haystack = [
+          f.student_name || '', f.org || '', f.status || '', f.remarks || '', String(f.amount || ''), f.due_date || ''
+        ].join(' ').toLowerCase();
+        return haystack.includes(q);
+      });
+
+      const tbody = document.getElementById('feesTable');
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-emerald-300/60 italic">${q || filter !== 'all' ? 'No fee records match your search/filter.' : 'No fee records found.'}</td></tr>`;
+        updateFeeCountLabel(0, fees.length, q, filter);
+        return;
+      }
+
+      tbody.innerHTML = list.map(f => `
+        <tr class="hover:bg-emerald-900/30 transition-colors">
+          <td class="py-3.5 px-4 font-semibold text-white">${f.student_name || '—'}</td>
+          <td class="py-3.5 px-4 text-emerald-200">${f.org || '—'}</td>
+          <td class="py-3.5 px-4 text-emerald-200 font-bold">₱${(parseFloat(f.amount) || 0).toFixed(2)}</td>
+          <td class="py-3.5 px-4">
+            <span class="px-2 py-1 rounded-full text-[10px] font-bold border
+              ${f.status === 'paid' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30' : ''}
+              ${f.status === 'unpaid' ? 'bg-amber-500/20 text-amber-300 border-amber-400/30' : ''}
+              ${f.status === 'waived' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30' : ''}">
+              ${f.status || '—'}
+            </span>
+          </td>
+          <td class="py-3.5 px-4 text-emerald-300/80">${f.due_date ? new Date(f.due_date).toLocaleDateString() : '—'}</td>
+          <td class="py-3.5 px-4 text-right space-x-1">
+            ${f.status === 'unpaid' ? `<button onclick="markFeePaid(${f.id})" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-white text-[10px] font-bold border border-emerald-500/30 transition-all">Mark Paid</button>` : ''}
+            <button onclick="deleteFee(${f.id})" class="p-1.5 rounded-lg text-emerald-400 hover:text-red-300 hover:bg-red-500/20 transition-all">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+      lucide.createIcons();
+      updateFeeCountLabel(list.length, fees.length, q, filter);
+    }
+
+    function updateFeeCountLabel(shown, total, q, filter) {
+      const label = document.getElementById('feeCountLabel');
+      if (!label) return;
+      if (total === 0) {
+        label.textContent = '';
+      } else if (!q && filter === 'all') {
+        label.textContent = `Showing all ${total} record${total === 1 ? '' : 's'} (A–Z).`;
+      } else {
+        label.textContent = `Showing ${shown} of ${total} record${total === 1 ? '' : 's'} (filtered).`;
+      }
+    }
+
+    function clearFeeSearch() {
+      const input = document.getElementById('feeSearch');
+      if (input) input.value = '';
+      renderFees();
+      input?.focus();
+    }
+
+    function openFeeModal() {
+      document.getElementById('feeForm').reset();
+      clearSelectedStudent();
+      renderStudentPicker('');
+      document.getElementById('modal-fee').classList.remove('opacity-0', 'pointer-events-none');
+    }
+
+    function closeModal(id) {
+      const m = document.getElementById(id);
+      if (m) m.classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    async function saveFee(event) {
+      event.preventDefault();
+      if (!window.supabaseClient) return;
+      if (!selectedStudent) {
+        showToast('Missing Student', 'Search and select a student first.');
+        return;
+      }
+
+      const payload = {
+        student_id: selectedStudent.id,
+        student_name: `${selectedStudent.first_name} ${selectedStudent.last_name}`,
+        org: ORG_LABEL,
+        amount: parseFloat(document.getElementById('fee-amount').value) || 0,
+        status: document.getElementById('fee-status').value,
+        due_date: document.getElementById('fee-due').value || null,
+      };
+
+      try {
+        const { error } = await window.supabaseClient.from('fees').insert([payload]).select();
+        if (error) { showToast('Save Failed ❌', error.message); return; }
+
+        closeModal('modal-fee');
+        await loadFees();
+        showToast('Fee Recorded ✅', `${payload.student_name} — ₱${payload.amount}`);
+      } catch (err) {
+        showToast('Save Failed', err.message);
+      }
+    }
+
+    async function markFeePaid(id) {
+      if (!window.supabaseClient) return;
+      try {
+        const { error } = await window.supabaseClient.from('fees').update({ status: 'paid' }).eq('id', id);
+        if (error) { showToast('Update Failed ❌', error.message); return; }
+        await loadFees();
+        showToast('Marked as Paid ✅', 'Fee status updated.');
+      } catch (err) { showToast('Update Failed', err.message); }
+    }
+
+    async function deleteFee(id) {
+      if (!confirm('Delete this fee record?')) return;
+      if (!window.supabaseClient) return;
+      try {
+        const { error } = await window.supabaseClient.from('fees').delete().eq('id', id);
+        if (error) { showToast('Delete Failed ❌', error.message); return; }
+        await loadFees();
+        showToast('Fee Deleted ✅', 'Record removed.');
+      } catch (err) { showToast('Delete Failed', err.message); }
+    }
+  </script>
+</body>
+</html>

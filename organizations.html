@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Organizations — CCS OrgHub Admin</title>
+
+  <link rel="icon" type="image/png" href="ccs.png" />
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js" onerror="console.warn('config.js not found. Demo mode.')"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="shared.css">
+
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        fontFamily: { sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'] },
+        colors: { purple: {
+          950:'#0f041c',900:'#1e0836',850:'#2d0a4e',800:'#3b0764',700:'#581c87',
+          600:'#7e22ce',500:'#a855f7',400:'#c084fc',300:'#d8b4fe',200:'#e9d5ff',100:'#f3e8ff',50:'#faf5ff'
+        }}
+      }}
+    }
+  </script>
+</head>
+
+<body class="h-full font-sans antialiased selection:bg-purple-500 selection:text-white">
+
+  <div id="bg-layer"></div>
+  <div id="sidebar-layer"></div>
+
+  <div class="flex-1 lg:ml-64 flex flex-col min-h-screen relative z-10 overflow-x-hidden">
+    <div id="topbar-layer"></div>
+
+    <main class="flex-1 p-4 md:p-8 space-y-6">
+
+      <!-- CONNECTION STATUS -->
+      <div id="connectionStatus" class="glass-card p-4 rounded-2xl flex items-center gap-3 text-xs">
+        <div id="connIcon" class="p-2 rounded-xl bg-amber-500/20 border border-amber-500/30">
+          <i data-lucide="wifi" class="w-4 h-4 text-amber-300"></i>
+        </div>
+        <div>
+          <div id="connTitle" class="font-bold text-white">Checking Supabase connection...</div>
+          <div id="connSub" class="text-purple-300/70">Verifying database access</div>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Total Organizations</span>
+            <div class="p-2.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30"><i data-lucide="building-2" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-white" id="statTotal">—</div>
+        </div>
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Total Members</span>
+            <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"><i data-lucide="users" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-emerald-300" id="statMembers">—</div>
+        </div>
+      </div>
+
+      <!-- ADD ORG FORM -->
+      <div class="glass-card p-6 rounded-3xl space-y-4">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <i data-lucide="plus-circle" class="w-5 h-5 text-purple-400"></i> Register Organization
+          </h3>
+        </div>
+
+        <!-- QUICK-FILL OFFICIAL ORGS -->
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-[11px] font-semibold text-purple-300/70 uppercase tracking-wider">Quick-fill:</span>
+          <button type="button" onclick="quickFillOrg('ITSO')"
+            class="px-3 py-1.5 rounded-lg bg-purple-600/20 hover:bg-purple-600 text-purple-200 hover:text-white border border-purple-500/40 text-[11px] font-bold transition-all flex items-center gap-1.5">
+            <i data-lucide="code" class="w-3.5 h-3.5"></i> ITSO
+          </button>
+          <button type="button" onclick="quickFillOrg('CSSO')"
+            class="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 text-emerald-200 hover:text-white border border-emerald-500/40 text-[11px] font-bold transition-all flex items-center gap-1.5">
+            <i data-lucide="cpu" class="w-3.5 h-3.5"></i> CSSO
+          </button>
+          <button type="button" onclick="quickFillOrg('EMCO')"
+            class="px-3 py-1.5 rounded-lg bg-fuchsia-600/20 hover:bg-fuchsia-600 text-fuchsia-200 hover:text-white border border-fuchsia-500/40 text-[11px] font-bold transition-all flex items-center gap-1.5">
+            <i data-lucide="film" class="w-3.5 h-3.5"></i> EMCO
+          </button>
+        </div>
+
+        <form id="orgForm" onsubmit="saveOrganization(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div>
+            <label class="block font-semibold text-purple-200 mb-1.5 text-[11px] uppercase tracking-wider">Organization Name *</label>
+            <input id="org-name" required placeholder="e.g. ITSO"
+              class="w-full bg-purple-950/60 border border-purple-500/40 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-purple-300/40 focus:border-purple-400 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block font-semibold text-purple-200 mb-1.5 text-[11px] uppercase tracking-wider">Adviser Name</label>
+            <input id="org-adviser" placeholder="e.g. Dr. Juan Dela Cruz"
+              class="w-full bg-purple-950/60 border border-purple-500/40 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-purple-300/40 focus:border-purple-400 focus:outline-none" />
+          </div>
+          <div class="md:col-span-2">
+            <label class="block font-semibold text-purple-200 mb-1.5 text-[11px] uppercase tracking-wider">Description</label>
+            <textarea id="org-desc" rows="2" placeholder="Brief description of the organization..."
+              class="w-full bg-purple-950/60 border border-purple-500/40 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-purple-300/40 focus:border-purple-400 focus:outline-none resize-none"></textarea>
+          </div>
+          <div class="md:col-span-2 flex justify-end pt-2">
+            <button type="submit" id="submitBtn"
+              class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-purple-700 text-white font-bold text-xs shadow-lg shadow-purple-600/40 hover:brightness-110 transition-all flex items-center gap-2 border border-purple-400/40">
+              <i data-lucide="save" class="w-4 h-4"></i>
+              <span>Save Organization</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- ORG LIST -->
+      <div class="glass-card p-6 rounded-3xl space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <i data-lucide="list" class="w-5 h-5 text-purple-400"></i> Organization Directory
+          </h3>
+          <button onclick="loadOrganizations()" class="px-3 py-1.5 rounded-lg bg-purple-950/60 hover:bg-purple-800/60 text-purple-200 border border-purple-500/30 text-[11px] font-bold transition-all flex items-center gap-1.5">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
+          </button>
+        </div>
+
+        <div class="relative">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-purple-300/60"></i>
+          <input id="searchOrgs" oninput="renderOrganizations()" placeholder="Search by name, adviser, or description..."
+            class="w-full bg-purple-950/60 border border-purple-500/30 rounded-xl py-2.5 pl-9 pr-10 text-xs text-white placeholder-purple-300/50 focus:border-purple-400 focus:outline-none" />
+          <button type="button" id="orgSearchClearBtn" onclick="clearOrgSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-purple-300 hover:text-white p-1" title="Clear search">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <p id="orgCountLabel" class="text-[11px] text-purple-300/60 px-1"></p>
+
+        <div id="orgsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <p class="text-center text-purple-300/60 py-6 text-xs italic col-span-full">Loading...</p>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <div id="modal-layer"></div>
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-3 pointer-events-none"></div>
+
+  <script src="shared.js"></script>
+  <script>
+    let organizations = [];
+
+    /* Official org presets for quick-fill */
+    const OFFICIAL_ORGS = {
+      ITSO: {
+        name: 'ITSO',
+        adviser: '',
+        description: 'Information Technology Students Organization — the official student organization for BS Information Technology and Associate in Computer Technology students of the College of Computer Studies.',
+        icon: 'code',
+        color: 'purple',
+      },
+      CSSO: {
+        name: 'CSSO',
+        adviser: '',
+        description: 'Computer Science Students Organization — the official student organization for BS Computer Science students of the College of Computer Studies.',
+        icon: 'cpu',
+        color: 'emerald',
+      },
+      EMCO: {
+        name: 'EMCO',
+        adviser: '',
+        description: 'Entertainment & Multimedia Computing Organization — the official student organization for BS Entertainment & Multimedia students of the College of Computer Studies.',
+        icon: 'film',
+        color: 'fuchsia',
+      },
+    };
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      document.getElementById('bg-layer').innerHTML = buildBackground();
+      document.getElementById('sidebar-layer').innerHTML = buildSidebar('organizations');
+      document.getElementById('topbar-layer').innerHTML = buildTopbar('Organizations', 'Manage ITSO, CSSO, EMCO and other registered organizations');
+      document.getElementById('modal-layer').innerHTML = buildLogoutModal();
+
+      lucide.createIcons();
+      initSupabase();
+      await checkConnection();
+
+      const ok = await guardAuth();
+      if (!ok) return;
+      await loadUserProfile();
+
+      await loadOrganizations();
+    });
+
+    async function checkConnection() {
+      const iconEl = document.getElementById('connIcon');
+      const titleEl = document.getElementById('connTitle');
+      const subEl = document.getElementById('connSub');
+
+      if (!window.supabaseClient) {
+        iconEl.className = 'p-2 rounded-xl bg-red-500/20 border border-red-500/30';
+        iconEl.innerHTML = '<i data-lucide="wifi-off" class="w-4 h-4 text-red-300"></i>';
+        titleEl.textContent = 'Supabase NOT connected';
+        subEl.textContent = 'Check config.js';
+        lucide.createIcons();
+        return false;
+      }
+
+      try {
+        const { error } = await window.supabaseClient.from('organizations').select('id').limit(1);
+        if (error) {
+          iconEl.className = 'p-2 rounded-xl bg-red-500/20 border border-red-500/30';
+          iconEl.innerHTML = '<i data-lucide="alert-circle" class="w-4 h-4 text-red-300"></i>';
+          titleEl.textContent = 'Table error: ' + error.message;
+          subEl.textContent = 'Check RLS or table name';
+        } else {
+          iconEl.className = 'p-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30';
+          iconEl.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-300"></i>';
+          titleEl.textContent = 'Supabase connected ✅';
+          subEl.textContent = 'Data will persist across refreshes';
+        }
+        lucide.createIcons();
+        return !error;
+      } catch (err) {
+        titleEl.textContent = 'Connection failed';
+        subEl.textContent = err.message;
+        return false;
+      }
+    }
+
+    /* ---------- QUICK-FILL ---------- */
+    function quickFillOrg(key) {
+      const preset = OFFICIAL_ORGS[key];
+      if (!preset) return;
+      document.getElementById('org-name').value = preset.name;
+      document.getElementById('org-adviser').value = preset.adviser;
+      document.getElementById('org-desc').value = preset.description;
+      document.getElementById('org-name').focus();
+      showToast('Preset Loaded', `${preset.name} details filled in. Add an adviser and save.`);
+    }
+
+    /* ---------- LOAD (ALPHABETICAL) ---------- */
+    async function loadOrganizations() {
+      const grid = document.getElementById('orgsGrid');
+      grid.innerHTML = `<p class="text-center text-purple-300/60 py-6 text-xs italic col-span-full">Loading...</p>`;
+
+      if (!window.supabaseClient) {
+        organizations = [];
+        renderOrganizations(); renderStats();
+        return;
+      }
+
+      try {
+        const { data, error } = await window.supabaseClient
+          .from('organizations')
+          .select('*')
+          .order('name', { ascending: true });
+
+        if (error) {
+          grid.innerHTML = `<p class="text-center text-red-300 py-6 text-xs italic col-span-full">Error: ${error.message}</p>`;
+          return;
+        }
+
+        // Extra client-side sort for safety (case-insensitive, locale-aware)
+        organizations = (data || []).slice().sort((a, b) => {
+          const na = (a.name || '').trim().toLowerCase();
+          const nb = (b.name || '').trim().toLowerCase();
+          return na.localeCompare(nb, undefined, { sensitivity: 'base' });
+        });
+
+        renderOrganizations();
+        renderStats();
+      } catch (err) {
+        grid.innerHTML = `<p class="text-center text-red-300 py-6 text-xs italic col-span-full">Error: ${err.message}</p>`;
+      }
+    }
+
+    async function renderStats() {
+      document.getElementById('statTotal').textContent = organizations.length;
+
+      if (!window.supabaseClient) {
+        document.getElementById('statMembers').textContent = '0';
+        return;
+      }
+
+      try {
+        const { count } = await window.supabaseClient
+          .from('memberships')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active');
+        document.getElementById('statMembers').textContent = count ?? 0;
+      } catch {
+        document.getElementById('statMembers').textContent = '—';
+      }
+    }
+
+    /* ---------- RENDER + SEARCH ---------- */
+    function renderOrganizations() {
+      const q = (document.getElementById('searchOrgs').value || '').toLowerCase().trim();
+      const grid = document.getElementById('orgsGrid');
+
+      const clearBtn = document.getElementById('orgSearchClearBtn');
+      if (clearBtn) clearBtn.classList.toggle('hidden', !q);
+
+      const list = organizations.filter(o => {
+        if (!q) return true;
+        const haystack = [
+          o.name || '',
+          o.adviser || '',
+          o.description || '',
+        ].join(' ').toLowerCase();
+        return haystack.includes(q);
+      });
+
+      if (list.length === 0) {
+        grid.innerHTML = `<p class="text-center text-purple-300/60 py-6 text-xs italic col-span-full">${
+          q ? 'No organizations match your search.' : 'No organizations yet. Register one above.'
+        }</p>`;
+        document.getElementById('orgCountLabel').textContent = organizations.length ? `Showing 0 of ${organizations.length} organizations (filtered).` : '';
+        return;
+      }
+
+      grid.innerHTML = list.map(o => {
+        const isOfficial = ['ITSO', 'CSSO', 'EMCO'].includes((o.name || '').toUpperCase());
+        const accent = isOfficial
+          ? o.name.toUpperCase() === 'ITSO' ? 'purple'
+          : o.name.toUpperCase() === 'CSSO' ? 'emerald'
+          : 'fuchsia'
+          : 'purple';
+
+        const badgeClass =
+          accent === 'emerald' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30'
+          : accent === 'fuchsia' ? 'bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-400/30'
+          : 'bg-purple-500/20 text-purple-300 border-purple-400/30';
+
+        return `
+          <div class="p-5 rounded-2xl bg-purple-950/50 border border-purple-500/30 hover:border-purple-400/60 transition-all flex flex-col justify-between gap-4">
+            <div>
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <h4 class="font-bold text-white text-sm line-clamp-2">${o.name || 'Unknown Org'}</h4>
+                ${isOfficial ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${badgeClass} shrink-0">Official</span>` : ''}
+              </div>
+              <p class="text-xs text-purple-200/70 line-clamp-2 mb-3">${o.description || 'No description provided.'}</p>
+              <div class="text-[10px] text-purple-300/70 flex items-center gap-1.5">
+                <i data-lucide="user" class="w-3 h-3"></i> Adviser: ${o.adviser || 'Not assigned'}
+              </div>
+            </div>
+            <div class="flex items-center justify-between border-t border-purple-500/20 pt-3">
+              <span class="text-[10px] text-purple-300/60">Created: ${o.created_at ? new Date(o.created_at).toLocaleDateString() : '—'}</span>
+              <button onclick="deleteOrg(${o.id})" class="text-[10px] text-red-400 hover:text-red-300 font-bold flex items-center gap-1 transition-colors">
+                <i data-lucide="trash-2" class="w-3 h-3"></i> Delete
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('orgCountLabel').textContent = q
+        ? `Showing ${list.length} of ${organizations.length} organizations (filtered).`
+        : `Showing all ${organizations.length} organization${organizations.length === 1 ? '' : 's'} (A–Z).`;
+
+      lucide.createIcons();
+    }
+
+    function clearOrgSearch() {
+      const input = document.getElementById('searchOrgs');
+      if (input) input.value = '';
+      renderOrganizations();
+      input?.focus();
+    }
+
+    /* ---------- SAVE ---------- */
+    async function saveOrganization(event) {
+      event.preventDefault();
+      if (!window.supabaseClient) return;
+
+      const name = document.getElementById('org-name').value.trim();
+      const adviser = document.getElementById('org-adviser').value.trim();
+      const desc = document.getElementById('org-desc').value.trim();
+
+      const btn = document.getElementById('submitBtn');
+      const originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg><span>Saving...</span>';
+
+      try {
+        const { error } = await window.supabaseClient
+          .from('organizations')
+          .insert([{ name, adviser, description: desc }]).select();
+
+        if (error) {
+          showToast('Save Failed ❌', error.message);
+          return;
+        }
+
+        document.getElementById('orgForm').reset();
+        await loadOrganizations();
+        showToast('Organization Added ✅', `${name} has been registered.`);
+
+      } catch (err) {
+        showToast('Save Failed', err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+        lucide.createIcons();
+      }
+    }
+
+    async function deleteOrg(id) {
+      if (!confirm('Delete this organization? This cannot be undone.')) return;
+      if (!window.supabaseClient) return;
+
+      try {
+        const { error } = await window.supabaseClient.from('organizations').delete().eq('id', id);
+        if (error) {
+          showToast('Delete Failed ❌', error.message);
+          return;
+        }
+        await loadOrganizations();
+        showToast('Deleted ✅', 'Organization removed.');
+      } catch (err) {
+        showToast('Delete Failed', err.message);
+      }
+    }
+  </script>
+
+</body>
+</html>

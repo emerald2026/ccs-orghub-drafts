@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ITSO Tracking — CCS OrgHub</title>
+  <link rel="icon" type="image/png" href="ccs.png" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js" onerror="console.warn('config.js not found')"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="shared.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        fontFamily: { sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'] },
+        colors: { purple: { 950:'#0f041c',900:'#1e0836',850:'#2d0a4e',800:'#3b0764',700:'#581c87',600:'#7e22ce',500:'#a855f7',400:'#c084fc',300:'#d8b4fe',200:'#e9d5ff',100:'#f3e8ff',50:'#faf5ff' }}
+      }}
+    }
+  </script>
+</head>
+<body class="h-full font-sans antialiased selection:bg-purple-500 selection:text-white flex overflow-hidden">
+
+  <div id="bg-layer"></div>
+  <div id="sidebar-layer"></div>
+
+  <div class="flex-1 lg:ml-64 flex flex-col min-h-screen relative z-10 overflow-x-hidden">
+    <div id="topbar-layer"></div>
+
+    <main class="flex-1 p-4 md:p-8 space-y-6">
+      <div id="connectionStatus" class="glass-card p-4 rounded-2xl flex items-center gap-3 text-xs">
+        <div id="connIcon" class="p-2 rounded-xl bg-amber-500/20 border border-amber-500/30">
+          <i data-lucide="wifi" class="w-4 h-4 text-amber-300"></i>
+        </div>
+        <div>
+          <div id="connTitle" class="font-bold text-white">Checking connection...</div>
+          <div id="connSub" class="text-purple-300/70">Verifying clearance table</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Total Requests</span>
+            <div class="p-2.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30"><i data-lucide="file-stack" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-white" id="statTotal">—</div>
+        </div>
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Pending</span>
+            <div class="p-2.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30"><i data-lucide="clock" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-amber-300" id="statPending">—</div>
+        </div>
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Approved</span>
+            <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-emerald-300" id="statApproved">—</div>
+        </div>
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300/70">Rejected</span>
+            <div class="p-2.5 rounded-xl bg-red-500/20 text-red-300 border border-red-500/30"><i data-lucide="x-circle" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-red-300" id="statRejected">—</div>
+        </div>
+      </div>
+
+      <div class="glass-card p-6 rounded-3xl space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <i data-lucide="users" class="w-5 h-5 text-purple-400"></i> Student Clearance Summary
+            </h3>
+            <p class="text-xs text-purple-300/70">Who's cleared, who's still waiting</p>
+          </div>
+          <div class="relative w-full sm:w-72">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-purple-300/60"></i>
+            <input id="summarySearch" oninput="renderSummary()" placeholder="Search student..."
+              class="w-full bg-purple-950/60 border border-purple-500/30 rounded-xl py-2.5 pl-9 pr-10 text-xs text-white placeholder-purple-300/50 focus:border-purple-400 focus:outline-none" />
+            <button type="button" id="summarySearchClearBtn" onclick="clearSummarySearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-purple-300 hover:text-white p-1" title="Clear search">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <p id="summaryCountLabel" class="text-[11px] text-purple-300/60 px-1"></p>
+
+        <div class="overflow-x-auto rounded-2xl border border-purple-500/20">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-purple-950/80 text-purple-300 uppercase tracking-wider font-semibold border-b border-purple-500/20">
+              <tr>
+                <th class="py-3.5 px-4">Student</th>
+                <th class="py-3.5 px-4">Total Requirements</th>
+                <th class="py-3.5 px-4">Approved</th>
+                <th class="py-3.5 px-4">Pending</th>
+                <th class="py-3.5 px-4">Rejected</th>
+                <th class="py-3.5 px-4">Overall</th>
+              </tr>
+            </thead>
+            <tbody id="summaryTable" class="divide-y divide-purple-500/10 text-purple-100">
+              <tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="glass-card p-6 rounded-3xl space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <i data-lucide="shield-check" class="w-5 h-5 text-purple-400"></i> ITSO Clearance Requests
+          </h3>
+          <div class="flex items-center gap-2">
+            <button onclick="loadAll()" class="px-3 py-1.5 rounded-lg bg-purple-950/60 hover:bg-purple-800/60 text-purple-200 border border-purple-500/30 text-[11px] font-bold transition-all flex items-center gap-1.5">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
+            </button>
+            <button onclick="openClearanceModal()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-purple-700 text-white font-bold text-xs shadow-lg shadow-purple-600/40 hover:brightness-110 flex items-center gap-2 border border-purple-400/40">
+              <i data-lucide="plus" class="w-4 h-4"></i><span>New Request</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3">
+          <div class="relative flex-1">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-purple-300/60"></i>
+            <input id="clearanceSearch" oninput="renderClearances()" placeholder="Search by student, organization, or requirement..."
+              class="w-full bg-purple-950/60 border border-purple-500/30 rounded-xl py-2.5 pl-9 pr-10 text-xs text-white placeholder-purple-300/50 focus:border-purple-400 focus:outline-none" />
+            <button type="button" id="clearanceSearchClearBtn" onclick="clearClearanceSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-purple-300 hover:text-white p-1" title="Clear search">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <select id="clearanceStatusFilter" onchange="renderClearances()"
+            class="bg-purple-950/60 border border-purple-500/30 rounded-xl py-2.5 px-3 text-xs text-white focus:border-purple-400 focus:outline-none">
+            <option value="all">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+
+        <p id="clearanceCountLabel" class="text-[11px] text-purple-300/60 px-1"></p>
+
+        <div class="overflow-x-auto rounded-2xl border border-purple-500/20">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-purple-950/80 text-purple-300 uppercase tracking-wider font-semibold border-b border-purple-500/20">
+              <tr>
+                <th class="py-3.5 px-4">Student</th>
+                <th class="py-3.5 px-4">Organization / Office</th>
+                <th class="py-3.5 px-4">Requirement</th>
+                <th class="py-3.5 px-4">Status</th>
+                <th class="py-3.5 px-4">Requested</th>
+                <th class="py-3.5 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="clearanceTable" class="divide-y divide-purple-500/10 text-purple-100">
+              <tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="modal-clearance" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="glass-card w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-purple-400/40 space-y-5 relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeModal('modal-clearance')" class="absolute top-5 right-5 text-purple-300 hover:text-white">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center space-x-3">
+        <div class="p-2.5 rounded-xl bg-purple-600/30 text-purple-300 border border-purple-400/40">
+          <i data-lucide="shield-check" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-white">New Clearance Request</h3>
+          <p class="text-xs text-purple-300/70">Add a requirement for a student's clearance</p>
+        </div>
+      </div>
+
+      <form id="clearanceForm" onsubmit="saveClearance(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-purple-200 mb-1.5 text-[11px] uppercase tracking-wider">Student *</label>
+          <input type="hidden" id="clr-student" />
+
+          <div id="selectedClrStudentChip" class="hidden mb-2 flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-purple-600/20 border border-purple-400/40">
+            <div class="flex items-center gap-2 min-w-0">
+              <div class="p-1 rounded-lg bg-purple-500/30 text-purple-200"><i data-lucide="user-check" class="w-3.5 h-3.5"></i></div>
+              <span id="selectedClrStudentLabel" class="text-xs font-semibold text-white truncate"></span>
+            </div>
+            <button type="button" onclick="clearSelectedClrStudent()" class="text-purple-300 hover:text-white p-0.5" title="Clear selection"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+          </div>
+
+          <div class="relative">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-purple-300/60"></i>
+            <input type="text" id="clrStudentPickerSearch" autocomplete="off" placeholder="Search student by name or ID..."
+              oninput="renderClrStudentPicker(this.value)" onfocus="renderClrStudentPicker(this.value)"
+              class="w-full bg-purple-950/60 border border-purple-500/40 rounded-xl px-3.5 py-2.5 pl-9 text-sm text-white placeholder-purple-300/40 focus:border-purple-400 focus:outline-none" />
+          </div>
+
+          <div id="clrStudentPickerList" class="mt-1.5 max-h-40 overflow-y-auto rounded-xl border border-purple-500/30 bg-purple-950/80 divide-y divide-purple-500/10 text-xs"></div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-purple-200 mb-1.5 text-[11px] uppercase tracking-wider">Organization / Office *</label>
+            <select id="clr-org" class="w-full bg-purple-950/60 border border-purple-500/40 rounded-xl px-3 py-2.5 text-sm text-white focus:border-purple-400 focus:outline-none">
+              <option value="ITSO">ITSO</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-purple-200 mb-1.5 text-[11px] uppercase tracking-wider">Requirement *</label>
+            <input id="clr-requirement" required placeholder="e.g. Returned org property"
+              class="w-full bg-purple-950/60 border border-purple-500/40 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-purple-300/40 focus:border-purple-400 focus:outline-none" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-purple-200 mb-1.5 text-[11px] uppercase tracking-wider">Status</label>
+            <select id="clr-status" class="w-full bg-purple-950/60 border border-purple-500/40 rounded-xl px-3 py-2.5 text-sm text-white focus:border-purple-400 focus:outline-none">
+              <option value="pending" selected>Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-purple-200 mb-1.5 text-[11px] uppercase tracking-wider">Request Date</label>
+            <input id="clr-date" type="date" class="w-full bg-purple-950/60 border border-purple-500/40 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-purple-400 focus:outline-none" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-purple-200 mb-1.5 text-[11px] uppercase tracking-wider">Remarks (optional)</label>
+          <textarea id="clr-remarks" rows="2" placeholder="Additional notes..."
+            class="w-full bg-purple-950/60 border border-purple-500/40 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-purple-300/40 focus:border-purple-400 focus:outline-none resize-none"></textarea>
+        </div>
+
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-clearance')" class="px-4 py-2 rounded-xl bg-purple-950/60 hover:bg-purple-800/60 text-purple-200 border border-purple-500/30 text-xs font-bold transition-all">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-purple-700 text-white font-bold text-xs shadow-lg shadow-purple-600/40 hover:brightness-110 flex items-center gap-2 border border-purple-400/40">
+            <i data-lucide="save" class="w-4 h-4"></i> Save Request
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-layer"></div>
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-3 pointer-events-none"></div>
+
+  <script src="shared.js"></script>
+  <script>
+    const ORG_CODE = 'ITSO';
+    const ORG_LABEL = 'ITSO';
+    const ORG_COURSES = ['BS Information Technology', 'Associate in Computer Tech'];
+    const ACTIVE_PAGE = 'org-tracking';
+
+    let clearances = [];
+    let students = [];
+    let selectedClrStudent = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      document.getElementById('bg-layer').innerHTML = buildBackground();
+      document.getElementById('sidebar-layer').innerHTML = buildSidebar(ACTIVE_PAGE);
+      document.getElementById('topbar-layer').innerHTML = buildTopbar('ITSO Tracking', 'Track student clearance requirements');
+      document.getElementById('modal-layer').innerHTML = buildLogoutModal();
+
+      const dateInput = document.getElementById('clr-date');
+      if (dateInput) dateInput.value = new Date().toISOString().slice(0, 10);
+
+      lucide.createIcons();
+      initSupabase();
+      
+      const auth = await guardOrgAuth(ORG_CODE);
+      if (!auth.ok) return;
+      
+      await loadAll();
+    });
+
+    async function loadAll() {
+      await Promise.all([loadStudents(), loadClearances()]);
+    }
+
+    async function loadStudents() {
+      if (!window.supabaseClient) return;
+      try {
+        const { data } = await window.supabaseClient
+          .from('students')
+          .select('id, first_name, last_name, student_id')
+          .in('course', ORG_COURSES)
+          .order('first_name', { ascending: true });
+
+        students = (data || []).slice().sort((a, b) => {
+          const fa = `${a.first_name || ''} ${a.last_name || ''}`.trim().toLowerCase();
+          const fb = `${b.first_name || ''} ${b.last_name || ''}`.trim().toLowerCase();
+          return fa.localeCompare(fb, undefined, { sensitivity: 'base' });
+        });
+      } catch { students = []; }
+    }
+
+    async function loadClearances() {
+      const tbody = document.getElementById('clearanceTable');
+      tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">Loading...</td></tr>`;
+
+      if (!window.supabaseClient) return;
+
+      try {
+        const { data, error } = await window.supabaseClient
+          .from('clearances')
+          .select('*')
+          .eq('org', ORG_LABEL)
+          .order('student_name', { ascending: true });
+
+        if (error) {
+          tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-red-300 italic">Error: ${error.message}</td></tr>`;
+          return;
+        }
+
+        clearances = (data || []).slice().sort((a, b) => {
+          const fa = (a.student_name || '').trim().toLowerCase();
+          const fb = (b.student_name || '').trim().toLowerCase();
+          return fa.localeCompare(fb, undefined, { sensitivity: 'base' });
+        });
+
+        renderClearances(); renderStats(); renderSummary();
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-red-300 italic">Error: ${err.message}</td></tr>`;
+      }
+    }
+
+    function renderStats() {
+      const total = clearances.length;
+      const pending = clearances.filter(c => c.status === 'pending').length;
+      const approved = clearances.filter(c => c.status === 'approved').length;
+      const rejected = clearances.filter(c => c.status === 'rejected').length;
+
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statPending').textContent = pending;
+      document.getElementById('statApproved').textContent = approved;
+      document.getElementById('statRejected').textContent = rejected;
+    }
+
+    function renderClearances() {
+      const q = (document.getElementById('clearanceSearch').value || '').toLowerCase().trim();
+      const filter = document.getElementById('clearanceStatusFilter').value;
+
+      const clearBtn = document.getElementById('clearanceSearchClearBtn');
+      if (clearBtn) clearBtn.classList.toggle('hidden', !q);
+
+      const list = clearances.filter(c => {
+        if (filter !== 'all' && c.status !== filter) return false;
+        if (!q) return true;
+        const haystack = [c.student_name || '', c.org || '', c.requirement || '', c.status || '', c.remarks || ''].join(' ').toLowerCase();
+        return haystack.includes(q);
+      });
+
+      const tbody = document.getElementById('clearanceTable');
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">${q || filter !== 'all' ? 'No clearance requests match your search/filter.' : 'No clearance requests found.'}</td></tr>`;
+        updateClearanceCountLabel(0, clearances.length, q, filter);
+        return;
+      }
+
+      tbody.innerHTML = list.map(c => `
+        <tr class="hover:bg-purple-900/30 transition-colors">
+          <td class="py-3.5 px-4 font-semibold text-white">${c.student_name || '—'}</td>
+          <td class="py-3.5 px-4 text-purple-200">${c.org || '—'}</td>
+          <td class="py-3.5 px-4 text-purple-200">${c.requirement || '—'}</td>
+          <td class="py-3.5 px-4">
+            <span class="px-2 py-1 rounded-full text-[10px] font-bold border
+              ${c.status === 'approved' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30' : ''}
+              ${c.status === 'pending' ? 'bg-amber-500/20 text-amber-300 border-amber-400/30' : ''}
+              ${c.status === 'rejected' ? 'bg-red-500/20 text-red-300 border-red-400/30' : ''}">
+              ${c.status || '—'}
+            </span>
+          </td>
+          <td class="py-3.5 px-4 text-purple-300/80">${c.request_date ? new Date(c.request_date).toLocaleDateString() : '—'}</td>
+          <td class="py-3.5 px-4 text-right space-x-1">
+            ${c.status === 'pending' ? `
+              <button onclick="updateClearanceStatus(${c.id}, 'approved')" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-white text-[10px] font-bold border border-emerald-500/30 transition-all">Approve</button>
+              <button onclick="updateClearanceStatus(${c.id}, 'rejected')" class="px-2.5 py-1 rounded-lg bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white text-[10px] font-bold border border-red-500/30 transition-all">Reject</button>
+            ` : ''}
+            <button onclick="deleteClearance(${c.id})" class="p-1.5 rounded-lg text-purple-400 hover:text-red-300 hover:bg-red-500/20 transition-all">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+      lucide.createIcons();
+      updateClearanceCountLabel(list.length, clearances.length, q, filter);
+    }
+
+    function updateClearanceCountLabel(shown, total, q, filter) {
+      const label = document.getElementById('clearanceCountLabel');
+      if (!label) return;
+      if (total === 0) {
+        label.textContent = '';
+      } else if (!q && filter === 'all') {
+        label.textContent = `Showing all ${total} request${total === 1 ? '' : 's'} (A–Z).`;
+      } else {
+        label.textContent = `Showing ${shown} of ${total} request${total === 1 ? '' : 's'} (filtered).`;
+      }
+    }
+
+    function clearClearanceSearch() {
+      const input = document.getElementById('clearanceSearch');
+      if (input) input.value = '';
+      renderClearances();
+      input?.focus();
+    }
+
+    function renderSummary() {
+      const q = (document.getElementById('summarySearch').value || '').toLowerCase().trim();
+      const clearBtn = document.getElementById('summarySearchClearBtn');
+      if (clearBtn) clearBtn.classList.toggle('hidden', !q);
+
+      const groups = {};
+      clearances.forEach(c => {
+        const key = String(c.student_id || c.student_name || 'unknown');
+        if (!groups[key]) {
+          groups[key] = { student_id: c.student_id, student_name: c.student_name || '—', total: 0, approved: 0, pending: 0, rejected: 0 };
+        }
+        groups[key].total++;
+        if (c.status === 'approved') groups[key].approved++;
+        else if (c.status === 'pending') groups[key].pending++;
+        else if (c.status === 'rejected') groups[key].rejected++;
+      });
+
+      let list = Object.values(groups).sort((a, b) => a.student_name.toLowerCase().localeCompare(b.student_name.toLowerCase(), undefined, { sensitivity: 'base' }));
+
+      if (q) list = list.filter(g => g.student_name.toLowerCase().includes(q));
+
+      const tbody = document.getElementById('summaryTable');
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">${q ? 'No students match your search.' : 'No clearance data yet.'}</td></tr>`;
+        updateSummaryCountLabel(0, Object.keys(groups).length, q);
+        return;
+      }
+
+      tbody.innerHTML = list.map(g => {
+        const isCleared = g.approved === g.total && g.total > 0;
+        const overall = isCleared
+          ? `<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">Cleared</span>`
+          : g.rejected > 0
+            ? `<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-red-500/20 text-red-300 border border-red-400/30">Has Rejected</span>`
+            : `<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30">In Progress</span>`;
+
+        return `
+          <tr class="hover:bg-purple-900/30 transition-colors">
+            <td class="py-3.5 px-4 font-semibold text-white">${g.student_name}</td>
+            <td class="py-3.5 px-4 text-purple-200">${g.total}</td>
+            <td class="py-3.5 px-4 text-emerald-300 font-bold">${g.approved}</td>
+            <td class="py-3.5 px-4 text-amber-300 font-bold">${g.pending}</td>
+            <td class="py-3.5 px-4 text-red-300 font-bold">${g.rejected}</td>
+            <td class="py-3.5 px-4">${overall}</td>
+          </tr>
+        `;
+      }).join('');
+      lucide.createIcons();
+      updateSummaryCountLabel(list.length, Object.keys(groups).length, q);
+    }
+
+    function updateSummaryCountLabel(shown, total, q) {
+      const label = document.getElementById('summaryCountLabel');
+      if (!label) return;
+      if (total === 0) {
+        label.textContent = '';
+      } else if (!q) {
+        label.textContent = `Showing all ${total} student${total === 1 ? '' : 's'} (A–Z).`;
+      } else {
+        label.textContent = `Showing ${shown} of ${total} student${total === 1 ? '' : 's'} (filtered).`;
+      }
+    }
+
+    function clearSummarySearch() {
+      const input = document.getElementById('summarySearch');
+      if (input) input.value = '';
+      renderSummary();
+      input?.focus();
+    }
+
+    function renderClrStudentPicker(query = '') {
+      const listEl = document.getElementById('clrStudentPickerList');
+      if (!listEl) return;
+
+      const q = (query || '').toLowerCase().trim();
+      const matches = students.filter(s => !q || `${s.student_id || ''} ${s.first_name || ''} ${s.last_name || ''}`.toLowerCase().includes(q));
+
+      if (students.length === 0) {
+        listEl.innerHTML = `<div class="px-3 py-3 text-center text-purple-300/60 italic">No students in ${ORG_LABEL}.</div>`;
+        return;
+      }
+      if (matches.length === 0) {
+        listEl.innerHTML = `<div class="px-3 py-3 text-center text-purple-300/60 italic">No students match "${q}".</div>`;
+        return;
+      }
+
+      listEl.innerHTML = matches.slice(0, 50).map(s => {
+        const isSelected = selectedClrStudent && String(selectedClrStudent.id) === String(s.id);
+        const initial = (s.first_name || 'S').charAt(0).toUpperCase();
+        const fullName = `${s.first_name || ''} ${s.last_name || ''}`.trim();
+        return `
+          <button type="button" onclick='pickClrStudent(${JSON.stringify(s).replace(/'/g, "&#39;")})'
+            class="w-full text-left px-3 py-2 flex items-center gap-2.5 hover:bg-purple-800/40 transition-colors ${isSelected ? 'bg-purple-700/40' : ''}">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-purple-600 to-purple-400 border border-purple-300/40 flex items-center justify-center font-bold text-[11px] text-white shrink-0">
+              ${initial}
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="font-semibold text-white truncate text-xs">${fullName || '—'}</div>
+              <div class="text-[10px] text-purple-300/70 font-mono truncate">${s.student_id || ''}</div>
+            </div>
+            ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>' : ''}
+          </button>
+        `;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    function pickClrStudent(s) {
+      selectedClrStudent = s;
+      document.getElementById('clr-student').value = s.id;
+      const chip = document.getElementById('selectedClrStudentChip');
+      const label = document.getElementById('selectedClrStudentLabel');
+      label.textContent = `${s.student_id || ''} — ${s.first_name || ''} ${s.last_name || ''}`.trim();
+      chip.classList.remove('hidden');
+      document.getElementById('clrStudentPickerSearch').value = '';
+      renderClrStudentPicker('');
+    }
+
+    function clearSelectedClrStudent() {
+      selectedClrStudent = null;
+      document.getElementById('clr-student').value = '';
+      document.getElementById('selectedClrStudentChip').classList.add('hidden');
+      document.getElementById('clrStudentPickerSearch').value = '';
+      renderClrStudentPicker('');
+    }
+
+    function openClearanceModal() {
+      document.getElementById('clearanceForm').reset();
+      const dateInput = document.getElementById('clr-date');
+      if (dateInput) dateInput.value = new Date().toISOString().slice(0, 10);
+
+      clearSelectedClrStudent();
+      renderClrStudentPicker('');
+      document.getElementById('modal-clearance').classList.remove('opacity-0', 'pointer-events-none');
+    }
+
+    function closeModal(id) {
+      const m = document.getElementById(id);
+      if (m) m.classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    async function saveClearance(event) {
+      event.preventDefault();
+      if (!window.supabaseClient) return;
+      if (!selectedClrStudent) { showToast('Missing Student', 'Search and select a student first.'); return; }
+
+      const org = document.getElementById('clr-org').value;
+      if (!org) { showToast('Missing Organization', 'Select an organization or office.'); return; }
+
+      const payload = {
+        student_id: selectedClrStudent.id,
+        student_name: `${selectedClrStudent.first_name} ${selectedClrStudent.last_name}`,
+        org: org === 'Other' ? 'Other' : org,
+        requirement: document.getElementById('clr-requirement').value.trim(),
+        status: document.getElementById('clr-status').value,
+        request_date: document.getElementById('clr-date').value || new Date().toISOString().slice(0, 10),
+        remarks: document.getElementById('clr-remarks').value.trim() || null,
+      };
+
+      try {
+        const { error } = await window.supabaseClient.from('clearances').insert([payload]).select();
+        if (error) { showToast('Save Failed ❌', error.message); return; }
+
+        closeModal('modal-clearance');
+        await loadClearances();
+        showToast('Request Created ✅', `${payload.student_name} — ${payload.requirement}`);
+      } catch (err) { showToast('Save Failed', err.message); }
+    }
+
+    async function updateClearanceStatus(id, status) {
+      if (!window.supabaseClient) return;
+      try {
+        const { error } = await window.supabaseClient.from('clearances').update({ status }).eq('id', id);
+        if (error) { showToast('Update Failed ❌', error.message); return; }
+        await loadClearances();
+        showToast('Status Updated ✅', `Marked as ${status}.`);
+      } catch (err) { showToast('Update Failed', err.message); }
+    }
+
+    async function deleteClearance(id) {
+      if (!confirm('Delete this clearance request?')) return;
+      if (!window.supabaseClient) return;
+      try {
+        const { error } = await window.supabaseClient.from('clearances').delete().eq('id', id);
+        if (error) { showToast('Delete Failed ❌', error.message); return; }
+        await loadClearances();
+        showToast('Request Deleted ✅', 'Record removed.');
+      } catch (err) { showToast('Delete Failed', err.message); }
+    }
+  </script>
+</body>
+</html>

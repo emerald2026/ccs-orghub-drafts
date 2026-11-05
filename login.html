@@ -151,6 +151,7 @@
         </p>
 
       </form>
+
     </div>
   </main>
 
@@ -162,9 +163,6 @@
 
   <!-- Page Logic -->
   <script>
-    // ============================================
-    // INITIALIZATION & AUTH GUARD
-    // ============================================
     document.addEventListener('DOMContentLoaded', async () => {
       initSupabase();
       lucide.createIcons();
@@ -174,14 +172,12 @@
         return;
       }
 
-      // Restore remembered email
       const rememberedEmail = localStorage.getItem('rememberedEmail');
       if (rememberedEmail) {
         document.getElementById('email').value = rememberedEmail;
         document.getElementById('rememberMe').checked = true;
       }
 
-      // Auto-login if session exists
       try {
         const { data: { session } } = await window.supabaseClient.auth.getSession();
         if (session) await redirectByRole(session.user);
@@ -190,18 +186,12 @@
       }
     });
 
-    // ============================================
-    // UI TOGGLES
-    // ============================================
     document.getElementById('togglePassword').addEventListener('click', function () {
       const pw = document.getElementById('password');
       pw.type = pw.type === 'password' ? 'text' : 'password';
       this.textContent = pw.type === 'password' ? 'Show' : 'Hide';
     });
 
-    // ============================================
-    // LOGIN LOGIC
-    // ============================================
     document.getElementById('loginForm').addEventListener('submit', async function (event) {
       event.preventDefault();
 
@@ -249,21 +239,43 @@
 
     async function redirectByRole(user) {
       let role = 'student';
+      let orgCode = null;
+
       if (window.supabaseClient && user?.id) {
         try {
           const { data: profile } = await window.supabaseClient
-            .from('profiles').select('role').eq('id', user.id).single();
+            .from('profiles')
+            .select('role, org_code')
+            .eq('id', user.id)
+            .single();
           if (profile?.role) role = profile.role;
+          if (profile?.org_code) orgCode = profile.org_code;
         } catch {}
       }
-      
+
+      // Route org admins to their specific dashboard
+      if (role === 'org_admin' && orgCode) {
+        try { localStorage.setItem('org_code', orgCode); } catch (e) {}
+        
+        if (orgCode.toUpperCase() === 'ITSO') {
+          window.location.replace('itso-dashboard.html');
+        } else if (orgCode.toUpperCase() === 'CSSO') {
+          window.location.replace('csso-dashboard.html');
+        } else if (orgCode.toUpperCase() === 'EMCO') {
+          window.location.replace('emco-dashboard.html');
+        } else {
+          window.location.replace('dashboard.html');
+        }
+        return;
+      }
+
       const routes = {
         admin:   'dashboard.html',
         officer: 'dashboard.html',
         adviser: 'dashboard.html',
         student: 'student-dashboard.html',
       };
-      
+
       window.location.replace(routes[role] || 'student-dashboard.html');
     }
   </script>

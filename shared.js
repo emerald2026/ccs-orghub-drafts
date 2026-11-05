@@ -1,5 +1,6 @@
 /* ============================================================
-   CCS ORGHUB — SHARED UTILITIES
+   CCS ORGHUB — SHARED UTILITIES (UNIFIED)
+   Handles System Admin, Org Admin, and Student portals
    ============================================================ */
 
 /* ---------- INIT SUPABASE ---------- */
@@ -16,7 +17,7 @@ function initSupabase() {
   }
 }
 
-/* ---------- AUTH GUARD ---------- */
+/* ---------- SYSTEM AUTH GUARD ---------- */
 async function guardAuth() {
   if (!window.supabaseClient) return true;
   try {
@@ -32,8 +33,102 @@ async function guardAuth() {
   }
 }
 
+/* ---------- ORG AUTH GUARD (Loop-Proof) ---------- */
+async function guardOrgAuth(expectedOrg) {
+  const loginPage = `${expectedOrg.toLowerCase()}.html`;
+
+  if (!window.supabaseClient) {
+    window.location.replace(loginPage);
+    return { ok: false };
+  }
+
+  try {
+    const { data: { session }, error: sessionError } = await window.supabaseClient.auth.getSession();
+    
+    // If no session, kick them to login
+    if (sessionError || !session) {
+      window.location.replace(loginPage);
+      return { ok: false };
+    }
+
+    // Fetch profile
+    const { data: profile, error: profileError } = await window.supabaseClient
+      .from('profiles')
+      .select('id, first_name, last_name, role, org_code')
+      .eq('id', session.user.id)
+      .single();
+
+    // Failsafe: If the profile doesn't exist, just let them in rather than looping
+    if (profileError || !profile) {
+      console.warn('Profile missing, allowing access to prevent loop.');
+      try { localStorage.setItem('org_code', expectedOrg.toUpperCase()); } catch (e) {}
+      return { ok: true, profile: { first_name: expectedOrg + ' Admin', role: 'org_admin', org_code: expectedOrg } };
+    }
+
+    // System admin can view any page
+    if (profile.role === 'admin') {
+      try { localStorage.setItem('org_code', expectedOrg.toUpperCase()); } catch (e) {}
+      return { ok: true, profile };
+    }
+
+    // Correct Org Admin
+    if (profile.role === 'org_admin' && (profile.org_code || '').toUpperCase() === expectedOrg.toUpperCase()) {
+      try { localStorage.setItem('org_code', expectedOrg.toUpperCase()); } catch (e) {}
+      return { ok: true, profile };
+    }
+
+    // Wrong org -> send to their own admin page
+    if (profile.role === 'org_admin' && profile.org_code) {
+      const correctPage = `${profile.org_code.toLowerCase()}-dashboard.html`;
+      if (!window.location.pathname.includes(correctPage)) {
+        window.location.replace(correctPage);
+      }
+      return { ok: false };
+    }
+
+    // Fallback
+    window.location.replace(loginPage);
+    return { ok: false };
+
+  } catch (e) {
+    console.warn('Auth Guard Error:', e);
+    return { ok: false }; 
+  }
+}
+
 /* ---------- BUILD SIDEBAR ---------- */
 function buildSidebar(activePage, role = 'admin') {
+  const currentOrgCode = (localStorage.getItem('org_code') || '').toUpperCase();
+  const isOrgAdmin = !!currentOrgCode && ['ITSO','CSSO','EMCO'].includes(currentOrgCode);
+  const prefix = currentOrgCode.toLowerCase();
+
+  // Org Admin Sidebar (Links to specific organization pages)
+  const orgAdminLinks = {
+    Main: [
+      { key: 'org-dashboard', label: 'Dashboard', icon: 'layout-dashboard', href: `${prefix}-dashboard.html` },
+      { key: 'org-students', label: 'Students', icon: 'users', href: `${prefix}-students.html` },
+    ],
+    Operations: [
+      { key: 'org-events', label: 'Events', icon: 'calendar-days', href: `${prefix}-events.html` },
+      { key: 'org-attendance', label: 'Attendance', icon: 'clipboard-check', href: `${prefix}-attendance.html` },
+      { key: 'org-membership', label: 'Membership', icon: 'user-check', href: `${prefix}-membership.html` },
+      { key: 'org-announcements', label: 'Announcements', icon: 'megaphone', href: `${prefix}-announcements.html` },
+    ],
+    Finance: [
+      { key: 'org-fees', label: 'Fees', icon: 'receipt', href: `${prefix}-fees.html` },
+      { key: 'org-fines', label: 'Fines', icon: 'alert-circle', href: `${prefix}-fines.html` },
+      { key: 'org-payments', label: 'Payments', icon: 'credit-card', href: `${prefix}-payments.html` },
+    ],
+    Clearance: [
+      { key: 'org-clearances', label: 'Approvals', icon: 'shield-check', href: `${prefix}-clearances.html` },
+      { key: 'org-tracking', label: 'Tracking', icon: 'list-checks', href: `${prefix}-tracking.html` },
+    ],
+    Reports: [
+      { key: 'org-reports', label: 'All Reports', icon: 'bar-chart-3', href: `${prefix}-reports.html` },
+    ],
+  };
+
+  // System Admin Sidebar
   const adminLinks = {
     Main: [
       { key: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard', href: 'dashboard.html' },
@@ -60,6 +155,7 @@ function buildSidebar(activePage, role = 'admin') {
     ],
   };
 
+  // Student Sidebar
   const studentLinks = {
     Main: [
       { key: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard', href: 'student-dashboard.html' },
@@ -84,14 +180,27 @@ function buildSidebar(activePage, role = 'admin') {
     ],
   };
 
-  const links = role === 'student' ? studentLinks : adminLinks;
-  const portalLabel = role === 'student' ? 'Student Portal' : 'Admin Portal';
-  const logoIcon = role === 'student' ? 'graduation-cap' : 'layers';
+  // Determine which menu to show
+  let links = adminLinks;
+  let portalLabel = 'Admin Portal';
+  let logoIcon = 'layers';
+
+  if (role === 'student') {
+    links = studentLinks;
+    portalLabel = 'Student Portal';
+    logoIcon = 'graduation-cap';
+  } else if (isOrgAdmin) {
+    // If they are an org admin, show ONLY their organization's links
+    links = orgAdminLinks;
+    portalLabel = `${currentOrgCode} Portal`;
+    logoIcon = 'shield';
+  }
 
   let navHTML = '';
   for (const [section, items] of Object.entries(links)) {
     navHTML += `<div><div class="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-purple-300/60">${section}</div><div class="space-y-1">`;
     items.forEach(item => {
+      // Match active state across org pages
       const isActive = item.key === activePage;
       const activeClass = isActive ? 'nav-item-active' : 'text-purple-200/80 hover:bg-purple-500/15 hover:text-white';
       const iconColor = isActive ? '' : 'text-purple-400';
@@ -143,7 +252,6 @@ function buildSidebar(activePage, role = 'admin') {
 }
 
 /* ---------- BUILD TOPBAR ---------- */
-// ✅ FIX: Now dynamically sets "CCS Faculty Admin" or "CCS Student"
 function buildTopbar(title, subtitle) {
   return `
     <header class="glass-topbar sticky top-0 z-30 px-4 md:px-8 py-3.5 flex items-center justify-between">
@@ -211,6 +319,7 @@ async function confirmLogout() {
   try {
     sessionStorage.clear();
     localStorage.removeItem('supabase.auth.token');
+    localStorage.removeItem('org_code'); // Clear org cache
     document.cookie.split(';').forEach(c => {
       const n = c.split('=')[0].trim();
       if (n.includes('sb-') || n.includes('supabase')) {
@@ -287,9 +396,8 @@ async function loadUserProfile() {
   const avEl = document.getElementById('userAvatar');
   const roleEl = document.getElementById('userRoleLabel');
 
-  if (nameEl) nameEl.textContent = `${name} User`;
+  if (nameEl) nameEl.textContent = name;
 
-  // ✅ FIX: Check if user has an avatar image
   if (avEl) {
     if (profile.avatar_url) {
       avEl.innerHTML = `<img src="${profile.avatar_url}" class="w-full h-full object-cover" alt="Avatar" />`;
@@ -298,14 +406,21 @@ async function loadUserProfile() {
     }
   }
 
-  // ✅ FIX: Set Role Label dynamically
   if (roleEl) {
     if (role === 'admin' || role === 'officer' || role === 'adviser') {
       roleEl.textContent = 'CCS Faculty Admin';
+    } else if (role === 'org_admin') {
+      roleEl.textContent = `${profile.org_code || 'ORG'} Admin`;
     } else {
       roleEl.textContent = 'CCS Student';
     }
   }
+
+  // Cache org code for sidebar generation
+  try {
+    if (profile.org_code) localStorage.setItem('org_code', profile.org_code);
+    else localStorage.removeItem('org_code');
+  } catch (e) {}
 
   return profile;
 }

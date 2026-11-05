@@ -147,12 +147,17 @@
         </form>
       </div>
 
-      <div class="glass-card p-5 rounded-3xl">
+      <!-- SEARCH ENGINE -->
+      <div class="glass-card p-5 rounded-3xl space-y-2">
         <div class="relative">
           <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-purple-300/60"></i>
-          <input id="searchStudents" oninput="renderStudents()" placeholder="Search students..."
-            class="w-full bg-purple-950/60 border border-purple-500/30 rounded-xl py-2.5 pl-9 pr-3 text-xs text-white placeholder-purple-300/50 focus:border-purple-400 focus:outline-none" />
+          <input id="searchStudents" oninput="renderStudents()" placeholder="Search by name, student ID, email, course, or year level..."
+            class="w-full bg-purple-950/60 border border-purple-500/30 rounded-xl py-2.5 pl-9 pr-10 text-xs text-white placeholder-purple-300/50 focus:border-purple-400 focus:outline-none" />
+          <button type="button" id="searchClearBtn" onclick="clearStudentSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-purple-300 hover:text-white p-1" title="Clear search">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
         </div>
+        <p id="searchCountLabel" class="text-[11px] text-purple-300/60 px-1"></p>
       </div>
 
       <!-- STUDENT RECORDS WITH AVATARS -->
@@ -258,7 +263,7 @@
       }
     }
 
-    /* ---------- LOAD STUDENTS ---------- */
+    /* ---------- LOAD STUDENTS (ALPHABETICAL) ---------- */
     async function loadStudents() {
       const tbody = document.getElementById('studentTable');
       tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">Loading from Supabase...</td></tr>`;
@@ -271,16 +276,24 @@
       }
 
       try {
-        // 1. Fetch students
+        // 1. Fetch students ordered alphabetically by first name, then last name
         const { data, error } = await window.supabaseClient
-          .from('students').select('*').order('id', { ascending: false });
+          .from('students')
+          .select('*')
+          .order('first_name', { ascending: true })
+          .order('last_name', { ascending: true });
 
         if (error) {
           tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-red-300 italic">Error: ${error.message}</td></tr>`;
           return;
         }
 
-        students = data || [];
+        // Extra client-side sort for safety (case-insensitive, locale-aware)
+        students = (data || []).slice().sort((a, b) => {
+          const fa = `${a.first_name || ''} ${a.last_name || ''}`.trim().toLowerCase();
+          const fb = `${b.first_name || ''} ${b.last_name || ''}`.trim().toLowerCase();
+          return fa.localeCompare(fb, undefined, { sensitivity: 'base' });
+        });
 
         // 2. Fetch profiles for matching avatars (by student_id)
         avatarMap = {};
@@ -317,17 +330,25 @@
       document.getElementById('statYears').textContent = new Set(students.map(s => s.year_level).filter(Boolean)).size;
     }
 
-    /* ---------- RENDER WITH AVATARS ---------- */
+    /* ---------- RENDER WITH AVATARS + SEARCH ---------- */
     function renderStudents() {
-      const q = (document.getElementById('searchStudents').value || '').toLowerCase();
+      const q = (document.getElementById('searchStudents').value || '').toLowerCase().trim();
+
+      // Toggle clear (×) button
+      const clearBtn = document.getElementById('searchClearBtn');
+      if (clearBtn) clearBtn.classList.toggle('hidden', !q);
+
       const list = students.filter(s => {
         if (!q) return true;
-        return `${s.student_id} ${s.first_name} ${s.last_name} ${s.email || ''} ${s.course || ''}`.toLowerCase().includes(q);
+        return `${s.student_id || ''} ${s.first_name || ''} ${s.last_name || ''} ${s.email || ''} ${s.course || ''} ${s.year_level || ''}`
+          .toLowerCase()
+          .includes(q);
       });
 
       const tbody = document.getElementById('studentTable');
       if (list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">No students found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">${q ? 'No students match your search.' : 'No students found.'}</td></tr>`;
+        updateSearchCountLabel(0, students.length, q);
         return;
       }
 
@@ -376,6 +397,28 @@
         `;
       }).join('');
       lucide.createIcons();
+      updateSearchCountLabel(list.length, students.length, q);
+    }
+
+    /* Update the "Showing X of Y" helper text */
+    function updateSearchCountLabel(shown, total, q) {
+      const label = document.getElementById('searchCountLabel');
+      if (!label) return;
+      if (total === 0) {
+        label.textContent = '';
+      } else if (!q) {
+        label.textContent = `Showing all ${total} student${total === 1 ? '' : 's'} (A–Z).`;
+      } else {
+        label.textContent = `Showing ${shown} of ${total} student${total === 1 ? '' : 's'} (filtered).`;
+      }
+    }
+
+    /* Clear the search input */
+    function clearStudentSearch() {
+      const input = document.getElementById('searchStudents');
+      if (input) { input.value = ''; }
+      renderStudents();
+      input?.focus();
     }
 
     /* ---------- IMAGE PREVIEW ---------- */

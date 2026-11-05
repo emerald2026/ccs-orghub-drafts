@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Announcements — CCS OrgHub Admin</title>
+
+  <link rel="icon" type="image/png" href="ccs.png" />
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js" onerror="console.warn('config.js not found. Demo mode.')"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="shared.css">
+
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        fontFamily: { sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'] },
+        colors: { purple: {
+          950:'#0f041c',900:'#1e0836',850:'#2d0a4e',800:'#3b0764',700:'#581c87',
+          600:'#7e22ce',500:'#a855f7',400:'#c084fc',300:'#d8b4fe',200:'#e9d5ff',100:'#f3e8ff',50:'#faf5ff'
+        }}
+      }}
+    }
+  </script>
+</head>
+
+<body class="h-full font-sans antialiased selection:bg-purple-500 selection:text-white">
+
+  <div id="bg-layer"></div>
+  <div id="sidebar-layer"></div>
+
+  <div class="flex-1 lg:ml-64 flex flex-col min-h-screen relative z-10 overflow-x-hidden">
+    <div id="topbar-layer"></div>
+
+    <main class="flex-1 p-4 md:p-8 space-y-6">
+
+      <!-- CONNECTION STATUS -->
+      <div id="connectionStatus" class="glass-card p-4 rounded-2xl flex items-center gap-3 text-xs">
+        <div id="connIcon" class="p-2 rounded-xl bg-amber-500/20 border border-amber-500/30">
+          <i data-lucide="wifi" class="w-4 h-4 text-amber-300"></i>
+        </div>
+        <div>
+          <div id="connTitle" class="font-bold text-white">Checking connection...</div>
+          <div id="connSub" class="text-purple-300/70">Verifying database</div>
+        </div>
+      </div>
+
+      <!-- CREATE ANNOUNCEMENT -->
+      <div class="glass-card p-6 rounded-3xl space-y-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="megaphone" class="w-5 h-5 text-purple-400"></i> Create Announcement
+        </h3>
+        
+        <form id="announcementForm" onsubmit="saveAnnouncement(event)" class="space-y-4 text-xs">
+          <div>
+            <label class="block font-semibold text-purple-200 mb-1.5 text-[11px] uppercase tracking-wider">Title *</label>
+            <input id="ann-title" required placeholder="e.g. General Assembly this Friday"
+              class="w-full bg-purple-950/60 border border-purple-500/40 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-purple-300/40 focus:border-purple-400 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block font-semibold text-purple-200 mb-1.5 text-[11px] uppercase tracking-wider">Message *</label>
+            <textarea id="ann-content" required rows="3" placeholder="Write your announcement here..."
+              class="w-full bg-purple-950/60 border border-purple-500/40 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-purple-300/40 focus:border-purple-400 focus:outline-none resize-none"></textarea>
+          </div>
+          <div class="flex justify-end pt-2">
+            <button type="submit" id="submitBtn"
+              class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-purple-700 text-white font-bold text-xs shadow-lg shadow-purple-600/40 hover:brightness-110 transition-all flex items-center gap-2 border border-purple-400/40 disabled:opacity-50">
+              <i data-lucide="send" class="w-4 h-4"></i>
+              <span>Post Announcement</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- ANNOUNCEMENTS LIST -->
+      <div class="glass-card p-6 rounded-3xl space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <i data-lucide="list" class="w-5 h-5 text-purple-400"></i> Posted Announcements
+          </h3>
+          <button onclick="loadAnnouncements()" class="px-3 py-1.5 rounded-lg bg-purple-950/60 hover:bg-purple-800/60 text-purple-200 border border-purple-500/30 text-[11px] font-bold transition-all flex items-center gap-1.5">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
+          </button>
+        </div>
+
+        <div class="relative">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-purple-300/60"></i>
+          <input id="searchAnnouncements" oninput="renderAnnouncements()" placeholder="Search announcements..."
+            class="w-full bg-purple-950/60 border border-purple-500/30 rounded-xl py-2.5 pl-9 pr-3 text-xs text-white placeholder-purple-300/50 focus:border-purple-400 focus:outline-none" />
+        </div>
+
+        <div id="announcementsList" class="space-y-3">
+          <p class="text-center text-purple-300/60 py-6 text-xs italic">Loading...</p>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <div id="modal-layer"></div>
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-3 pointer-events-none"></div>
+
+  <script src="shared.js"></script>
+  <script>
+    let announcements = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      document.getElementById('bg-layer').innerHTML = buildBackground();
+      document.getElementById('sidebar-layer').innerHTML = buildSidebar('announcements');
+      document.getElementById('topbar-layer').innerHTML = buildTopbar('Announcements', 'Post and manage organizational announcements');
+      document.getElementById('modal-layer').innerHTML = buildLogoutModal();
+
+      lucide.createIcons();
+      initSupabase();
+      await checkConnection();
+
+      const ok = await guardAuth();
+      if (!ok) return;
+      await loadUserProfile();
+
+      await loadAnnouncements();
+    });
+
+    async function checkConnection() {
+      const iconEl = document.getElementById('connIcon');
+      const titleEl = document.getElementById('connTitle');
+      const subEl = document.getElementById('connSub');
+
+      if (!window.supabaseClient) {
+        iconEl.className = 'p-2 rounded-xl bg-red-500/20 border border-red-500/30';
+        iconEl.innerHTML = '<i data-lucide="wifi-off" class="w-4 h-4 text-red-300"></i>';
+        titleEl.textContent = 'Supabase NOT connected';
+        subEl.textContent = 'Check config.js';
+        lucide.createIcons();
+        return false;
+      }
+
+      try {
+        const { error } = await window.supabaseClient.from('announcements').select('id').limit(1);
+        if (error) {
+          iconEl.className = 'p-2 rounded-xl bg-red-500/20 border border-red-500/30';
+          iconEl.innerHTML = '<i data-lucide="alert-circle" class="w-4 h-4 text-red-300"></i>';
+          titleEl.textContent = 'Table error: ' + error.message;
+          subEl.textContent = 'Check RLS or table name';
+        } else {
+          iconEl.className = 'p-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30';
+          iconEl.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-300"></i>';
+          titleEl.textContent = 'Supabase connected ✅';
+          subEl.textContent = 'Data will persist across refreshes';
+        }
+        lucide.createIcons();
+        return !error;
+      } catch (err) {
+        titleEl.textContent = 'Connection failed';
+        subEl.textContent = err.message;
+        return false;
+      }
+    }
+
+    async function loadAnnouncements() {
+      const el = document.getElementById('announcementsList');
+      el.innerHTML = `<p class="text-center text-purple-300/60 py-6 text-xs italic">Loading...</p>`;
+
+      if (!window.supabaseClient) {
+        announcements = [];
+        renderAnnouncements();
+        return;
+      }
+
+      try {
+        const { data, error } = await window.supabaseClient
+          .from('announcements')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          el.innerHTML = `<p class="text-center text-red-300 py-6 text-xs italic">Error: ${error.message}</p>`;
+          return;
+        }
+
+        announcements = data || [];
+        renderAnnouncements();
+      } catch (err) {
+        el.innerHTML = `<p class="text-center text-red-300 py-6 text-xs italic">Error: ${err.message}</p>`;
+      }
+    }
+
+    function renderAnnouncements() {
+      const q = (document.getElementById('searchAnnouncements').value || '').toLowerCase();
+      const el = document.getElementById('announcementsList');
+
+      const list = announcements.filter(a => 
+        !q || (a.title || '').toLowerCase().includes(q) || (a.content || '').toLowerCase().includes(q)
+      );
+
+      if (list.length === 0) {
+        el.innerHTML = `<p class="text-center text-purple-300/60 py-6 text-xs italic">No announcements found.</p>`;
+        return;
+      }
+
+      el.innerHTML = list.map(a => `
+        <div class="p-4 rounded-2xl bg-purple-950/50 border border-purple-500/30 hover:border-purple-400/50 transition-all flex flex-col sm:flex-row justify-between gap-3">
+          <div class="flex-1">
+            <div class="font-bold text-white text-sm mb-1">${a.title}</div>
+            <p class="text-xs text-purple-200/80 mb-2">${a.content || 'No details'}</p>
+            <div class="text-[10px] text-purple-300/60">${new Date(a.created_at).toLocaleString()}</div>
+          </div>
+          <div class="shrink-0 flex items-start">
+            <button onclick="deleteAnnouncement(${a.id})" class="p-2 rounded-lg text-purple-400 hover:text-red-300 hover:bg-red-500/20 transition-all" title="Delete">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    async function saveAnnouncement(event) {
+      event.preventDefault();
+      if (!window.supabaseClient) return;
+
+      const title = document.getElementById('ann-title').value.trim();
+      const content = document.getElementById('ann-content').value.trim();
+
+      const btn = document.getElementById('submitBtn');
+      const originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg><span>Posting...</span>';
+
+      try {
+        const { error } = await window.supabaseClient
+          .from('announcements').insert([{ title, content }]).select();
+
+        if (error) {
+          showToast('Post Failed ❌', error.message);
+          return;
+        }
+
+        document.getElementById('announcementForm').reset();
+        await loadAnnouncements();
+        showToast('Announcement Posted ✅', 'Visible to all students.');
+
+      } catch (err) {
+        showToast('Post Failed', err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+        lucide.createIcons();
+      }
+    }
+
+    async function deleteAnnouncement(id) {
+      if (!confirm('Delete this announcement?')) return;
+      if (!window.supabaseClient) return;
+
+      try {
+        const { error } = await window.supabaseClient
+          .from('announcements').delete().eq('id', id);
+          
+        if (error) {
+          showToast('Delete Failed ❌', error.message);
+          return;
+        }
+        
+        await loadAnnouncements();
+        showToast('Deleted ✅', 'Announcement removed.');
+      } catch (err) {
+        showToast('Delete Failed', err.message);
+      }
+    }
+  </script>
+
+</body>
+</html>

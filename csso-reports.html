@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CSSO Reports — CCS OrgHub</title>
+  <link rel="icon" type="image/png" href="ccs.png" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js" onerror="console.warn('config.js not found')"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="shared.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        fontFamily: { sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'] },
+        colors: { purple: { 950:'#0f041c',900:'#1e0836',850:'#2d0a4e',800:'#3b0764',700:'#581c87',600:'#7e22ce',500:'#a855f7',400:'#c084fc',300:'#d8b4fe',200:'#e9d5ff',100:'#f3e8ff',50:'#faf5ff' }}
+      }}
+    }
+  </script>
+</head>
+<body class="h-full font-sans antialiased selection:bg-emerald-500 selection:text-white flex overflow-hidden">
+
+  <div id="bg-layer"></div>
+  <div id="sidebar-layer"></div>
+
+  <div class="flex-1 lg:ml-64 flex flex-col min-h-screen relative z-10 overflow-x-hidden">
+    <div id="topbar-layer"></div>
+
+    <main class="flex-1 p-4 md:p-8 space-y-6">
+      
+      <div id="connectionStatus" class="glass-card p-4 rounded-2xl flex items-center gap-3 text-xs">
+        <div id="connIcon" class="p-2 rounded-xl bg-amber-500/20 border border-amber-500/30">
+          <i data-lucide="wifi" class="w-4 h-4 text-amber-300"></i>
+        </div>
+        <div>
+          <div id="connTitle" class="font-bold text-white">Checking connection...</div>
+          <div id="connSub" class="text-emerald-300/70">Verifying report sources</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-300/70">CSSO Students</span>
+            <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"><i data-lucide="graduation-cap" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-white" id="statStudents">—</div>
+        </div>
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-300/70">Total Collected</span>
+            <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"><i data-lucide="wallet" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-2xl font-extrabold text-emerald-300" id="statCollected">₱0.00</div>
+        </div>
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-300/70">Outstanding</span>
+            <div class="p-2.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30"><i data-lucide="clock" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-2xl font-extrabold text-amber-300" id="statOutstanding">₱0.00</div>
+        </div>
+        <div class="glass-card p-5 rounded-2xl hover:-translate-y-1 transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-300/70">Clearance Rate</span>
+            <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"><i data-lucide="shield-check" class="w-5 h-5"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-white" id="statClearanceRate">—%</div>
+          <p class="text-xs text-emerald-300/70 mt-2" id="statClearanceSub">—</p>
+        </div>
+      </div>
+
+      <div class="glass-card p-5 rounded-3xl space-y-3">
+        <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+          <i data-lucide="filter" class="w-4 h-4 text-emerald-400"></i> Report Filters
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div>
+            <label class="block text-[11px] font-semibold text-emerald-200 mb-1 uppercase tracking-wider">Course</label>
+            <select id="filterCourse" onchange="applyFilters()"
+              class="w-full bg-emerald-950/60 border border-emerald-500/30 rounded-xl px-3 py-2.5 text-xs text-white focus:border-emerald-400 focus:outline-none">
+              <option value="all">All Courses</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-emerald-200 mb-1 uppercase tracking-wider">Year Level</label>
+            <select id="filterYear" onchange="applyFilters()"
+              class="w-full bg-emerald-950/60 border border-emerald-500/30 rounded-xl px-3 py-2.5 text-xs text-white focus:border-emerald-400 focus:outline-none">
+              <option value="all">All Years</option>
+              <option value="1st Year">1st Year</option>
+              <option value="2nd Year">2nd Year</option>
+              <option value="3rd Year">3rd Year</option>
+              <option value="4th Year">4th Year</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-emerald-200 mb-1 uppercase tracking-wider">Date From</label>
+            <input id="filterFrom" type="date" onchange="applyFilters()"
+              class="w-full bg-emerald-950/60 border border-emerald-500/30 rounded-xl px-3 py-2.5 text-xs text-white focus:border-emerald-400 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-emerald-200 mb-1 uppercase tracking-wider">Date To</label>
+            <input id="filterTo" type="date" onchange="applyFilters()"
+              class="w-full bg-emerald-950/60 border border-emerald-500/30 rounded-xl px-3 py-2.5 text-xs text-white focus:border-emerald-400 focus:outline-none" />
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+          <p class="text-[11px] text-emerald-300/60" id="filterStatus">No filters applied.</p>
+          <div class="flex items-center gap-2">
+            <button onclick="resetFilters()" class="px-3 py-1.5 rounded-lg bg-emerald-950/60 hover:bg-emerald-800/60 text-emerald-200 border border-emerald-500/30 text-[11px] font-bold transition-all flex items-center gap-1.5">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset
+            </button>
+            <button onclick="exportCSV()" class="px-3 py-1.5 rounded-lg bg-emerald-600/30 hover:bg-emerald-600 text-emerald-200 hover:text-white border border-emerald-500/40 text-[11px] font-bold transition-all flex items-center gap-1.5">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i> Export CSV
+            </button>
+            <button onclick="loadAll()" class="px-3 py-1.5 rounded-lg bg-emerald-950/60 hover:bg-emerald-800/60 text-emerald-200 border border-emerald-500/30 text-[11px] font-bold transition-all flex items-center gap-1.5">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card p-6 rounded-3xl space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <i data-lucide="book-open" class="w-5 h-5 text-emerald-400"></i> CSSO Course Breakdown
+          </h3>
+          <span class="text-[11px] text-emerald-300/70" id="courseBreakdownSub">—</span>
+        </div>
+        <div class="overflow-x-auto rounded-2xl border border-emerald-500/20">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-emerald-950/80 text-emerald-300 uppercase tracking-wider font-semibold border-b border-emerald-500/20">
+              <tr>
+                <th class="py-3.5 px-4">Course</th>
+                <th class="py-3.5 px-4">Students</th>
+                <th class="py-3.5 px-4">Fees Collected</th>
+                <th class="py-3.5 px-4">Fines Collected</th>
+                <th class="py-3.5 px-4">Outstanding</th>
+                <th class="py-3.5 px-4">Cleared</th>
+              </tr>
+            </thead>
+            <tbody id="courseTable" class="divide-y divide-emerald-500/10 text-emerald-100">
+              <tr><td colspan="6" class="py-8 text-center text-emerald-300/60 italic">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="glass-card p-6 rounded-3xl space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <i data-lucide="book-user" class="w-5 h-5 text-emerald-400"></i> CSSO Student Ledger
+            </h3>
+            <p class="text-xs text-emerald-300/70">Per-student financial and clearance summary</p>
+          </div>
+          <div class="relative w-full sm:w-72">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-emerald-300/60"></i>
+            <input id="ledgerSearch" oninput="renderLedger()" placeholder="Search student..."
+              class="w-full bg-emerald-950/60 border border-emerald-500/30 rounded-xl py-2.5 pl-9 pr-10 text-xs text-white placeholder-emerald-300/50 focus:border-emerald-400 focus:outline-none" />
+            <button type="button" id="ledgerSearchClearBtn" onclick="clearLedgerSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-emerald-300 hover:text-white p-1" title="Clear search">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <p id="ledgerCountLabel" class="text-[11px] text-emerald-300/60 px-1"></p>
+
+        <div class="overflow-x-auto rounded-2xl border border-emerald-500/20">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-emerald-950/80 text-emerald-300 uppercase tracking-wider font-semibold border-b border-emerald-500/20">
+              <tr>
+                <th class="py-3.5 px-4">Student</th>
+                <th class="py-3.5 px-4">Course</th>
+                <th class="py-3.5 px-4">Year</th>
+                <th class="py-3.5 px-4">Paid</th>
+                <th class="py-3.5 px-4">Outstanding</th>
+                <th class="py-3.5 px-4">Clearance</th>
+              </tr>
+            </thead>
+            <tbody id="ledgerTable" class="divide-y divide-emerald-500/10 text-emerald-100">
+              <tr><td colspan="6" class="py-8 text-center text-emerald-300/60 italic">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="modal-layer"></div>
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-3 pointer-events-none"></div>
+
+  <script src="shared.js"></script>
+  <script>
+    const ORG_CODE = 'CSSO';
+    const ORG_LABEL = 'CSSO';
+    const ORG_COURSES = ['BS Computer Science'];
+    const ACTIVE_PAGE = 'org-reports';
+
+    let students = [], fees = [], fines = [], payments = [], clearances = [];
+    let ledger = [], courseBreakdown = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      document.getElementById('bg-layer').innerHTML = buildBackground();
+      document.getElementById('sidebar-layer').innerHTML = buildSidebar(ACTIVE_PAGE);
+      document.getElementById('topbar-layer').innerHTML = buildTopbar('CSSO Reports', 'CSSO organization analytics');
+      document.getElementById('modal-layer').innerHTML = buildLogoutModal();
+
+      lucide.createIcons();
+      initSupabase();
+      
+      const auth = await guardOrgAuth(ORG_CODE);
+      if (!auth.ok) return;
+      
+      await loadAll();
+    });
+
+    async function loadAll() {
+      await Promise.all([loadStudents(), loadFees(), loadFines(), loadPayments(), loadClearances()]);
+      buildCourseFilter();
+      applyFilters();
+    }
+
+    async function loadStudents() {
+      if (!window.supabaseClient) return;
+      try {
+        const { data } = await window.supabaseClient
+          .from('students')
+          .select('id, first_name, last_name, student_id, course, year_level')
+          .in('course', ORG_COURSES)
+          .order('first_name', { ascending: true });
+        students = (data || []).slice().sort((a, b) => {
+          const fa = `${a.first_name || ''} ${a.last_name || ''}`.trim().toLowerCase();
+          const fb = `${b.first_name || ''} ${b.last_name || ''}`.trim().toLowerCase();
+          return fa.localeCompare(fb, undefined, { sensitivity: 'base' });
+        });
+      } catch { students = []; }
+    }
+
+    async function loadFees() {
+      if (!window.supabaseClient) return;
+      try { const { data } = await window.supabaseClient.from('fees').select('*').eq('org', ORG_LABEL); fees = data || []; } catch { fees = []; }
+    }
+
+    async function loadFines() {
+      if (!window.supabaseClient) return;
+      try { const { data } = await window.supabaseClient.from('fines').select('*').eq('org', ORG_LABEL); fines = data || []; } catch { fines = []; }
+    }
+
+    async function loadPayments() {
+      if (!window.supabaseClient) return;
+      try { const { data } = await window.supabaseClient.from('payments').select('*').eq('org', ORG_LABEL); payments = data || []; } catch { payments = []; }
+    }
+
+    async function loadClearances() {
+      if (!window.supabaseClient) return;
+      try { const { data } = await window.supabaseClient.from('clearances').select('*').eq('org', ORG_LABEL); clearances = data || []; } catch { clearances = []; }
+    }
+
+    function buildCourseFilter() {
+      const sel = document.getElementById('filterCourse');
+      if (!sel) return;
+      const courses = [...new Set(students.map(s => s.course).filter(Boolean))].sort();
+      sel.innerHTML = '<option value="all">All Courses</option>' + courses.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+
+    function getFilters() {
+      return {
+        course: document.getElementById('filterCourse').value,
+        year: document.getElementById('filterYear').value,
+        from: document.getElementById('filterFrom').value || null,
+        to: document.getElementById('filterTo').value || null,
+      };
+    }
+
+    function isInDateRange(dateStr, from, to) {
+      if (!dateStr) return !from && !to;
+      const d = new Date(dateStr).getTime();
+      if (from && d < new Date(from).getTime()) return false;
+      if (to && d > new Date(to + 'T23:59:59').getTime()) return false;
+      return true;
+    }
+
+    function filteredStudents() {
+      const { course, year } = getFilters();
+      return students.filter(s => {
+        if (course !== 'all' && s.course !== course) return false;
+        if (year !== 'all' && s.year_level !== year) return false;
+        return true;
+      });
+    }
+
+    function studentIdsFiltered() {
+      return new Set(filteredStudents().map(s => String(s.id)));
+    }
+
+    function applyFilters() {
+      const { course, year, from, to } = getFilters();
+
+      const active = [];
+      if (course !== 'all') active.push(`Course: ${course}`);
+      if (year !== 'all') active.push(`Year: ${year}`);
+      if (from) active.push(`From: ${from}`);
+      if (to) active.push(`To: ${to}`);
+      document.getElementById('filterStatus').textContent = active.length ? active.join(' • ') : 'No filters applied.';
+
+      const idSet = studentIdsFiltered();
+
+      const scopedFees = fees.filter(f => idSet.has(String(f.student_id)));
+      const scopedFines = fines.filter(f => idSet.has(String(f.student_id)));
+      const scopedPayments = payments.filter(p => idSet.has(String(p.student_id)) && isInDateRange(p.paid_at || p.created_at, from, to));
+      const scopedClearances = clearances.filter(c => idSet.has(String(c.student_id)));
+
+      computeStats(scopedFees, scopedFines, scopedPayments, scopedClearances);
+      buildCourseBreakdown(scopedFees, scopedFines, scopedPayments, scopedClearances);
+      buildLedger(scopedFees, scopedFines, scopedPayments, scopedClearances);
+
+      renderCourseTable();
+      renderLedger();
+    }
+
+    function computeStats(scopedFees, scopedFines, scopedPayments, scopedClearances) {
+      const studentCount = filteredStudents().length;
+      const feesCollected = scopedFees.filter(f => f.status === 'paid').reduce((s, f) => s + (parseFloat(f.amount) || 0), 0);
+      const finesCollected = scopedFines.filter(f => f.status === 'settled').reduce((s, f) => s + (parseFloat(f.amount) || 0), 0);
+      const paymentsTotal = scopedPayments.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0);
+      const totalCollected = feesCollected + finesCollected + paymentsTotal;
+
+      const outstanding = scopedFees.filter(f => f.status === 'unpaid').reduce((s, f) => s + (parseFloat(f.amount) || 0), 0) + scopedFines.filter(f => f.status === 'unpaid').reduce((s, f) => s + (parseFloat(f.amount) || 0), 0);
+
+      const totalClearance = scopedClearances.length;
+      const approved = scopedClearances.filter(c => c.status === 'approved').length;
+      const rate = totalClearance > 0 ? (approved / totalClearance) * 100 : 0;
+
+      document.getElementById('statStudents').textContent = studentCount;
+      document.getElementById('statCollected').textContent = '₱' + totalCollected.toFixed(2);
+      document.getElementById('statOutstanding').textContent = '₱' + outstanding.toFixed(2);
+      document.getElementById('statClearanceRate').textContent = rate.toFixed(1) + '%';
+      document.getElementById('statClearanceSub').textContent = `${approved} of ${totalClearance} approved`;
+    }
+
+    function buildCourseBreakdown(scopedFees, scopedFines, scopedPayments, scopedClearances) {
+      const map = new Map();
+      filteredStudents().forEach(s => {
+        const course = s.course || 'Unassigned';
+        if (!map.has(course)) map.set(course, { course, students: 0, fees: 0, fines: 0, outstanding: 0, clrTotal: 0, clrApproved: 0 });
+        map.get(course).students++;
+      });
+
+      const courseById = new Map();
+      filteredStudents().forEach(s => courseById.set(String(s.id), s.course || 'Unassigned'));
+
+      scopedFees.forEach(f => {
+        const course = courseById.get(String(f.student_id));
+        if (!course) return;
+        const amt = parseFloat(f.amount) || 0;
+        if (f.status === 'paid') map.get(course).fees += amt;
+        else if (f.status === 'unpaid') map.get(course).outstanding += amt;
+      });
+      scopedFines.forEach(f => {
+        const course = courseById.get(String(f.student_id));
+        if (!course) return;
+        const amt = parseFloat(f.amount) || 0;
+        if (f.status === 'settled') map.get(course).fines += amt;
+        else if (f.status === 'unpaid') map.get(course).outstanding += amt;
+      });
+      scopedPayments.forEach(p => {
+        const course = courseById.get(String(p.student_id));
+        if (!course) return;
+        map.get(course).fees += parseFloat(p.amount) || 0;
+      });
+      scopedClearances.forEach(c => {
+        const course = courseById.get(String(c.student_id));
+        if (!course) return;
+        map.get(course).clrTotal++;
+        if (c.status === 'approved') map.get(course).clrApproved++;
+      });
+
+      courseBreakdown = Array.from(map.values()).sort((a, b) => a.course.localeCompare(b.course, undefined, { sensitivity: 'base' }));
+    }
+
+    function renderCourseTable() {
+      const tbody = document.getElementById('courseTable');
+      document.getElementById('courseBreakdownSub').textContent = `${courseBreakdown.length} course${courseBreakdown.length === 1 ? '' : 's'}`;
+
+      if (courseBreakdown.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-emerald-300/60 italic">No course data for the current filters.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = courseBreakdown.map(c => {
+        const clrRate = c.clrTotal > 0 ? `${c.clrApproved}/${c.clrTotal}` : '—';
+        return `
+          <tr class="hover:bg-emerald-900/30 transition-colors">
+            <td class="py-3.5 px-4 font-semibold text-white">${c.course}</td>
+            <td class="py-3.5 px-4 text-emerald-200">${c.students}</td>
+            <td class="py-3.5 px-4 text-emerald-300 font-bold">₱${c.fees.toFixed(2)}</td>
+            <td class="py-3.5 px-4 text-emerald-300 font-bold">₱${c.fines.toFixed(2)}</td>
+            <td class="py-3.5 px-4 text-amber-300 font-bold">₱${c.outstanding.toFixed(2)}</td>
+            <td class="py-3.5 px-4 text-emerald-200">${clrRate}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function buildLedger(scopedFees, scopedFines, scopedPayments, scopedClearances) {
+      const byStudent = new Map();
+      filteredStudents().forEach(s => {
+        byStudent.set(String(s.id), {
+          id: s.id,
+          name: `${s.first_name || ''} ${s.last_name || ''}`.trim() || '—',
+          course: s.course || '—',
+          year: s.year_level || '—',
+          paid: 0,
+          outstanding: 0,
+          clrTotal: 0,
+          clrApproved: 0,
+        });
+      });
+
+      scopedFees.forEach(f => {
+        const key = String(f.student_id);
+        if (!byStudent.has(key)) return;
+        const row = byStudent.get(key);
+        const amt = parseFloat(f.amount) || 0;
+        if (f.status === 'paid') row.paid += amt;
+        else if (f.status === 'unpaid') row.outstanding += amt;
+      });
+      scopedFines.forEach(f => {
+        const key = String(f.student_id);
+        if (!byStudent.has(key)) return;
+        const row = byStudent.get(key);
+        const amt = parseFloat(f.amount) || 0;
+        if (f.status === 'settled') row.paid += amt;
+        else if (f.status === 'unpaid') row.outstanding += amt;
+      });
+      scopedPayments.forEach(p => {
+        const key = String(p.student_id);
+        if (!byStudent.has(key)) return;
+        byStudent.get(key).paid += parseFloat(p.amount) || 0;
+      });
+      scopedClearances.forEach(c => {
+        const key = String(c.student_id);
+        if (!byStudent.has(key)) return;
+        const row = byStudent.get(key);
+        row.clrTotal++;
+        if (c.status === 'approved') row.clrApproved++;
+      });
+
+      ledger = Array.from(byStudent.values()).sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase(), undefined, { sensitivity: 'base' }));
+    }
+
+    function renderLedger() {
+      const q = (document.getElementById('ledgerSearch').value || '').toLowerCase().trim();
+      const clearBtn = document.getElementById('ledgerSearchClearBtn');
+      if (clearBtn) clearBtn.classList.toggle('hidden', !q);
+
+      const list = ledger.filter(r => {
+        if (!q) return true;
+        return `${r.name} ${r.course} ${r.year}`.toLowerCase().includes(q);
+      });
+
+      const tbody = document.getElementById('ledgerTable');
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-emerald-300/60 italic">${q ? 'No students match your search.' : 'No student data for the current filters.'}</td></tr>`;
+        document.getElementById('ledgerCountLabel').textContent = ledger.length ? `Showing 0 of ${ledger.length} students (filtered).` : '';
+        return;
+      }
+
+      tbody.innerHTML = list.map(r => {
+        const isCleared = r.clrTotal > 0 && r.clrApproved === r.clrTotal;
+        const clrBadge = r.clrTotal === 0
+          ? `<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">No Requests</span>`
+          : isCleared
+            ? `<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">Cleared</span>`
+            : `<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30">${r.clrApproved}/${r.clrTotal}</span>`;
+
+        return `
+          <tr class="hover:bg-emerald-900/30 transition-colors">
+            <td class="py-3.5 px-4 font-semibold text-white">${r.name}</td>
+            <td class="py-3.5 px-4 text-emerald-200">${r.course}</td>
+            <td class="py-3.5 px-4 text-emerald-300/80">${r.year}</td>
+            <td class="py-3.5 px-4 text-emerald-300 font-bold">₱${r.paid.toFixed(2)}</td>
+            <td class="py-3.5 px-4 text-amber-300 font-bold">₱${r.outstanding.toFixed(2)}</td>
+            <td class="py-3.5 px-4">${clrBadge}</td>
+          </tr>
+        `;
+      }).join('');
+      document.getElementById('ledgerCountLabel').textContent = q
+        ? `Showing ${list.length} of ${ledger.length} students (filtered).`
+        : `Showing all ${ledger.length} students (A–Z).`;
+      lucide.createIcons();
+    }
+
+    function clearLedgerSearch() {
+      const input = document.getElementById('ledgerSearch');
+      if (input) input.value = '';
+      renderLedger();
+      input?.focus();
+    }
+
+    function resetFilters() {
+      document.getElementById('filterCourse').value = 'all';
+      document.getElementById('filterYear').value = 'all';
+      document.getElementById('filterFrom').value = '';
+      document.getElementById('filterTo').value = '';
+      applyFilters();
+    }
+
+    function exportCSV() {
+      if (ledger.length === 0) {
+        showToast('Nothing to Export', 'No report rows for the current filters.');
+        return;
+      }
+
+      const header = ['Student', 'Course', 'Year Level', 'Paid (PHP)', 'Outstanding (PHP)', 'Clearance Approved', 'Clearance Total'];
+      const rows = ledger.map(r => [
+        r.name, r.course, r.year,
+        r.paid.toFixed(2), r.outstanding.toFixed(2),
+        r.clrApproved, r.clrTotal
+      ]);
+
+      const csv = [header, ...rows]
+        .map(row => row.map(v => {
+          const s = String(v ?? '');
+          return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+        }).join(','))
+        .join('\n');
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${ORG_LABEL}-report-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      showToast('Report Exported ✅', `${ledger.length} student row(s) downloaded.`);
+    }
+  </script>
+</body>
+</html>

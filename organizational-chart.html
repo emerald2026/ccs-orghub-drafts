@@ -4,18 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Organizational Chart - CCS OrgHub</title>
-    
+
     <link rel="icon" type="image/png" href="ccs.png" />
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Google Fonts (Inter for modern UI) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet">
 
-    <!-- Tailwind Config -->
     <script>
         tailwind.config = {
             theme: {
@@ -44,7 +39,7 @@
     </script>
     <style>
         html { scroll-behavior: smooth; }
-        
+
         .glass-card-dark {
             background: rgba(30, 15, 60, 0.9);
             backdrop-filter: blur(16px);
@@ -52,7 +47,7 @@
             border: 1px solid rgba(139, 92, 246, 0.3);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
         }
-        
+
         .btn-glow {
             box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
         }
@@ -64,7 +59,6 @@
             text-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
         }
 
-        /* Hover effect for person cards */
         .person-card {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
@@ -77,11 +71,10 @@
 <body class="bg-white text-gray-800 font-sans antialiased selection:bg-violet-200 selection:text-violet-900">
 
     <!-- ========================================== -->
-    <!-- 1. MASTHEAD (GWTD Standard)                -->
+    <!-- 1. MASTHEAD                                 -->
     <!-- ========================================== -->
     <header class="bg-violet-950 py-4 px-4 md:px-8 flex flex-col md:flex-row items-center justify-between border-b border-violet-800/50 relative z-50">
         <div class="flex items-center gap-4 mb-4 md:mb-0">
-            <!-- REPLACE 'src\ccs.png' WITH YOUR ACTUAL FILE PATH -->
             <img src="src\ccs.png" alt="CCS OrgHub Logo" class="w-14 h-14 object-contain drop-shadow-md">
             <div>
                 <h1 class="text-xl font-extrabold text-white leading-tight tracking-tight">CCS OrgHub</h1>
@@ -99,7 +92,7 @@
     </header>
 
     <!-- ========================================== -->
-    <!-- 2. MOBILE MENU DROPDOWN                    -->
+    <!-- 2. MOBILE MENU DROPDOWN                     -->
     <!-- ========================================== -->
     <div id="mobile-menu" class="hidden md:hidden bg-violet-900 border-b border-violet-800 px-4 py-4 flex flex-col gap-4 text-sm font-semibold text-violet-100 shadow-lg absolute w-full z-40">
         <a href="index.html" class="hover:text-white transition">Home</a>
@@ -112,7 +105,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- 3. BANNER / HERO SECTION                   -->
+    <!-- 3. BANNER / HERO SECTION                    -->
     <!-- ========================================== -->
     <section class="bg-white pt-20 pb-12 px-4 md:px-8 relative overflow-hidden">
         <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#4c1d95 1px, transparent 1px); background-size: 20px 20px;"></div>
@@ -129,71 +122,54 @@
     </section>
 
     <!-- ========================================== -->
-    <!-- 4. ORGANIZATIONAL CHART                    -->
+    <!-- 4. ORGANIZATIONAL CHART                     -->
     <!-- ========================================== -->
     <section class="bg-white py-12 px-4 md:px-8">
         <div class="max-w-7xl mx-auto">
 
-            <!-- ========================================= -->
-            <!-- LEVEL 1: COLLEGE DEAN                     -->
-            <!-- ========================================= -->
+            <!-- LEVEL 1: COLLEGE DEAN -->
             <div class="flex justify-center">
                 <div class="person-card glass-card-dark p-8 rounded-3xl text-center w-full max-w-xs">
                     <div class="w-28 h-28 mx-auto rounded-full overflow-hidden border-4 border-violet-500/50 mb-5 shadow-lg">
-                        <!-- REPLACE WITH DEAN'S PHOTO -->
                         <img src="src\co.jpg" alt="College Dean" class="w-full h-full object-cover">
                     </div>
                     <h3 class="text-xl font-extrabold text-white mb-1">Dr. Jeffrey A. Co</h3>
                     <p class="text-violet-300 text-sm font-semibold uppercase tracking-wider">College Dean</p>
-                    <!-- ADDED: Credentials -->
                     <p class="text-violet-400 text-xs italic mt-2">Ph.D. in Computer Science</p>
                 </div>
             </div>
 
-            <!-- Vertical Connector -->
             <div class="flex justify-center">
                 <div class="w-px h-12 bg-violet-300"></div>
             </div>
 
-            <!-- ========================================= -->
-            <!-- LEVEL 2: ASSOCIATE DEAN                   -->
-            <!-- ========================================= -->
+            <!-- LEVEL 2: ASSOCIATE DEAN -->
             <div class="flex justify-center">
                 <div class="person-card glass-card-dark p-6 rounded-3xl text-center w-full max-w-xs">
                     <div class="w-24 h-24 mx-auto rounded-full overflow-hidden border-4 border-violet-500/40 mb-4 shadow-lg">
-                        <!-- REPLACE WITH ASSOCIATE DEAN'S PHOTO -->
                         <img src="src\a-lapada.png" alt="Associate Dean" class="w-full h-full object-cover">
                     </div>
                     <h3 class="text-lg font-extrabold text-white mb-1">𝖣𝗋. 𝖠𝗇𝖽𝗒 𝖠. 𝖫𝖺𝗉𝖺𝖽𝖺</h3>
                     <p class="text-violet-300 text-xs font-semibold uppercase tracking-wider">Associate Dean</p>
-                    <!-- ADDED: Credentials -->
                     <p class="text-violet-400 text-xs italic mt-2">M.S. in Information Technology</p>
                 </div>
             </div>
 
-            <!-- Vertical Connector -->
             <div class="flex justify-center">
                 <div class="w-px h-12 bg-violet-300"></div>
             </div>
 
-            <!-- ========================================= -->
-            <!-- HORIZONTAL BRANCHING (Desktop Only)       -->
-            <!-- ========================================= -->
+            <!-- HORIZONTAL BRANCHING (Desktop) -->
             <div class="hidden md:block relative h-12">
-                <!-- Horizontal line spanning from 1st to 4th column center -->
                 <div class="absolute top-0 left-[12.5%] right-[12.5%] h-px bg-violet-300"></div>
-                <!-- Vertical drops at each column center (12.5%, 37.5%, 62.5%, 87.5%) -->
                 <div class="absolute top-0 left-[12.5%] w-px h-12 bg-violet-300"></div>
                 <div class="absolute top-0 left-[37.5%] w-px h-12 bg-violet-300"></div>
                 <div class="absolute top-0 left-[62.5%] w-px h-12 bg-violet-300"></div>
                 <div class="absolute top-0 left-[87.5%] w-px h-12 bg-violet-300"></div>
             </div>
 
-            <!-- ========================================= -->
-            <!-- LEVEL 3: FOUR DEPARTMENT HEADS            -->
-            <!-- ========================================= -->
+            <!-- LEVEL 3: FOUR DEPARTMENT HEADS -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-6 mb-0">
-                <!-- Dept Head 1: BSIT -->
                 <div class="flex flex-col items-center">
                     <div class="person-card glass-card-dark p-6 rounded-3xl text-center w-full">
                         <div class="w-20 h-20 mx-auto rounded-full overflow-hidden border-4 border-violet-500/40 mb-4 shadow-lg">
@@ -201,14 +177,12 @@
                         </div>
                         <h3 class="text-base font-extrabold text-white mb-1">Dr. Karen W. Cantilang</h3>
                         <p class="text-violet-300 text-[11px] font-semibold uppercase tracking-wider">Department Head</p>
-                        <!-- ADDED: Credentials -->
                         <p class="text-violet-400 text-[11px] italic mt-1">Ph.D. in Information Technology</p>
                         <p class="text-violet-400 text-[11px] mt-1 font-medium">BS Information Technology</p>
                     </div>
                     <div class="w-px h-8 bg-violet-300"></div>
                 </div>
 
-                <!-- Dept Head 2: BSCS -->
                 <div class="flex flex-col items-center">
                     <div class="person-card glass-card-dark p-6 rounded-3xl text-center w-full">
                         <div class="w-20 h-20 mx-auto rounded-full overflow-hidden border-4 border-violet-500/40 mb-4 shadow-lg">
@@ -216,14 +190,12 @@
                         </div>
                         <h3 class="text-base font-extrabold text-white mb-1">𝖯𝗋𝗈𝖿. 𝖩𝖾𝗌𝗎𝗌 𝖬. 𝖬𝖾𝗇𝖾𝗌𝖾𝗌</h3>
                         <p class="text-violet-300 text-[11px] font-semibold uppercase tracking-wider">Department Head</p>
-                        <!-- ADDED: Credentials -->
                         <p class="text-violet-400 text-[11px] italic mt-1">M.S. in Computer Science</p>
                         <p class="text-violet-400 text-[11px] mt-1 font-medium">BS Computer Science</p>
                     </div>
                     <div class="w-px h-8 bg-violet-300"></div>
                 </div>
 
-                <!-- Dept Head 3: EMC -->
                 <div class="flex flex-col items-center">
                     <div class="person-card glass-card-dark p-6 rounded-3xl text-center w-full">
                         <div class="w-20 h-20 mx-auto rounded-full overflow-hidden border-4 border-violet-500/40 mb-4 shadow-lg">
@@ -231,14 +203,12 @@
                         </div>
                         <h3 class="text-base font-extrabold text-white mb-1">Prof. Lourence Villaluz</h3>
                         <p class="text-violet-300 text-[11px] font-semibold uppercase tracking-wider">Department Head</p>
-                        <!-- ADDED: Credentials -->
                         <p class="text-violet-400 text-[11px] italic mt-1">M.S. in Multimedia Arts</p>
                         <p class="text-violet-400 text-[11px] mt-1 font-medium">Electronic Multimedia Computing</p>
                     </div>
                     <div class="w-px h-8 bg-violet-300"></div>
                 </div>
 
-                <!-- Dept Head 4: ACT -->
                 <div class="flex flex-col items-center">
                     <div class="person-card glass-card-dark p-6 rounded-3xl text-center w-full">
                         <div class="w-20 h-20 mx-auto rounded-full overflow-hidden border-4 border-violet-500/40 mb-4 shadow-lg">
@@ -246,7 +216,6 @@
                         </div>
                         <h3 class="text-base font-extrabold text-white mb-1">𝖣𝗋. 𝖭𝗂𝖾𝗅 𝖥𝗋𝖺𝗇𝖼𝗂𝗌 𝖡. 𝖢𝖺𝗌𝗂𝗅𝗅𝖺𝗇𝗈</h3>
                         <p class="text-violet-300 text-[11px] font-semibold uppercase tracking-wider">Department Head</p>
-                        <!-- ADDED: Credentials -->
                         <p class="text-violet-400 text-[11px] italic mt-1">M.S. in Computer Technology</p>
                         <p class="text-violet-400 text-[11px] mt-1 font-medium">Associate in Computer Technology</p>
                     </div>
@@ -254,155 +223,44 @@
                 </div>
             </div>
 
-            <!-- ========================================= -->
-            <!-- CONNECTING BRACKET TO GENERAL POOL        -->
-            <!-- ========================================= -->
+            <!-- CONNECTING BRACKET TO GENERAL POOL -->
             <div class="hidden md:block relative h-8 mb-6">
-                <!-- Horizontal line connecting all 4 drops -->
                 <div class="absolute top-0 left-[12.5%] right-[12.5%] h-px bg-violet-300"></div>
-                <!-- Central vertical drop down to the instructor pool -->
                 <div class="absolute top-0 left-1/2 w-px h-8 bg-violet-300"></div>
             </div>
 
-            <!-- ========================================= -->
-            <!-- LEVEL 4: GENERAL INSTRUCTORS POOL         -->
-            <!-- ========================================= -->
+            <!-- LEVEL 4: INSTRUCTORS POOL (WITH SEARCH) -->
             <div class="w-full bg-violet-50 rounded-3xl p-6 md:p-8 border border-violet-100 relative">
-                <p class="text-xs font-bold uppercase tracking-widest text-violet-600 text-center mb-6">CCS Instructors</p>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    
-                    <!-- Instructor 1 -->
-                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
-                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
-                            <img src="src\silvero.png" alt="Instructor" class="w-full h-full object-cover">
-                        </div>
-                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Mila Silvero</p>
-                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
-                        <!-- ADDED: Credentials -->
-                        <p class="text-[9px] text-violet-400 italic mt-0.5">M.S. in IT</p>
-                    </div>
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+                    <p class="text-xs font-bold uppercase tracking-widest text-violet-600 text-center sm:text-left">CCS Instructors</p>
 
-                    <!-- Instructor 2 -->
-                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
-                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
-                            <img src="src\chicano.png" alt="Instructor" class="w-full h-full object-cover">
-                        </div>
-                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Hilario Domingo Chicano</p>
-                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
-                        <!-- ADDED: Credentials -->
-                        <p class="text-[9px] text-violet-400 italic mt-0.5">M.S. in CS</p>
+                    <!-- SEARCH ENGINE -->
+                    <div class="relative w-full sm:w-72">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-violet-400 pointer-events-none"></i>
+                        <input
+                            id="instructorSearch"
+                            oninput="renderInstructors()"
+                            type="text"
+                            autocomplete="off"
+                            placeholder="Search instructor by name or role..."
+                            class="w-full bg-white border border-violet-200 rounded-xl py-2 pl-9 pr-10 text-xs text-violet-900 placeholder-violet-400 focus:border-violet-500 focus:outline-none"
+                        />
+                        <button
+                            type="button"
+                            id="instructorSearchClear"
+                            onclick="clearInstructorSearch()"
+                            class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-violet-400 hover:text-violet-700 p-1"
+                            title="Clear search"
+                        >
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
                     </div>
+                </div>
 
-                    <!-- Instructor 3 -->
-                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
-                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
-                            <img src="src\alegre.png" alt="Instructor" class="w-full h-full object-cover">
-                        </div>
-                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Mark Philip D. Alegre</p>
-                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
-                        <!-- ADDED: Credentials -->
-                        <p class="text-[9px] text-violet-400 italic mt-0.5">Ph.D. in CS</p>
-                    </div>
+                <p id="instructorCountLabel" class="text-[11px] text-violet-500 text-center sm:text-left mb-4"></p>
 
-                    <!-- Instructor 4 -->
-                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
-                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
-                            <img src="src\yape.png" alt="Instructor" class="w-full h-full object-cover">
-                        </div>
-                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Michael Angelo Yape</p>
-                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
-                        <!-- ADDED: Credentials -->
-                        <p class="text-[9px] text-violet-400 italic mt-0.5">M.S. in IT</p>
-                    </div>
-
-                    <!-- Instructor 5 -->
-                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
-                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
-                            <img src="src\pajanustan.png" alt="Instructor" class="w-full h-full object-cover">
-                        </div>
-                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Rolliedel Pajanustan</p>
-                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
-                        <!-- ADDED: Credentials -->
-                        <p class="text-[9px] text-violet-400 italic mt-0.5">M.S. in CS</p>
-                    </div>
-
-                    <!-- Instructor 7 (Now Instructor 6) -->
-                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
-                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
-                            <img src="src\ladiao.png" alt="Instructor" class="w-full h-full object-cover">
-                        </div>
-                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Laarni Cemat Maraño Ladiao</p>
-                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
-                        <!-- ADDED: Credentials -->
-                        <p class="text-[9px] text-violet-400 italic mt-0.5">M.S. in CS</p>
-                    </div>
-
-                    <!-- Instructor 10 (Now Instructor 7) -->
-                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
-                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
-                            <img src="src\balena.png" alt="Instructor" class="w-full h-full object-cover">
-                        </div>
-                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Julius Vincent Baleña</p>
-                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
-                        <!-- ADDED: Credentials -->
-                        <p class="text-[9px] text-violet-400 italic mt-0.5">M.S. in IT</p>
-                    </div>
-
-                    <!-- Instructor 11 (Now Instructor 8) -->
-                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
-                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
-                            <img src="src\caballa.png" alt="Instructor" class="w-full h-full object-cover">
-                        </div>
-                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Patz Caballa</p>
-                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
-                        <!-- ADDED: Credentials -->
-                        <p class="text-[9px] text-violet-400 italic mt-0.5">M.S. in CS</p>
-                    </div>
-
-                    <!-- Instructor 12 (Now Instructor 9) -->
-                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
-                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
-                            <img src="src\caraga.png" alt="Instructor" class="w-full h-full object-cover">
-                        </div>
-                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Alexis Oliver Caraga</p>
-                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
-                        <!-- ADDED: Credentials -->
-                        <p class="text-[9px] text-violet-400 italic mt-0.5">M.S. in IT</p>
-                    </div>
-
-                    <!-- Instructor 14 (Now Instructor 10) -->
-                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
-                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
-                            <img src="src\herbon.png" alt="Instructor" class="w-full h-full object-cover">
-                        </div>
-                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Humphrey Herbon</p>
-                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
-                        <!-- ADDED: Credentials -->
-                        <p class="text-[9px] text-violet-400 italic mt-0.5">M.S. in IT</p>
-                    </div>
-
-                    <!-- Instructor 15 (Now Instructor 11) -->
-                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
-                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
-                            <img src="src\rapatan.png" alt="Instructor" class="w-full h-full object-cover">
-                        </div>
-                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Aliza Mae Rapatan</p>
-                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
-                        <!-- ADDED: Credentials -->
-                        <p class="text-[9px] text-violet-400 italic mt-0.5">M.S. in CS</p>
-                    </div>
-
-                    <!-- Instructor 16 (Now Instructor 12) -->
-                    <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
-                        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200">
-                            <img src="src\cabais.png" alt="Instructor" class="w-full h-full object-cover">
-                        </div>
-                        <p class="text-[11px] font-bold text-violet-950 leading-tight">Mona Liza Cabais</p>
-                        <p class="text-[10px] text-violet-500 mt-1">Instructor</p>
-                        <!-- ADDED: Credentials -->
-                        <p class="text-[9px] text-violet-400 italic mt-0.5">Ph.D. in IT</p>
-                    </div>
-
+                <div id="instructorGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <!-- Cards injected by renderInstructors() -->
                 </div>
             </div>
 
@@ -417,7 +275,7 @@
     </section>
 
     <!-- ========================================== -->
-    <!-- 5. FOOTER (GWTD Standard)                  -->
+    <!-- 5. FOOTER                                    -->
     <!-- ========================================== -->
     <footer class="bg-violet-950 text-violet-200 pt-16 pb-8 px-4 md:px-8 border-t-4 border-violet-600">
         <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
@@ -455,21 +313,109 @@
     </footer>
 
     <!-- ========================================== -->
-    <!-- JAVASCRIPT                                 -->
+    <!-- JAVASCRIPT                                  -->
     <!-- ========================================== -->
     <script>
-        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-        const mobileMenu = document.getElementById('mobile-menu');
+        /* ---------- INSTRUCTOR DATA (A–Z will be enforced by sort) ---------- */
+        const INSTRUCTORS = [
+            { name: 'Mila Silvero',               role: 'Instructor', creds: 'M.S. in IT', img: 'src\\silvero.png' },
+            { name: 'Hilario Domingo Chicano',    role: 'Instructor', creds: 'M.S. in CS', img: 'src\\chicano.png' },
+            { name: 'Mark Philip D. Alegre',      role: 'Instructor', creds: 'Ph.D. in CS', img: 'src\\alegre.png' },
+            { name: 'Michael Angelo Yape',        role: 'Instructor', creds: 'M.S. in IT', img: 'src\\yape.png' },
+            { name: 'Rolliedel Pajanustan',       role: 'Instructor', creds: 'M.S. in CS', img: 'src\\pajanustan.png' },
+            { name: 'Laarni Cemat Maraño Ladiao', role: 'Instructor', creds: 'M.S. in CS', img: 'src\\ladiao.png' },
+            { name: 'Julius Vincent Baleña',      role: 'Instructor', creds: 'M.S. in IT', img: 'src\\balena.png' },
+            { name: 'Patz Caballa',               role: 'Instructor', creds: 'M.S. in CS', img: 'src\\caballa.png' },
+            { name: 'Alexis Oliver Caraga',       role: 'Instructor', creds: 'M.S. in IT', img: 'src\\caraga.png' },
+            { name: 'Humphrey Herbon',            role: 'Instructor', creds: 'M.S. in IT', img: 'src\\herbon.png' },
+            { name: 'Aliza Mae Rapatan',          role: 'Instructor', creds: 'M.S. in CS', img: 'src\\rapatan.png' },
+            { name: 'Mona Liza Cabais',           role: 'Instructor', creds: 'Ph.D. in IT', img: 'src\\cabais.png' },
+        ];
 
-        mobileMenuBtn.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
-        });
+        /* Sort A–Z by first name (case-insensitive, locale-aware) */
+        const SORTED_INSTRUCTORS = INSTRUCTORS.slice().sort((a, b) =>
+            a.name.toLowerCase().localeCompare(b.name.toLowerCase(), undefined, { sensitivity: 'base' })
+        );
 
-        mobileMenu.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                mobileMenu.classList.add('hidden');
+        document.addEventListener('DOMContentLoaded', () => {
+            renderInstructors();
+
+            // Mobile menu
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            mobileMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                });
             });
         });
+
+        /* ---------- RENDER + SEARCH ---------- */
+        function renderInstructors() {
+            const q = (document.getElementById('instructorSearch').value || '').toLowerCase().trim();
+
+            const clearBtn = document.getElementById('instructorSearchClear');
+            if (clearBtn) clearBtn.classList.toggle('hidden', !q);
+
+            const filtered = q
+                ? SORTED_INSTRUCTORS.filter(i =>
+                    `${i.name} ${i.role} ${i.creds}`.toLowerCase().includes(q)
+                )
+                : SORTED_INSTRUCTORS;
+
+            const grid = document.getElementById('instructorGrid');
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <p class="col-span-full text-center text-violet-500 text-xs italic py-6">
+                        No instructors match "${q}".
+                    </p>
+                `;
+                updateCountLabel(0, SORTED_INSTRUCTORS.length, q);
+                lucide.createIcons();
+                return;
+            }
+
+            grid.innerHTML = filtered.map(i => `
+                <div class="person-card bg-white rounded-xl p-4 text-center border border-violet-100">
+                    <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-3 border-2 border-violet-200 bg-violet-100 flex items-center justify-center">
+                        <img src="${i.img}" alt="${i.name}" class="w-full h-full object-cover"
+                             onerror="this.outerHTML='<span class=\\'font-bold text-violet-500 text-lg\\'>${escapeInitial(i.name)}</span>'" />
+                    </div>
+                    <p class="text-[11px] font-bold text-violet-950 leading-tight">${i.name}</p>
+                    <p class="text-[10px] text-violet-500 mt-1">${i.role}</p>
+                    <p class="text-[9px] text-violet-400 italic mt-0.5">${i.creds}</p>
+                </div>
+            `).join('');
+
+            updateCountLabel(filtered.length, SORTED_INSTRUCTORS.length, q);
+            lucide.createIcons();
+        }
+
+        function updateCountLabel(shown, total, q) {
+            const label = document.getElementById('instructorCountLabel');
+            if (!label) return;
+            if (total === 0) {
+                label.textContent = '';
+            } else if (!q) {
+                label.textContent = `Showing all ${total} instructors (A–Z).`;
+            } else {
+                label.textContent = `Showing ${shown} of ${total} instructors (filtered).`;
+            }
+        }
+
+        function clearInstructorSearch() {
+            const input = document.getElementById('instructorSearch');
+            if (input) input.value = '';
+            renderInstructors();
+            input?.focus();
+        }
+
+        function escapeInitial(name) {
+            return (name || '?').trim().charAt(0).toUpperCase();
+        }
     </script>
 </body>
 </html>

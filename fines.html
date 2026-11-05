@@ -96,11 +96,15 @@
           </div>
         </div>
 
+        <!-- SEARCH + FILTER -->
         <div class="flex flex-col sm:flex-row gap-3">
           <div class="relative flex-1">
             <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-purple-300/60"></i>
-            <input id="fineSearch" oninput="renderFines()" placeholder="Search student or reason..."
-              class="w-full bg-purple-950/60 border border-purple-500/30 rounded-xl py-2.5 pl-9 pr-3 text-xs text-white placeholder-purple-300/50 focus:border-purple-400 focus:outline-none" />
+            <input id="fineSearch" oninput="renderFines()" placeholder="Search by student, reason, amount, or status..."
+              class="w-full bg-purple-950/60 border border-purple-500/30 rounded-xl py-2.5 pl-9 pr-10 text-xs text-white placeholder-purple-300/50 focus:border-purple-400 focus:outline-none" />
+            <button type="button" id="fineSearchClearBtn" onclick="clearFineSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-purple-300 hover:text-white p-1" title="Clear search">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
           </div>
           <select id="fineFilter" onchange="renderFines()"
             class="bg-purple-950/60 border border-purple-500/30 rounded-xl py-2.5 px-3 text-xs text-white focus:border-purple-400 focus:outline-none">
@@ -110,6 +114,8 @@
             <option value="waived">Waived</option>
           </select>
         </div>
+
+        <p id="fineCountLabel" class="text-[11px] text-purple-300/60 px-1"></p>
 
         <div class="overflow-x-auto rounded-2xl border border-purple-500/20">
           <table class="w-full text-left text-xs">
@@ -133,7 +139,7 @@
   </div>
 
   <!-- ============================================
-       TASK 2: FINE RECORDING FORM MODAL
+       FINE RECORDING FORM MODAL (with student search)
        ============================================ -->
   <div id="modal-fine" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
     <div class="glass-card w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-purple-400/40 space-y-5 relative max-h-[90vh] overflow-y-auto">
@@ -153,12 +159,44 @@
 
       <form id="fineForm" onsubmit="saveFine(event)" class="space-y-4 text-xs">
 
+        <!-- STUDENT PICKER WITH SEARCH -->
         <div>
           <label class="block font-semibold text-purple-200 mb-1.5 text-[11px] uppercase tracking-wider">Student *</label>
-          <select id="fine-student" required
-            class="w-full bg-purple-950/60 border border-purple-500/40 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-purple-400 focus:outline-none">
-            <option value="">— Select Student —</option>
-          </select>
+
+          <!-- Hidden value that stores the selected student id (used on submit) -->
+          <input type="hidden" id="fine-student" />
+
+          <!-- Selected student chip -->
+          <div id="selectedFineStudentChip" class="hidden mb-2 flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-purple-600/20 border border-purple-400/40">
+            <div class="flex items-center gap-2 min-w-0">
+              <div class="p-1 rounded-lg bg-purple-500/30 text-purple-200">
+                <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
+              </div>
+              <span id="selectedFineStudentLabel" class="text-xs font-semibold text-white truncate"></span>
+            </div>
+            <button type="button" onclick="clearSelectedFineStudent()" class="text-purple-300 hover:text-white p-0.5" title="Clear selection">
+              <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+
+          <!-- Search input -->
+          <div class="relative">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-purple-300/60"></i>
+            <input
+              type="text"
+              id="fineStudentPickerSearch"
+              autocomplete="off"
+              placeholder="Search student by name or ID..."
+              oninput="renderFineStudentPicker(this.value)"
+              onfocus="renderFineStudentPicker(this.value)"
+              class="w-full bg-purple-950/60 border border-purple-500/40 rounded-xl px-3.5 py-2.5 pl-9 text-sm text-white placeholder-purple-300/40 focus:border-purple-400 focus:outline-none"
+            />
+          </div>
+
+          <!-- Dropdown list of matching students -->
+          <div id="fineStudentPickerList"
+            class="mt-1.5 max-h-44 overflow-y-auto rounded-xl border border-purple-500/30 bg-purple-950/80 divide-y divide-purple-500/10 text-xs">
+          </div>
         </div>
 
         <div>
@@ -213,6 +251,7 @@
   <script>
     let fines = [];
     let students = [];
+    let selectedFineStudent = null; // { id, student_id, first_name, last_name }
 
     document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('bg-layer').innerHTML = buildBackground();
@@ -268,19 +307,98 @@
       }
     }
 
+    /* LOAD STUDENTS (used by the picker) — alphabetical */
     async function loadStudents() {
-      const sel = document.getElementById('fine-student');
       if (!window.supabaseClient) return;
 
       try {
         const { data } = await window.supabaseClient
-          .from('students').select('id, first_name, last_name, student_id').order('last_name');
-        students = data || [];
-        sel.innerHTML = '<option value="">— Select Student —</option>' +
-          students.map(s => `<option value="${s.id}">${s.student_id} — ${s.first_name} ${s.last_name}</option>`).join('');
+          .from('students')
+          .select('id, first_name, last_name, student_id')
+          .order('first_name', { ascending: true })
+          .order('last_name', { ascending: true });
+
+        students = (data || []).slice().sort((a, b) => {
+          const fa = `${a.first_name || ''} ${a.last_name || ''}`.trim().toLowerCase();
+          const fb = `${b.first_name || ''} ${b.last_name || ''}`.trim().toLowerCase();
+          return fa.localeCompare(fb, undefined, { sensitivity: 'base' });
+        });
       } catch { students = []; }
     }
 
+    /* ---------- STUDENT PICKER (searchable) ---------- */
+    function renderFineStudentPicker(query = '') {
+      const listEl = document.getElementById('fineStudentPickerList');
+      if (!listEl) return;
+
+      const q = (query || '').toLowerCase().trim();
+
+      const matches = students.filter(s => {
+        if (!q) return true;
+        return `${s.student_id || ''} ${s.first_name || ''} ${s.last_name || ''}`
+          .toLowerCase()
+          .includes(q);
+      });
+
+      if (students.length === 0) {
+        listEl.innerHTML = `<div class="px-3 py-3 text-center text-purple-300/60 italic">No students loaded.</div>`;
+        return;
+      }
+
+      if (matches.length === 0) {
+        listEl.innerHTML = `<div class="px-3 py-3 text-center text-purple-300/60 italic">No students match "${q}".</div>`;
+        return;
+      }
+
+      const capped = matches.slice(0, 50);
+
+      listEl.innerHTML = capped.map(s => {
+        const isSelected = selectedFineStudent && String(selectedFineStudent.id) === String(s.id);
+        const initial = (s.first_name || 'S').charAt(0).toUpperCase();
+        const fullName = `${s.first_name || ''} ${s.last_name || ''}`.trim();
+        return `
+          <button type="button"
+            onclick='pickFineStudent(${JSON.stringify(s).replace(/'/g, "&#39;")})'
+            class="w-full text-left px-3 py-2 flex items-center gap-2.5 hover:bg-purple-800/40 transition-colors ${isSelected ? 'bg-purple-700/40' : ''}">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-purple-600 to-purple-400 border border-purple-300/40 flex items-center justify-center font-bold text-[11px] text-white shrink-0">
+              ${initial}
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="font-semibold text-white truncate text-xs">${fullName || '—'}</div>
+              <div class="text-[10px] text-purple-300/70 font-mono truncate">${s.student_id || ''}</div>
+            </div>
+            ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>' : ''}
+          </button>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function pickFineStudent(s) {
+      selectedFineStudent = s;
+      document.getElementById('fine-student').value = s.id;
+
+      const chip = document.getElementById('selectedFineStudentChip');
+      const label = document.getElementById('selectedFineStudentLabel');
+      label.textContent = `${s.student_id || ''} — ${s.first_name || ''} ${s.last_name || ''}`.trim();
+      chip.classList.remove('hidden');
+
+      const input = document.getElementById('fineStudentPickerSearch');
+      input.value = '';
+
+      renderFineStudentPicker('');
+    }
+
+    function clearSelectedFineStudent() {
+      selectedFineStudent = null;
+      document.getElementById('fine-student').value = '';
+      document.getElementById('selectedFineStudentChip').classList.add('hidden');
+      document.getElementById('fineStudentPickerSearch').value = '';
+      renderFineStudentPicker('');
+    }
+
+    /* LOAD FINES — alphabetical by student name */
     async function loadFines() {
       const tbody = document.getElementById('finesTable');
       tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">Loading...</td></tr>`;
@@ -293,14 +411,21 @@
 
       try {
         const { data, error } = await window.supabaseClient
-          .from('fines').select('*').order('created_at', { ascending: false });
+          .from('fines')
+          .select('*')
+          .order('student_name', { ascending: true });
 
         if (error) {
           tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-red-300 italic">Error: ${error.message}</td></tr>`;
           return;
         }
 
-        fines = data || [];
+        fines = (data || []).slice().sort((a, b) => {
+          const fa = (a.student_name || '').trim().toLowerCase();
+          const fb = (b.student_name || '').trim().toLowerCase();
+          return fa.localeCompare(fb, undefined, { sensitivity: 'base' });
+        });
+
         renderFines(); renderStats();
       } catch (err) {
         tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-red-300 italic">Error: ${err.message}</td></tr>`;
@@ -319,19 +444,34 @@
       document.getElementById('statUnpaid').textContent = unpaidCount;
     }
 
+    /* ---------- RENDER + SEARCH ENGINE ---------- */
     function renderFines() {
-      const q = (document.getElementById('fineSearch').value || '').toLowerCase();
+      const q = (document.getElementById('fineSearch').value || '').toLowerCase().trim();
       const filter = document.getElementById('fineFilter').value;
+
+      const clearBtn = document.getElementById('fineSearchClearBtn');
+      if (clearBtn) clearBtn.classList.toggle('hidden', !q);
 
       const list = fines.filter(f => {
         if (filter !== 'all' && f.status !== filter) return false;
-        if (q && !((f.student_name || '') + ' ' + (f.reason || '')).toLowerCase().includes(q)) return false;
-        return true;
+        if (!q) return true;
+        const haystack = [
+          f.student_name || '',
+          f.reason || '',
+          f.status || '',
+          f.remarks || '',
+          String(f.amount || ''),
+          f.due_date || ''
+        ].join(' ').toLowerCase();
+        return haystack.includes(q);
       });
 
       const tbody = document.getElementById('finesTable');
       if (list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">No fine records found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-purple-300/60 italic">${
+          q || filter !== 'all' ? 'No fine records match your search/filter.' : 'No fine records found.'
+        }</td></tr>`;
+        updateFineCountLabel(0, fines.length, q, filter);
         return;
       }
 
@@ -358,10 +498,32 @@
         </tr>
       `).join('');
       lucide.createIcons();
+      updateFineCountLabel(list.length, fines.length, q, filter);
+    }
+
+    function updateFineCountLabel(shown, total, q, filter) {
+      const label = document.getElementById('fineCountLabel');
+      if (!label) return;
+      if (total === 0) {
+        label.textContent = '';
+      } else if (!q && filter === 'all') {
+        label.textContent = `Showing all ${total} record${total === 1 ? '' : 's'} (A–Z).`;
+      } else {
+        label.textContent = `Showing ${shown} of ${total} record${total === 1 ? '' : 's'} (filtered).`;
+      }
+    }
+
+    function clearFineSearch() {
+      const input = document.getElementById('fineSearch');
+      if (input) { input.value = ''; }
+      renderFines();
+      input?.focus();
     }
 
     function openFineModal() {
       document.getElementById('fineForm').reset();
+      clearSelectedFineStudent();
+      renderFineStudentPicker('');
       document.getElementById('modal-fine').classList.remove('opacity-0', 'pointer-events-none');
     }
 
@@ -377,16 +539,14 @@
         return;
       }
 
-      const studentId = document.getElementById('fine-student').value;
-      const student = students.find(s => String(s.id) === String(studentId));
-      if (!student) {
-        showToast('Missing Student', 'Select a valid student.');
+      if (!selectedFineStudent) {
+        showToast('Missing Student', 'Search and select a student first.');
         return;
       }
 
       const payload = {
-        student_id: studentId,
-        student_name: `${student.first_name} ${student.last_name}`,
+        student_id: selectedFineStudent.id,
+        student_name: `${selectedFineStudent.first_name} ${selectedFineStudent.last_name}`,
         reason: document.getElementById('fine-reason').value.trim(),
         amount: parseFloat(document.getElementById('fine-amount').value) || 0,
         status: document.getElementById('fine-status').value,

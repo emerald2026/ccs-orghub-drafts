@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EMCO Students — CCS OrgHub</title>
+  <link rel="icon" type="image/png" href="ccs.png" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js" onerror="console.warn('config.js not found')"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="shared.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        fontFamily: { sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'] },
+        colors: { purple: { 950:'#0f041c',900:'#1e0836',850:'#2d0a4e',800:'#3b0764',700:'#581c87',600:'#7e22ce',500:'#a855f7',400:'#c084fc',300:'#d8b4fe',200:'#e9d5ff',100:'#f3e8ff',50:'#faf5ff' }}
+      }}
+    }
+  </script>
+</head>
+<body class="h-full font-sans antialiased selection:bg-fuchsia-500 selection:text-white flex overflow-hidden">
+
+  <div id="bg-layer"></div>
+  <div id="sidebar-layer"></div>
+
+  <div class="flex-1 lg:ml-64 flex flex-col min-h-screen relative z-10 overflow-x-hidden">
+    <div id="topbar-layer"></div>
+
+    <main class="flex-1 p-4 md:p-8 space-y-6">
+      <div id="connectionStatus" class="glass-card p-4 rounded-2xl flex items-center gap-3 text-xs">
+        <div id="connIcon" class="p-2 rounded-xl bg-amber-500/20 border border-amber-500/30">
+          <i data-lucide="wifi" class="w-4 h-4 text-amber-300"></i>
+        </div>
+        <div>
+          <div id="connTitle" class="font-bold text-white">Checking connection...</div>
+          <div id="connSub" class="text-fuchsia-300/70">Verifying EMCO members data</div>
+        </div>
+      </div>
+
+      <div class="glass-card p-6 rounded-3xl space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <i data-lucide="users" class="w-5 h-5 text-fuchsia-400"></i> EMCO Students
+            </h3>
+            <p class="text-xs text-fuchsia-300/70">BS Entertainment & Multimedia students</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="relative w-full sm:w-72">
+              <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-fuchsia-300/60"></i>
+              <input id="studentSearch" oninput="renderStudents()" placeholder="Search student..."
+                class="w-full bg-fuchsia-950/60 border border-fuchsia-500/30 rounded-xl py-2.5 pl-9 pr-10 text-xs text-white placeholder-fuchsia-300/50 focus:border-fuchsia-400 focus:outline-none" />
+            </div>
+            <button onclick="loadAll()" class="px-3 py-2.5 rounded-xl bg-fuchsia-950/60 hover:bg-fuchsia-800/60 text-fuchsia-200 border border-fuchsia-500/30 text-[11px] font-bold transition-all flex items-center gap-1.5">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+        
+        <p id="studentCountLabel" class="text-[11px] text-fuchsia-300/60 px-1"></p>
+        
+        <div class="overflow-x-auto rounded-2xl border border-fuchsia-500/20">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-fuchsia-950/80 text-fuchsia-300 uppercase tracking-wider font-semibold border-b border-fuchsia-500/20">
+              <tr>
+                <th class="py-3.5 px-4">Student</th>
+                <th class="py-3.5 px-4">Student ID</th>
+                <th class="py-3.5 px-4">Course</th>
+                <th class="py-3.5 px-4">Year</th>
+                <th class="py-3.5 px-4">Paid</th>
+                <th class="py-3.5 px-4">Outstanding</th>
+              </tr>
+            </thead>
+            <tbody id="studentsTable" class="divide-y divide-fuchsia-500/10 text-fuchsia-100">
+              <tr><td colspan="6" class="py-8 text-center text-fuchsia-300/60 italic">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="modal-layer"></div>
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-3 pointer-events-none"></div>
+
+  <script src="shared.js"></script>
+  <script>
+    const ORG_CODE = 'EMCO';
+    const ORG_LABEL = 'EMCO';
+    const ORG_COURSES = ['BS Entertainment & Multimedia'];
+    const ACTIVE_PAGE = 'org-students';
+
+    let students = [], fees = [], fines = [], payments = [];
+    let members = [], scopedFees = [], scopedFines = [], scopedPayments = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      document.getElementById('bg-layer').innerHTML = buildBackground();
+      document.getElementById('sidebar-layer').innerHTML = buildSidebar(ACTIVE_PAGE);
+      document.getElementById('topbar-layer').innerHTML = buildTopbar('EMCO Students', 'Manage organization members');
+      document.getElementById('modal-layer').innerHTML = buildLogoutModal();
+
+      lucide.createIcons();
+      initSupabase();
+      
+      const auth = await guardOrgAuth(ORG_CODE);
+      if (!auth.ok) return;
+      
+      await loadAll();
+    });
+
+    async function loadAll() {
+      if (!window.supabaseClient) return;
+      try {
+        const [sRes, fRes, fnRes, pRes] = await Promise.all([
+          window.supabaseClient.from('students').select('*').order('first_name'),
+          window.supabaseClient.from('fees').select('*'),
+          window.supabaseClient.from('fines').select('*'),
+          window.supabaseClient.from('payments').select('*')
+        ]);
+        students = sRes.data || []; fees = fRes.data || []; fines = fnRes.data || []; payments = pRes.data || [];
+      } catch (e) { console.warn(e); }
+      
+      scopeToOrg();
+      renderStudents();
+    }
+
+    function scopeToOrg() {
+      members = students.filter(s => ORG_COURSES.includes(s.course));
+      const idSet = new Set(members.map(s => String(s.id)));
+      
+      scopedFees = fees.filter(f => idSet.has(String(f.student_id)));
+      scopedFines = fines.filter(f => idSet.has(String(f.student_id)));
+      scopedPayments = payments.filter(p => idSet.has(String(p.student_id)));
+    }
+
+    function memberFinancials(studentId) {
+      const idStr = String(studentId);
+      let paid = 0, outstanding = 0;
+      
+      scopedFees.filter(f => String(f.student_id) === idStr).forEach(f => {
+        const amt = parseFloat(f.amount) || 0;
+        if (f.status === 'paid') paid += amt; 
+        else if (f.status === 'unpaid') outstanding += amt;
+      });
+      
+      scopedFines.filter(f => String(f.student_id) === idStr).forEach(f => {
+        const amt = parseFloat(f.amount) || 0;
+        if (f.status === 'settled') paid += amt; 
+        else if (f.status === 'unpaid') outstanding += amt;
+      });
+      
+      scopedPayments.filter(p => String(p.student_id) === idStr).forEach(p => { 
+        paid += parseFloat(p.amount) || 0; 
+      });
+      
+      return { paid, outstanding };
+    }
+
+    function renderStudents() {
+      const q = (document.getElementById('studentSearch').value || '').toLowerCase().trim();
+      const list = members.filter(s => !q || `${s.first_name || ''} ${s.last_name || ''} ${s.student_id || ''}`.toLowerCase().includes(q));
+      const tbody = document.getElementById('studentsTable');
+      
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-fuchsia-300/60 italic">${q ? 'No students match your search.' : `No students in ${ORG_LABEL} yet.`}</td></tr>`;
+        document.getElementById('studentCountLabel').textContent = '';
+        return;
+      }
+      
+      tbody.innerHTML = list.map(s => {
+        const { paid, outstanding } = memberFinancials(s.id);
+        const fullName = `${s.first_name || ''} ${s.last_name || ''}`.trim() || '—';
+        return `
+          <tr class="hover:bg-fuchsia-900/30 transition-colors">
+            <td class="py-3.5 px-4 font-semibold text-white">${fullName}</td>
+            <td class="py-3.5 px-4 font-mono text-fuchsia-300"><span class="px-2 py-1 rounded-lg bg-fuchsia-500/20 border border-fuchsia-400/30">${s.student_id || '—'}</span></td>
+            <td class="py-3.5 px-4 text-fuchsia-200">${s.course || '—'}</td>
+            <td class="py-3.5 px-4 text-fuchsia-300/80">${s.year_level || '—'}</td>
+            <td class="py-3.5 px-4 text-emerald-300 font-bold">₱${paid.toFixed(2)}</td>
+            <td class="py-3.5 px-4 text-amber-300 font-bold">₱${outstanding.toFixed(2)}</td>
+          </tr>`;
+      }).join('');
+      
+      document.getElementById('studentCountLabel').textContent = `Showing ${list.length} of ${members.length} students.`;
+      lucide.createIcons();
+    }
+  </script>
+</body>
+</html>
